@@ -9,8 +9,10 @@ test-linux:
 test-macos:
 	set -o pipefail && \
 	xcodebuild test \
-		-scheme SnapshotTesting \
+		-scheme swift-snapshot-testing-Package \
 		-destination platform="macOS" \
+		-resultBundlePath .xcresults/macos \
+		-workspace . | xcbeautify
 
 test-ios:
 	set -o pipefail && \
