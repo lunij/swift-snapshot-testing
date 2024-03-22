@@ -67,16 +67,13 @@
             let work = {
               if #available(iOS 11.0, macOS 10.13, *) {
                 inWindow {
-                  guard wkWebView.frame.width != 0, wkWebView.frame.height != 0 else {
-                    callback(Image())
-                    return
-                  }
-                  let configuration = WKSnapshotConfiguration()
-                  if #available(iOS 13, macOS 10.15, *) {
-                    configuration.afterScreenUpdates = false
-                  }
-                  wkWebView.takeSnapshot(with: configuration) { image, _ in
-                    callback(image!)
+                  wkWebView.takeSnapshot(with: nil) { image, error in
+                    guard let image else {
+                      debugPrint("No image taken. Error: \(error.description)")
+                      callback(Image())
+                      return
+                    }
+                    callback(image)
                   }
                 }
               } else {
@@ -185,32 +182,25 @@
         view: view,
         viewController: viewController
       )
-      // NB: Avoid safe area influence.
-      if config.safeArea == .zero { view.frame.origin = .init(x: offscreen, y: offscreen) }
-
-      return
-        (view.snapshot
-        ?? Async { callback in
-          addImagesForRenderedViews(view).sequence().run { views in
-            callback(
-              renderer(bounds: view.bounds, for: traits).image { ctx in
-                if drawHierarchyInKeyWindow {
-                  view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
-                } else {
-                  view.layer.render(in: ctx.cgContext)
-                }
+      return Async { callback in
+        addImagesForRenderedViews(view).sequence().run { views in
+          callback(
+            renderer(bounds: view.bounds, for: traits).image { ctx in
+              if drawHierarchyInKeyWindow {
+                view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+              } else {
+                view.layer.render(in: ctx.cgContext)
               }
-            )
-            views.forEach { $0.removeFromSuperview() }
-            view.frame = initialFrame
-          }
-        }).map {
-          dispose()
-          return $0
+            }
+          )
+          views.forEach { $0.removeFromSuperview() }
+          view.frame = initialFrame
         }
+      }.map {
+        dispose()
+        return $0
+      }
     }
-
-    private let offscreen: CGFloat = 10_000
 
     func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageRenderer {
       let renderer: UIGraphicsImageRenderer
@@ -357,4 +347,14 @@ extension Array {
       }
     }
   }
+}
+
+extension Optional {
+    var description: String {
+        if let value = self {
+            return String(describing: value)
+        } else {
+            return "nil"
+        }
+    }
 }

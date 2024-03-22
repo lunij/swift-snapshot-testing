@@ -50,6 +50,7 @@ let package = Package(
       exclude: [
         "__Fixtures__",
         "__Snapshots__",
+        "Snapshotting/__Snapshots__",
       ]
     ),
   ]

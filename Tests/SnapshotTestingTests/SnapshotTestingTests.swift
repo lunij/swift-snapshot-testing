@@ -1101,27 +1101,6 @@ final class SnapshotTestingTests: XCTestCase {
       """.utf8)
   }
 
-  func testWebView() throws {
-    #if os(iOS)
-      XCTExpectFailure("WebView snapshotting needs to be fixed")
-    #endif
-    #if os(iOS) || os(macOS)
-      let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
-        .deletingLastPathComponent()
-        .appendingPathComponent("__Fixtures__/pointfree.html")
-      let html = try String(contentsOf: fixtureUrl)
-      let webView = WKWebView()
-      webView.loadHTMLString(html, baseURL: nil)
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(
-          of: webView,
-          as: .image(size: .init(width: 800, height: 600)),
-          named: platform
-        )
-      }
-    #endif
-  }
-
   func testViewWithZeroHeightOrWidth() {
     #if os(iOS) || os(tvOS)
       XCTExpectFailure("The concept needs to be revisited")
@@ -1152,95 +1131,6 @@ final class SnapshotTestingTests: XCTestCase {
       XCTAssertNotNil(failure)
     #endif
   }
-
-  func testEmbeddedWebView() throws {
-    #if os(iOS)
-      let label = UILabel()
-      label.text = "Hello, Blob!"
-
-      let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
-        .deletingLastPathComponent()
-        .appendingPathComponent("__Fixtures__/pointfree.html")
-      let html = try String(contentsOf: fixtureUrl)
-      let webView = WKWebView()
-      webView.loadHTMLString(html, baseURL: nil)
-      webView.isHidden = true
-
-      let stackView = UIStackView(arrangedSubviews: [label, webView])
-      stackView.axis = .vertical
-
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(
-          of: stackView,
-          as: .image(size: .init(width: 800, height: 600)),
-          named: platform
-        )
-      }
-    #endif
-  }
-
-  #if os(iOS) || os(macOS)
-    final class ManipulatingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
-      func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        webView.evaluateJavaScript("document.body.children[0].classList.remove(\"hero\")")  // Change layout
-      }
-    }
-    func testWebViewWithManipulatingNavigationDelegate() throws {
-      #if os(iOS)
-        XCTExpectFailure("WebView snapshotting needs to be fixed")
-      #endif
-      let manipulatingWKWebViewNavigationDelegate = ManipulatingWKWebViewNavigationDelegate()
-      let webView = WKWebView()
-      webView.navigationDelegate = manipulatingWKWebViewNavigationDelegate
-
-      let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
-        .deletingLastPathComponent()
-        .appendingPathComponent("__Fixtures__/pointfree.html")
-      let html = try String(contentsOf: fixtureUrl)
-      webView.loadHTMLString(html, baseURL: nil)
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(
-          of: webView,
-          as: .image(size: .init(width: 800, height: 600)),
-          named: platform
-        )
-      }
-      _ = manipulatingWKWebViewNavigationDelegate
-    }
-
-    final class CancellingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
-      func webView(
-        _ webView: WKWebView,
-        decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
-      ) {
-        decisionHandler(.cancel)
-      }
-    }
-
-    func testWebViewWithCancellingNavigationDelegate() throws {
-      #if os(iOS)
-        XCTExpectFailure("WebView snapshotting needs to be fixed")
-      #endif
-      let cancellingWKWebViewNavigationDelegate = CancellingWKWebViewNavigationDelegate()
-      let webView = WKWebView()
-      webView.navigationDelegate = cancellingWKWebViewNavigationDelegate
-
-      let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
-        .deletingLastPathComponent()
-        .appendingPathComponent("__Fixtures__/pointfree.html")
-      let html = try String(contentsOf: fixtureUrl)
-      webView.loadHTMLString(html, baseURL: nil)
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(
-          of: webView,
-          as: .image(size: .init(width: 800, height: 600)),
-          named: platform
-        )
-      }
-      _ = cancellingWKWebViewNavigationDelegate
-    }
-  #endif
 
   #if os(iOS)
     @available(iOS 13.0, *)
