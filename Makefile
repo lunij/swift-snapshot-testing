@@ -17,8 +17,10 @@ test-macos:
 test-ios:
 	set -o pipefail && \
 	xcodebuild test \
-		-scheme SnapshotTesting \
-		-destination platform="iOS Simulator,name=iPhone 11 Pro Max,OS=13.3"
+		-scheme swift-snapshot-testing-Package \
+		-destination platform="iOS Simulator,name=iPhone 14,OS=16.4" \
+		-resultBundlePath .xcresults/ios \
+		-workspace . | xcbeautify
 
 test-swift:
 	swift test
