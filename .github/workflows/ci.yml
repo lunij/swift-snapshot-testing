@@ -13,7 +13,7 @@ jobs:
     name: macOS 13 (Xcode ${{ matrix.xcode }})
     runs-on: macos-13
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Select Xcode ${{ matrix.xcode }}
         run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
       - name: Run tests
@@ -28,10 +28,10 @@ jobs:
     name: Ubuntu (Swift ${{ matrix.swift }})
     runs-on: ubuntu-20.04
     steps:
-      - uses: swift-actions/setup-swift@v1
+      - uses: swift-actions/setup-swift@v2
         with:
           swift-version: ${{ matrix.swift }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: swift test
 
   windows:
