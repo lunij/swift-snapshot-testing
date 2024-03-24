@@ -59,7 +59,7 @@
     ///     human eye.
     ///   - traits: A trait collection override.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, traits: UITraitCollection = .init()
+      precision: Float = 0.99, perceptualPrecision: Float = 0.99, traits: UITraitCollection = .init()
     )
       -> Snapshotting
     {

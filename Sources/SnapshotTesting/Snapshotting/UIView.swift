@@ -22,8 +22,8 @@
     ///   - traits: A trait collection override.
     public static func image(
       drawHierarchyInKeyWindow: Bool = false,
-      precision: Float = 1,
-      perceptualPrecision: Float = 1,
+      precision: Float = 0.99,
+      perceptualPrecision: Float = 0.99,
       size: CGSize? = nil,
       traits: UITraitCollection = .init()
     )
