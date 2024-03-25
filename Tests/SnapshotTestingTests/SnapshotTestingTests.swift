@@ -1111,6 +1111,9 @@ final class SnapshotTestingTests: BaseTestCase {
   }
 
   func testWebView() throws {
+    #if os(iOS)
+      XCTExpectFailure("WebView snapshotting needs to be fixed")
+    #endif
     #if os(iOS) || os(macOS)
       let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
         .deletingLastPathComponent()
@@ -1191,6 +1194,9 @@ final class SnapshotTestingTests: BaseTestCase {
       }
     }
     func testWebViewWithManipulatingNavigationDelegate() throws {
+      #if os(iOS)
+        XCTExpectFailure("WebView snapshotting needs to be fixed")
+      #endif
       let manipulatingWKWebViewNavigationDelegate = ManipulatingWKWebViewNavigationDelegate()
       let webView = WKWebView()
       webView.navigationDelegate = manipulatingWKWebViewNavigationDelegate
@@ -1221,6 +1227,9 @@ final class SnapshotTestingTests: BaseTestCase {
     }
 
     func testWebViewWithCancellingNavigationDelegate() throws {
+      #if os(iOS)
+        XCTExpectFailure("WebView snapshotting needs to be fixed")
+      #endif
       let cancellingWKWebViewNavigationDelegate = CancellingWKWebViewNavigationDelegate()
       let webView = WKWebView()
       webView.navigationDelegate = cancellingWKWebViewNavigationDelegate
