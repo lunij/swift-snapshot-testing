@@ -191,32 +191,26 @@ final class SnapshotTestingTests: XCTestCase {
     #endif
   }
 
-  func testNSView() {
-    #if os(macOS)
+  #if os(macOS)
+    func testNSView() {
       let button = NSButton()
       button.bezelStyle = .rounded
       button.title = "Push Me"
       button.sizeToFit()
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(of: button, as: .image)
-        assertSnapshot(of: button, as: .recursiveDescription)
-      }
-    #endif
-  }
+      assertSnapshot(of: button, as: .image)
+      assertSnapshot(of: button, as: .recursiveDescription)
+    }
 
-  func testNSViewWithLayer() {
-    #if os(macOS)
+    func testNSViewWithLayer() {
       let view = NSView()
-      view.frame = CGRect(x: 0.0, y: 0.0, width: 10.0, height: 10.0)
+      view.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
       view.wantsLayer = true
       view.layer?.backgroundColor = NSColor.green.cgColor
       view.layer?.cornerRadius = 5
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(of: view, as: .image)
-        assertSnapshot(of: view, as: .recursiveDescription)
-      }
-    #endif
-  }
+      assertSnapshot(of: view, as: .image)
+      assertSnapshot(of: view, as: .recursiveDescription)
+    }
+  #endif
 
   func testPrecision() {
     #if os(iOS) || os(macOS) || os(tvOS)
