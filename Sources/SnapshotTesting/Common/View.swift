@@ -17,7 +17,7 @@
         [
           Async { callback in
             async.run { image in
-              let imageView = ImageView()
+              let imageView = XImageView()
               imageView.image = image
               imageView.frame = view.frame
               #if os(macOS)
