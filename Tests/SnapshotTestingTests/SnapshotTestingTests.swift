@@ -1006,6 +1006,57 @@ final class SnapshotTestingTests: XCTestCase {
     #endif
   }
 
+#if os(macOS)
+  func testNSViewControllerLifeCycle() {
+      class ViewController: NSViewController {
+        let viewDidLoadExpectation = XCTestExpectation(description: "viewDidLoad")
+
+        let viewWillAppearExpectation = XCTestExpectation(description: "viewWillAppear")
+        let viewDidAppearExpectation = XCTestExpectation(description: "viewDidAppear")
+
+        let viewWillDisappearExpectation = XCTestExpectation(description: "viewWillDisappear")
+        let viewDidDisappearExpectation = XCTestExpectation(description: "viewDidDisappear")
+
+        override func viewDidLoad() {
+          super.viewDidLoad()
+          viewDidLoadExpectation.fulfill()
+        }
+        override func viewWillAppear() {
+          super.viewWillAppear()
+          viewWillAppearExpectation.fulfill()
+        }
+        override func viewDidAppear() {
+          super.viewDidAppear()
+          viewDidAppearExpectation.fulfill()
+        }
+        override func viewWillDisappear() {
+          super.viewWillDisappear()
+          viewWillDisappearExpectation.fulfill()
+        }
+        override func viewDidDisappear() {
+          super.viewDidDisappear()
+          viewDidDisappearExpectation.fulfill()
+        }
+      }
+
+      let viewController = ViewController()
+      viewController.viewWillAppearExpectation.expectedFulfillmentCount = 2
+      viewController.viewDidAppearExpectation.expectedFulfillmentCount = 2
+      viewController.viewWillDisappearExpectation.expectedFulfillmentCount = 1
+      viewController.viewDidDisappearExpectation.expectedFulfillmentCount = 1
+
+      assertSnapshot(of: viewController, as: .image)
+
+      wait(for: [
+        viewController.viewDidLoadExpectation,
+        viewController.viewWillAppearExpectation,
+        viewController.viewDidAppearExpectation,
+        viewController.viewWillDisappearExpectation,
+        viewController.viewDidDisappearExpectation,
+      ], timeout: 10, enforceOrder: true)
+  }
+#endif
+
   func testCALayer() {
     #if os(iOS)
       let layer = CALayer()
