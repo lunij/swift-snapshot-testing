@@ -212,31 +212,26 @@ final class SnapshotTestingTests: XCTestCase {
     }
   #endif
 
-  func testPrecision() {
-    #if os(iOS) || os(macOS) || os(tvOS)
-      #if os(iOS) || os(tvOS)
-        let label = UILabel()
-        #if os(iOS)
-          label.frame = CGRect(origin: .zero, size: CGSize(width: 43.5, height: 20.5))
-        #elseif os(tvOS)
-          label.frame = CGRect(origin: .zero, size: CGSize(width: 98, height: 46))
-        #endif
-        label.backgroundColor = .white
-      #elseif os(macOS)
-        let label = NSTextField()
-        label.frame = CGRect(origin: .zero, size: CGSize(width: 37, height: 16))
-        label.backgroundColor = .white
-        label.isBezeled = false
-        label.isEditable = false
-      #endif
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        label.text = "Hello."
-        assertSnapshot(of: label, as: .image(precision: 0.9), named: platform)
-        label.text = "Hello"
-        assertSnapshot(of: label, as: .image(precision: 0.9), named: platform)
-      }
-    #endif
-  }
+  #if os(iOS) || os(macOS) || os(tvOS)
+    func testPrecision() {
+      let view = XView(frame: .init(x: 0, y: 0, width: 100, height: 100)) // 10000 pixels
+      view.backgroundColor = .blue
+      assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: platform + "-original")
+
+      let subview = XView(frame: .init(x: 0, y: 0, width: 10, height: 10)) // 100 pixels
+      subview.backgroundColor = .red
+      view.addSubview(subview)
+      assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: platform + "-modified")
+
+      var message = verifySnapshot(of: view, as: .image(precision: 0.999, perceptualPrecision: 1), named: platform + "-original")
+      let firstLine = message?.split(whereSeparator: \.isNewline).first
+      XCTAssertEqual(firstLine, "[\(platform)-original] Actual image precision 0.995 is less than expected 0.999")
+
+      // 10000-100=9900 => 99% precision
+      message = verifySnapshot(of: view, as: .image(precision: 0.99, perceptualPrecision: 1), named: platform + "-original")
+      XCTAssertNil(message)
+    }
+  #endif
 
   func testImagePrecision() throws {
     #if os(iOS) || os(tvOS) || os(macOS)
@@ -1195,4 +1190,19 @@ final class SnapshotTestingTests: XCTestCase {
       "accessibility-extra-extra-large": .accessibilityExtraExtraLarge,
       "accessibility-extra-extra-extra-large": .accessibilityExtraExtraExtraLarge,
     ]
+#endif
+
+#if os(macOS)
+extension XView {
+  var backgroundColor: NSColor? {
+    get {
+      guard let cgColor = layer?.backgroundColor else { return nil }
+      return NSColor(cgColor: cgColor)
+    }
+    set {
+      wantsLayer = true
+      layer?.backgroundColor = newValue?.cgColor
+    }
+  }
+}
 #endif
