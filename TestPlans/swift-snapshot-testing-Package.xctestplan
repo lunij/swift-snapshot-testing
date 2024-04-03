@@ -1,0 +1,45 @@
+{
+  "configurations" : [
+    {
+      "id" : "F193C3FC-C24A-491D-A9FA-1F77B089C5EA",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:",
+          "identifier" : "InlineSnapshotTesting",
+          "name" : "InlineSnapshotTesting"
+        },
+        {
+          "containerPath" : "container:",
+          "identifier" : "SnapshotTesting",
+          "name" : "SnapshotTesting"
+        }
+      ]
+    },
+    "region" : "US"
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "InlineSnapshotTestingTests",
+        "name" : "InlineSnapshotTestingTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SnapshotTestingTests",
+        "name" : "SnapshotTestingTests"
+      }
+    }
+  ],
+  "version" : 1
+}
