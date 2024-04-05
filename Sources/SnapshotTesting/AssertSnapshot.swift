@@ -278,7 +278,7 @@ public func verifySnapshot<Value, Format>(
     let data = try Data(contentsOf: snapshotFileUrl)
     let reference = snapshotting.diffing.fromData(data)
 
-    guard let (failure, attachments) = snapshotting.diffing.diff(reference, diffable) else {
+    guard let (failureMessage, attachments) = snapshotting.diffing.diff(reference, diffable) else {
       return nil
     }
 
@@ -304,7 +304,7 @@ public func verifySnapshot<Value, Format>(
       #endif
     }
 
-    let diffMessage =
+    let diffToolMessage =
       diffTool
       .map { "\($0) \"\(snapshotFileUrl.path)\" \"\(failedSnapshotFileUrl.path)\"" }
         ?? """
@@ -318,19 +318,17 @@ public func verifySnapshot<Value, Format>(
             SnapshotTesting.diffTool = "ksdiff"
         """
 
-    let failureMessage: String
-    if let name = name {
-      failureMessage = "Snapshot \"\(name)\" does not match reference."
+    let failureMessagePrefix: String
+    if let name {
+      failureMessagePrefix = "[\(name)] "
     } else {
-      failureMessage = "Snapshot does not match reference."
+      failureMessagePrefix = ""
     }
 
     return """
-      \(failureMessage)
+      \(failureMessagePrefix)\(failureMessage)
 
-      \(diffMessage)
-
-      \(failure.trimmingCharacters(in: .whitespacesAndNewlines))
+      \(diffToolMessage)
       """
   } catch {
     return error.localizedDescription
