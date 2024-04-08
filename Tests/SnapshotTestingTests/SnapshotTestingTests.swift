@@ -1101,36 +1101,44 @@ final class SnapshotTestingTests: XCTestCase {
       """.utf8)
   }
 
-  func testViewWithZeroHeightOrWidth() {
-    #if os(iOS) || os(tvOS)
-      XCTExpectFailure("The concept needs to be revisited")
-      var rect = CGRect(x: 0, y: 0, width: 350, height: 0)
-      var view = UIView(frame: rect)
-      view.backgroundColor = .red
-      assertSnapshot(of: view, as: .image, named: "noHeight")
+  #if os(iOS) || os(macOS) || os(tvOS)
+    func testSnapshotWithZeroHeight_whenNoReferenceImage() {
+      let size = CGSize(width: 350, height: 0)
+      let view = XView(frame: .init(origin: .zero, size: size))
+      let message = verifySnapshot(of: view, as: .image)
+      XCTAssertEqual(message, "Snapshot is empty")
+    }
 
-      rect = CGRect(x: 0, y: 0, width: 0, height: 350)
-      view = UIView(frame: rect)
-      view.backgroundColor = .green
-      assertSnapshot(of: view, as: .image, named: "noWidth")
+    func testSnapshotWithZeroWidth_whenNoReferenceImage() {
+      let size = CGSize(width: 0, height: 350)
+      let view = XView(frame: .init(origin: .zero, size: size))
+      let message = verifySnapshot(of: view, as: .image)
+      XCTAssertEqual(message, "Snapshot is empty")
+    }
 
-      rect = CGRect(x: 0, y: 0, width: 0, height: 0)
-      view = UIView(frame: rect)
-      view.backgroundColor = .blue
-      assertSnapshot(of: view, as: .image, named: "noWidth.noHeight")
-    #endif
-  }
+    func testSnapshotWithZeroSize_whenNoReferenceImage() {
+      let view = XView(frame: .zero)
+      let message = verifySnapshot(of: view, as: .image)
+      XCTAssertEqual(message, "Snapshot is empty")
+    }
 
-  func testViewAgainstEmptyImage() {
-    #if os(iOS) || os(tvOS)
-      let rect = CGRect(x: 0, y: 0, width: 0, height: 0)
-      let view = UIView(frame: rect)
-      view.backgroundColor = .blue
+    func testSnapshotWithZeroSize_whenReferenceImageExists() {
+      let view = XView(frame: .zero)
+      let message = verifySnapshot(of: view, as: .image)
+      XCTAssertEqual(message, "Snapshot is empty")
+    }
 
-      let failure = verifySnapshot(of: view, as: .image, named: "notEmptyImage")
-      XCTAssertNotNil(failure)
-    #endif
-  }
+    func testSnapshotWithUnequalSize() {
+      let size = CGSize(width: 100, height: 100)
+      let view = XView(frame: .init(origin: .zero, size: size))
+      var message = verifySnapshot(of: view, as: .image, named: platform)
+      XCTAssertNil(message)
+      let newSize = CGSize(width: 123, height: 123)
+      view.frame = .init(origin: .zero, size: newSize)
+      message = verifySnapshot(of: view, as: .image, named: platform)
+      XCTAssertEqual(message?.suffix(71), "Snapshot size (123.0, 123.0) is unequal to expected size (100.0, 100.0)")
+    }
+  #endif
 
   #if os(iOS)
     @available(iOS 13.0, *)

@@ -6,7 +6,7 @@
   @available(iOS 10.0, tvOS 10.0, macOS 10.13, *)
   func perceptuallyCompare(
     _ old: CIImage, _ new: CIImage, pixelPrecision: Float, perceptualPrecision: Float
-  ) -> String? {
+  ) -> ImageComparisonResult {
     // Calculate the deltaE values. Each pixel is a value between 0-100.
     // 0 means no difference, 100 means completely opposite.
     let deltaOutputImage = old.applyingLabDeltaE(new)
@@ -28,7 +28,7 @@
         let thresholdOutputImage = try? deltaOutputImage.applyingThreshold(deltaThreshold),
         let averagePixel = thresholdOutputImage.applyingAreaAverage().renderSingleValue(in: context)
       else {
-        return "Newly-taken snapshot's data could not be processed."
+        return .perceptualComparisonFailed
       }
       actualPixelPrecision = 1 - averagePixel
       if actualPixelPrecision < pixelPrecision {
@@ -37,7 +37,7 @@
     } else {
       // Slow path - CPU based vImage buffer iteration
       guard let buffer = deltaOutputImage.render(in: context) else {
-        return "Newly-taken snapshot could not be processed."
+        return .perceptualComparisonFailed
       }
       defer { buffer.free() }
       var failingPixelCount: Int = 0
@@ -72,14 +72,18 @@
       actualPixelPrecision = 1 - failingPixelPercent
     }
 
-    guard actualPixelPrecision < pixelPrecision else { return nil }
+    guard actualPixelPrecision < pixelPrecision else {
+      return .isMatching
+    }
     // The actual perceptual precision is the perceptual precision of the pixel with the highest DeltaE.
     // DeltaE is in a 0-100 scale, so we need to divide by 100 to transform it to a percentage.
     let minimumPerceptualPrecision = 1 - min(maximumDeltaE / 100, 1)
-    return """
-      The percentage of pixels that match \(actualPixelPrecision) is less than required \(pixelPrecision)
-      The lowest perceptual color precision \(minimumPerceptualPrecision) is less than required \(perceptualPrecision)
-      """
+    return .unmatchedPrecisions(
+      expectedPixelPrecision: pixelPrecision,
+      actualPixelPrecision: actualPixelPrecision,
+      expectedPerceptualPrecision: perceptualPrecision,
+      actualPerceptualPrecision: minimumPerceptualPrecision
+    )
   }
 
   extension CIImage {

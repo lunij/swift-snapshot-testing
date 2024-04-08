@@ -4,7 +4,7 @@ import XCTest
 /// The ability to compare `Value`s and convert them to and from `Data`.
 public struct Diffing<Value> {
   /// Converts a value _to_ data.
-  public var toData: (Value) -> Data
+  public var toData: (Value) throws -> Data
 
   /// Produces a value _from_ data.
   public var fromData: (Data) -> Value
@@ -25,7 +25,7 @@ public struct Diffing<Value> {
   ///   - lhs: A value to compare.
   ///   - rhs: Another value to compare.
   public init(
-    toData: @escaping (_ value: Value) -> Data,
+    toData: @escaping (_ value: Value) throws -> Data,
     fromData: @escaping (_ data: Data) -> Value,
     diff: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [XCTAttachment])?
   ) {

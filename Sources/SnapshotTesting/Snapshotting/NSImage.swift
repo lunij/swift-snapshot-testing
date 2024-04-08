@@ -17,24 +17,39 @@
     /// - Returns: A new diffing strategy.
     public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
       return .init(
-        toData: { NSImagePNGRepresentation($0)! },
+        toData: convertToData,
         fromData: { NSImage(data: $0)! }
       ) { old, new in
-        guard
-          let message = compare(
-            old, new, precision: precision, perceptualPrecision: perceptualPrecision)
-        else { return nil }
-        let difference = SnapshotTesting.diff(old, new)
-        let oldAttachment = XCTAttachment(image: old)
-        oldAttachment.name = "reference"
-        let newAttachment = XCTAttachment(image: new)
-        newAttachment.name = "failure"
-        let differenceAttachment = XCTAttachment(image: difference)
-        differenceAttachment.name = "difference"
-        return (
-          message,
-          [oldAttachment, newAttachment, differenceAttachment]
-        )
+        func attachments(_ old: NSImage, _ new: NSImage) -> [XCTAttachment] {
+          [
+            XCTAttachment(name: "reference", image: old),
+            XCTAttachment(name: "failure", image: new),
+            XCTAttachment(name: "difference", image: diffImage(old, new))
+          ]
+        }
+        let result = compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
+        switch result {
+        case .cgContextDataConversionFailed, .cgImageConversionFailed:
+          return ("Core Graphics failure", [])
+        case .isMatching:
+          return nil
+        case .isNotMatching:
+          return ("Snapshot does not match reference", attachments(old, new))
+        case .perceptualComparisonFailed:
+          return ("Perceptual comparison failed", [])
+        case let .unequalSize(oldSize, newSize):
+          return ("Snapshot size \(newSize) is unequal to expected size \(oldSize)", attachments(old, new))
+        case let .unmatchedPrecision(expectedPrecision, actualPrecision):
+          return ("Actual image precision \(actualPrecision) is less than expected \(expectedPrecision)", attachments(old, new))
+        case let .unmatchedPrecisions(expectedPixelPrecision, actualPixelPrecision, expectedPerceptualPrecision, actualPerceptualPrecision):
+          return (
+            """
+            The percentage of pixels that match \(actualPixelPrecision) is less than expected \(expectedPixelPrecision)
+            The lowest perceptual color precision \(actualPerceptualPrecision) is less than expected \(expectedPerceptualPrecision)
+            """,
+            attachments(old, new)
+          )
+        }
       }
     }
   }
@@ -61,50 +76,60 @@
     }
   }
 
-  private func NSImagePNGRepresentation(_ image: NSImage) -> Data? {
+  private func convertToData(_ image: NSImage) throws -> Data {
+    if image.size == .zero {
+      throw ImageConversionError.zeroSize
+    }
+    if image.size.width == 0 {
+      throw ImageConversionError.zeroWidth
+    }
+    if image.size.height == 0 {
+      throw ImageConversionError.zeroHeight
+    }
     guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-      return nil
+      throw ImageConversionError.cgImageConversionFailed
     }
     let rep = NSBitmapImageRep(cgImage: cgImage)
     rep.size = image.size
-    return rep.representation(using: .png, properties: [:])
+    guard let data = rep.representation(using: .png, properties: [:]) else {
+      throw ImageConversionError.pngDataConversionFailed
+    }
+    return data
   }
 
-  private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptualPrecision: Float)
-    -> String?
-  {
+  private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptualPrecision: Float) -> ImageComparisonResult {
     guard let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-      return "Reference image could not be loaded."
+      return .cgImageConversionFailed
     }
     guard let newCgImage = new.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-      return "Newly-taken snapshot could not be loaded."
-    }
-    guard newCgImage.width != 0, newCgImage.height != 0 else {
-      return "Newly-taken snapshot is empty."
+      return .cgImageConversionFailed
     }
     guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
-      return "Newly-taken snapshot@\(new.size) does not match reference@\(old.size)."
+      return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
     }
     guard let oldContext = context(for: oldCgImage), let oldData = oldContext.data else {
-      return "Reference image's data could not be loaded."
+      return .cgContextDataConversionFailed
     }
     guard let newContext = context(for: newCgImage), let newData = newContext.data else {
-      return "Newly-taken snapshot's data could not be loaded."
+      return .cgContextDataConversionFailed
     }
     let byteCount = oldContext.height * oldContext.bytesPerRow
-    if memcmp(oldData, newData, byteCount) == 0 { return nil }
+    if memcmp(oldData, newData, byteCount) == 0 {
+      return .isMatching
+    }
     guard
-      let pngData = NSImagePNGRepresentation(new),
-      let newerCgImage = NSImage(data: pngData)?.cgImage(
-        forProposedRect: nil, context: nil, hints: nil),
+      let data = try? convertToData(new),
+      let newerCgImage = NSImage(data: data)?.cgImage(forProposedRect: nil, context: nil, hints: nil),
       let newerContext = context(for: newerCgImage),
       let newerData = newerContext.data
     else {
-      return "Newly-taken snapshot's data could not be loaded."
+      return .cgContextDataConversionFailed
     }
-    if memcmp(oldData, newerData, byteCount) == 0 { return nil }
+    if memcmp(oldData, newerData, byteCount) == 0 { 
+      return .isMatching
+    }
     if precision >= 1, perceptualPrecision >= 1 {
-      return "Newly-taken snapshot does not match reference."
+      return .isNotMatching
     }
     if perceptualPrecision < 1, #available(macOS 10.13, *) {
       return perceptuallyCompare(
@@ -131,10 +156,10 @@
       }
       if differentByteCount > byteCountThreshold {
         let actualPrecision = 1 - Float(differentByteCount) / Float(byteCount)
-        return "Actual image precision \(actualPrecision) is less than required \(precision)"
+        return .unmatchedPrecision(expected: precision, actual: actualPrecision)
       }
     }
-    return nil
+    return .isMatching
   }
 
   private func context(for cgImage: CGImage) -> CGContext? {
@@ -155,7 +180,7 @@
     return context
   }
 
-  private func diff(_ old: NSImage, _ new: NSImage) -> NSImage {
+  private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage {
     let oldCiImage = CIImage(cgImage: old.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
     let newCiImage = CIImage(cgImage: new.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
     let differenceFilter = CIFilter(name: "CIDifferenceBlendMode")!
