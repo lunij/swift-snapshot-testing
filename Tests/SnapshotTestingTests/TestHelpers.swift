@@ -110,3 +110,34 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
     }
   }
 #endif
+
+#if os(iOS) || os(macOS) || os(tvOS)
+  extension XImage {
+    convenience init?(contentsOf url: URL) {
+      #if os(iOS) || os(tvOS)
+      self.init(contentsOfFile: url.path)
+      #elseif os(macOS)
+      self.init(byReferencing: url)
+      #endif
+    }
+  }
+#endif
+
+class TestView: XView {
+  #if os(macOS)
+  var backgroundColor: NSColor? {
+    get {
+      guard let cgColor = layer?.backgroundColor else { return nil }
+      return NSColor(cgColor: cgColor)
+    }
+    set {
+      wantsLayer = true
+      layer?.backgroundColor = newValue?.cgColor
+    }
+  }
+  #endif
+
+  convenience init(size: CGSize) {
+    self.init(frame: .init(origin: .zero, size: size))
+  }
+}

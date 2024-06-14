@@ -1137,6 +1137,18 @@ final class SnapshotTestingTests: XCTestCase {
       XCTAssertEqual(firstLine, "[macos] Snapshot size (123.0, 123.0) is unequal to expected size (100.0, 100.0)")
       #endif
     }
+
+    func testSnapshotUnscaledByDefault() throws {
+      let size = CGSize(width: 100, height: 100)
+      let view = TestView(size: size)
+      view.backgroundColor = .cyan
+      assertSnapshot(of: view, as: .image)
+      let url = URL(fileURLWithPath: String(#file), isDirectory: false)
+        .deletingLastPathComponent()
+        .appendingPathComponent("__Snapshots__/SnapshotTestingTests/testSnapshotUnscaledByDefault.1.png")
+      let image = try XCTUnwrap(XImage(contentsOf: url))
+      XCTAssertEqual(image.size, size)
+    }
   #endif
 
 #if canImport(SwiftUI)
