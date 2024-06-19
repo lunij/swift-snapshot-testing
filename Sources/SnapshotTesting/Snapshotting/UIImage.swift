@@ -107,8 +107,8 @@
   }
 
   private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptualPrecision: Float) throws -> ImageComparisonResult {
-    let oldCgImage = try old.cgImage()
-    let newCgImage = try new.cgImage()
+    let oldCgImage = try old.normalizedCGImage()
+    let newCgImage = try new.normalizedCGImage()
     guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
       return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
     }
@@ -198,8 +198,26 @@
   }
 
   private extension UIImage {
-    func cgImage() throws -> CGImage {
+    func normalizedCGImage() throws -> CGImage {
       guard let cgImage = cgImage else {
+        throw ImageConversionError.cgImageConversionFailed
+      }
+
+      guard let context = CGContext(
+          data: nil,
+          width: Int(size.width),
+          height: Int(size.height),
+          bitsPerComponent: 8,
+          bytesPerRow: 0,
+          space: CGColorSpaceCreateDeviceRGB(),
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+      ) else {
+        throw ImageConversionError.cgImageConversionFailed
+      }
+
+      context.draw(cgImage, in: CGRect(origin: .zero, size: size))
+
+      guard let cgImage = context.makeImage() else {
         throw ImageConversionError.cgImageConversionFailed
       }
       return cgImage

@@ -87,7 +87,7 @@
     if image.size.height == 0 {
       throw ImageConversionError.zeroHeight
     }
-    let cgImage = try image.cgImage()
+    let cgImage = try image.normalizedCGImage()
     let rep = NSBitmapImageRep(cgImage: cgImage)
     rep.size = image.size
     guard let data = rep.representation(using: .png, properties: [:]) else {
@@ -97,8 +97,8 @@
   }
 
   private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptualPrecision: Float) throws -> ImageComparisonResult {
-    let oldCgImage = try old.cgImage()
-    let newCgImage = try new.cgImage()
+    let oldCgImage = try old.normalizedCGImage()
+    let newCgImage = try new.normalizedCGImage()
 
     guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
       return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
@@ -115,7 +115,7 @@
     }
     guard
       let data = try? convertToData(new),
-      let newerCgImage = try NSImage(data: data)?.cgImage(),
+      let newerCgImage = try NSImage(data: data)?.normalizedCGImage(),
       let newerContext = context(for: newerCgImage),
       let newerData = newerContext.data
     else {
@@ -177,8 +177,8 @@
   }
 
   private func diffImage(_ old: NSImage, _ new: NSImage) throws -> NSImage {
-    let oldCiImage = CIImage(cgImage: try old.cgImage())
-    let newCiImage = CIImage(cgImage: try new.cgImage())
+    let oldCiImage = CIImage(cgImage: try old.normalizedCGImage())
+    let newCiImage = CIImage(cgImage: try new.normalizedCGImage())
     let differenceFilter = CIFilter(name: "CIDifferenceBlendMode")!
     differenceFilter.setValue(oldCiImage, forKey: kCIInputImageKey)
     differenceFilter.setValue(newCiImage, forKey: kCIInputBackgroundImageKey)
@@ -193,8 +193,26 @@
   }
 
   private extension NSImage {
-    func cgImage() throws -> CGImage {
+    func normalizedCGImage() throws -> CGImage {
       guard let cgImage = cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+        throw ImageConversionError.cgImageConversionFailed
+      }
+
+      guard let context = CGContext(
+          data: nil,
+          width: Int(size.width),
+          height: Int(size.height),
+          bitsPerComponent: 8,
+          bytesPerRow: 0,
+          space: CGColorSpaceCreateDeviceRGB(),
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+      ) else {
+        throw ImageConversionError.cgImageConversionFailed
+      }
+
+      context.draw(cgImage, in: CGRect(origin: .zero, size: size))
+
+      guard let cgImage = context.makeImage() else {
         throw ImageConversionError.cgImageConversionFailed
       }
       return cgImage
