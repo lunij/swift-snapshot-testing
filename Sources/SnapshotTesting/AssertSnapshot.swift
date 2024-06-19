@@ -612,7 +612,7 @@ enum File {
       #if compiler(>=6.3) && (canImport(UIKit) || canImport(AppKit))
         if #available(iOS 14.0, tvOS 14.0, macOS 11.0, *),
           name.hasSuffix(".png"),
-          let image = Image(data: data)
+          let image = XImage(data: data)
         {
           Attachment.record(image, named: name, as: .png, sourceLocation: sourceLocation)
           return

@@ -42,11 +42,11 @@
     }
   #endif
 
-  extension Snapshotting where Value == SCNScene, Format == Image {
+  extension Snapshotting where Value == SCNScene, Format == XImage {
     fileprivate static func scnScene(precision: Float, perceptualPrecision: Float, size: CGSize)
       -> Snapshotting
     {
-      return Snapshotting<View, Image>.image(
+      return Snapshotting<View, XImage>.image(
         precision: precision, perceptualPrecision: perceptualPrecision
       ).pullback { scene in
         let view = SCNView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
