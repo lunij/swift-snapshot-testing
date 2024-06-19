@@ -111,6 +111,28 @@
         }
       }
     #endif
+
+    #if os(macOS)
+    func convertToImage() -> XImage {
+      let image = NSImage(size: bounds.size)
+      guard let bitmapRep = bitmapImageRepForCachingDisplay(in: bounds) else {
+        return image
+      }
+      cacheDisplay(in: bounds, to: bitmapRep)
+      image.addRepresentation(bitmapRep)
+      return image
+    }
+    #elseif os(iOS) || os(tvOS)
+    func convertToImage(traits: UITraitCollection, drawHierarchyInKeyWindow: Bool) -> XImage {
+      renderer(bounds: bounds, for: traits).image { ctx in
+        if drawHierarchyInKeyWindow {
+          drawHierarchy(in: bounds, afterScreenUpdates: true)
+        } else {
+          layer.render(in: ctx.cgContext)
+        }
+      }
+    }
+    #endif
   }
 
   #if os(iOS) || os(tvOS)
@@ -184,15 +206,7 @@
       )
       return Async { callback in
         addImagesForRenderedViews(view).sequence().run { views in
-          callback(
-            renderer(bounds: view.bounds, for: traits).image { ctx in
-              if drawHierarchyInKeyWindow {
-                view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
-              } else {
-                view.layer.render(in: ctx.cgContext)
-              }
-            }
-          )
+          callback(view.convertToImage(traits: traits, drawHierarchyInKeyWindow: drawHierarchyInKeyWindow))
           views.forEach { $0.removeFromSuperview() }
           view.frame = initialFrame
         }
