@@ -3,7 +3,6 @@ import CoreGraphics
 
 enum ImageComparisonResult {
   case cgContextDataConversionFailed
-  case cgImageConversionFailed
   case isMatching
   case isNotMatching
   case perceptualComparisonFailed

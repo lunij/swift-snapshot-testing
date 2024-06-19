@@ -24,32 +24,36 @@
         toData: convertToData,
         fromData: { UIImage(data: $0, scale: scale)! }
       ) { old, new in
-        let result = compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
-        switch result {
-        case .cgContextDataConversionFailed, .cgImageConversionFailed:
-          return ("Core Graphics failure", [])
-        case .isMatching:
-          return nil
-        case .isNotMatching:
-          let diff = diffImage(old, new)
-          return ("Snapshot does not match reference", attachments(old, new, diff))
-        case .perceptualComparisonFailed:
-          return ("Perceptual comparison failed", [])
-        case let .unequalSize(oldSize, newSize):
-          let diff = diffImage(old, new)
-          return ("Snapshot size \(newSize) is unequal to expected size \(oldSize)", attachments(old, new, diff))
-        case let .unmatchedPrecision(expectedPrecision, actualPrecision):
-          let diff = diffImage(old, new)
-          return ("Actual image precision \(actualPrecision) is less than expected \(expectedPrecision)", attachments(old, new, diff))
-        case let .unmatchedPrecisions(expectedPixelPrecision, actualPixelPrecision, expectedPerceptualPrecision, actualPerceptualPrecision):
-          let diff = diffImage(old, new)
-          return (
-            """
-            The percentage of pixels that match \(actualPixelPrecision) is less than expected \(expectedPixelPrecision)
-            The lowest perceptual color precision \(actualPerceptualPrecision) is less than expected \(expectedPerceptualPrecision)
-            """,
-            attachments(old, new, diff)
-          )
+        do {
+          let result = try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
+          switch result {
+          case .cgContextDataConversionFailed:
+            return ("Core Graphics failure", [])
+          case .isMatching:
+            return nil
+          case .isNotMatching:
+            let diff = diffImage(old, new)
+            return ("Snapshot does not match reference", attachments(old, new, diff))
+          case .perceptualComparisonFailed:
+            return ("Perceptual comparison failed", [])
+          case let .unequalSize(oldSize, newSize):
+            let diff = diffImage(old, new)
+            return ("Snapshot size \(newSize) is unequal to expected size \(oldSize)", attachments(old, new, diff))
+          case let .unmatchedPrecision(expectedPrecision, actualPrecision):
+            let diff = diffImage(old, new)
+            return ("Actual image precision \(actualPrecision) is less than expected \(expectedPrecision)", attachments(old, new, diff))
+          case let .unmatchedPrecisions(expectedPixelPrecision, actualPixelPrecision, expectedPerceptualPrecision, actualPerceptualPrecision):
+            let diff = diffImage(old, new)
+            return (
+              """
+              The percentage of pixels that match \(actualPixelPrecision) is less than expected \(expectedPixelPrecision)
+              The lowest perceptual color precision \(actualPerceptualPrecision) is less than expected \(expectedPerceptualPrecision)
+              """,
+              attachments(old, new, diff)
+            )
+          }
+        } catch {
+          return (error.localizedDescription, [])
         }
       }
     }
@@ -102,10 +106,9 @@
     return data
   }
 
-  private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptualPrecision: Float) -> ImageComparisonResult {
-    guard let oldCgImage = old.cgImage, let newCgImage = new.cgImage else {
-      return .cgImageConversionFailed
-    }
+  private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptualPrecision: Float) throws -> ImageComparisonResult {
+    let oldCgImage = try old.cgImage()
+    let newCgImage = try new.cgImage()
     guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
       return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
     }
@@ -192,5 +195,14 @@
     let differenceImage = UIGraphicsGetImageFromCurrentImageContext()!
     UIGraphicsEndImageContext()
     return differenceImage
+  }
+
+  private extension UIImage {
+    func cgImage() throws -> CGImage {
+      guard let cgImage = cgImage else {
+        throw ImageConversionError.cgImageConversionFailed
+      }
+      return cgImage
+    }
   }
 #endif
