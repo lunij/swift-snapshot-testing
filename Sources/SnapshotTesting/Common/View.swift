@@ -34,7 +34,7 @@
   }
 
   extension View {
-    var snapshot: Async<Image>? {
+    var snapshot: Async<XImage>? {
       func inWindow<T>(_ perform: () -> T) -> T {
         #if os(macOS)
           let superview = self.superview
@@ -52,9 +52,9 @@
         if #available(macOS 10.11, *) {
           let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
           #if os(macOS)
-            let image = Image(cgImage: cgImage, size: skView.bounds.size)
+            let image = XImage(cgImage: cgImage, size: skView.bounds.size)
           #elseif os(iOS) || os(tvOS)
-            let image = Image(cgImage: cgImage)
+            let image = XImage(cgImage: cgImage)
           #endif
           return Async(value: image)
         } else {
@@ -63,14 +63,14 @@
       }
       #if os(iOS) || os(macOS)
         if let wkWebView = self as? WKWebView {
-          return Async<Image> { callback in
+          return Async<XImage> { callback in
             let work = {
               if #available(iOS 11.0, macOS 10.13, *) {
                 inWindow {
                   wkWebView.takeSnapshot(with: nil) { image, error in
                     guard let image else {
                       debugPrint("No image taken. Error: \(error.description)")
-                      callback(Image())
+                      callback(XImage())
                       return
                     }
                     callback(image)
@@ -104,7 +104,7 @@
       return nil
     }
     #if os(iOS) || os(tvOS)
-      func asImage() -> Image {
+      func asImage() -> XImage {
         let renderer = UIGraphicsImageRenderer(bounds: bounds)
         return renderer.image { rendererContext in
           layer.render(in: rendererContext.cgContext)
