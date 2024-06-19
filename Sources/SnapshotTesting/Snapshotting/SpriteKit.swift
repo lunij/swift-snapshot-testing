@@ -46,7 +46,7 @@
     fileprivate static func skScene(precision: Float, perceptualPrecision: Float, size: CGSize)
       -> Snapshotting
     {
-      return Snapshotting<View, XImage>.image(
+      return Snapshotting<XView, XImage>.image(
         precision: precision, perceptualPrecision: perceptualPrecision
       ).pullback { scene in
         let view = SKView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))

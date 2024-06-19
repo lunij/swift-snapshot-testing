@@ -11,7 +11,7 @@
     import WebKit
   #endif
 
-  func addImagesForRenderedViews(_ view: View) -> [Async<View>] {
+  func addImagesForRenderedViews(_ view: XView) -> [Async<XView>] {
     return view.snapshot
       .map { async in
         [
@@ -33,7 +33,7 @@
       ?? view.subviews.flatMap(addImagesForRenderedViews)
   }
 
-  extension View {
+  extension XView {
     var snapshot: Async<XImage>? {
       func inWindow<T>(_ perform: () -> T) -> T {
         #if os(macOS)
