@@ -1153,8 +1153,8 @@ final class SnapshotTestingTests: XCTestCase {
 #if os(macOS)
   func testSwiftUIView() {
     let view = SwiftUIView()
-    assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "\(platform)-fixed")
-    assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "\(platform)-size-that-fits")
+    assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "\(platform)\(osVersion.majorVersion)-fixed")
+    assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "\(platform)\(osVersion.majorVersion)-size-that-fits")
   }
 #endif
 
