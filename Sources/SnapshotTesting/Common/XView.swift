@@ -114,10 +114,13 @@
 
     #if os(macOS)
       func convertToImage(scale: CGFloat) -> XImage {
-        let originalSize = bounds.size
-        let scaledSize = NSSize(width: originalSize.width * scale, height: originalSize.height * scale)
+        let size = bounds.size
+        let scaledSize = NSSize(width: size.width * scale, height: size.height * scale)
         let image = NSImage(size: scaledSize)
 
+        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
+          return image
+        }
         guard let bitmapRep = NSBitmapImageRep(
           bitmapDataPlanes: nil,
           pixelsWide: Int(scaledSize.width),
@@ -127,22 +130,25 @@
           hasAlpha: true,
           isPlanar: false,
           colorSpaceName: .deviceRGB,
+          bitmapFormat: .alphaFirst,
           bytesPerRow: 0,
           bitsPerPixel: 0
         ) else {
           return image
         }
 
-        let graphicsContext = NSGraphicsContext(bitmapImageRep: bitmapRep)
-        NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = graphicsContext
-        
-        graphicsContext?.cgContext.scaleBy(x: scale, y: scale)
+        guard let context = NSGraphicsContext(bitmapImageRep: bitmapRep) else {
+          return image
+        }
+
+        context.cgContext.scaleBy(x: scale, y: scale)
+        context.cgContext.setFillColorSpace(colorSpace)
+        context.cgContext.setStrokeColorSpace(colorSpace)
+
         cacheDisplay(in: bounds, to: bitmapRep)
 
-        NSGraphicsContext.restoreGraphicsState()
         image.addRepresentation(bitmapRep)
-        return image
+        return image.convertedToSRGB()
       }
     #elseif os(iOS) || os(tvOS)
     func convertToImage(scale: CGFloat, traits: UITraitCollection, drawHierarchyInKeyWindow: Bool) -> XImage {

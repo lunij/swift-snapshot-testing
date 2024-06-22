@@ -218,4 +218,48 @@
       return cgImage
     }
   }
+
+extension NSImage {
+  func convertedToSRGB() -> NSImage {
+    // Ensure the original image has a bitmap representation
+    guard let tiffData = self.tiffRepresentation, let source = CGImageSourceCreateWithData(tiffData as CFData, nil) else {
+      return self
+    }
+
+    // Create a new bitmap image rep with sRGB color space
+    guard let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+      return self
+    }
+
+    let width = cgImage.width
+    let height = cgImage.height
+    let bitsPerComponent = cgImage.bitsPerComponent
+    let bytesPerRow = 0
+    let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
+    let bitmapInfo = cgImage.bitmapInfo
+
+    guard let context = CGContext(data: nil,
+                                  width: width,
+                                  height: height,
+                                  bitsPerComponent: bitsPerComponent,
+                                  bytesPerRow: bytesPerRow,
+                                  space: colorSpace,
+                                  bitmapInfo: bitmapInfo.rawValue) else {
+      return self
+    }
+
+    // Draw the original image into the context
+    let rect = CGRect(x: 0, y: 0, width: width, height: height)
+    context.draw(cgImage, in: rect)
+
+    // Create a new CGImage from the context
+    guard let newCGImage = context.makeImage() else {
+      return self
+    }
+
+    // Create a new NSImage from the CGImage
+    let newNSImage = NSImage(cgImage: newCGImage, size: self.size)
+    return newNSImage
+  }
+}
 #endif
