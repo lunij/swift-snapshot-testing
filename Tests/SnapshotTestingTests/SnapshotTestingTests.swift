@@ -1139,6 +1139,25 @@ final class SnapshotTestingTests: XCTestCase {
     }
   #endif
 
+  #if os(macOS)
+    func testSwiftUIView() {
+      struct SwiftUIView: View {
+        var body: some View {
+          ZStack {
+            Color.green
+            Color.yellow.padding()
+            Color.red.padding().padding()
+          }
+        }
+      }
+
+      let view = SwiftUIView()
+
+      assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "fixed")
+      assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "size-that-fits")
+    }
+  #endif
+
   #if os(iOS)
     @available(iOS 13.0, *)
     func testSwiftUIView_iOS() {
