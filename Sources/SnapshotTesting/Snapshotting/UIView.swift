@@ -25,16 +25,22 @@
       precision: Float = 0.99,
       perceptualPrecision: Float = 0.99,
       size: CGSize? = nil,
+      scale: CGFloat = 2,
       traits: UITraitCollection = .init()
     )
       -> Snapshotting
     {
 
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+        precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
       ).asyncPullback { view in
         snapshotView(
-          config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: .init()),
+          config: .init(
+            safeArea: .zero,
+            scale: scale,
+            size: size ?? view.frame.size,
+            traits: .init()
+          ),
           drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
           traits: traits,
           view: view,

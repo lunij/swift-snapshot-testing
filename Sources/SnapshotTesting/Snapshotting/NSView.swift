@@ -21,7 +21,7 @@
     ///     human eye.
     ///   - size: A view size override.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize? = nil
+      precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1, size: CGSize? = nil
     ) -> Snapshotting {
       return SimplySnapshotting.image(
         precision: precision, perceptualPrecision: perceptualPrecision
@@ -31,7 +31,7 @@
         return view.snapshot
           ?? Async { callback in
             addImagesForRenderedViews(view).sequence().run { views in
-              callback(view.convertToImage())
+              callback(view.convertToImage(scale: scale))
               views.forEach { $0.removeFromSuperview() }
               view.frame.size = initialSize
             }

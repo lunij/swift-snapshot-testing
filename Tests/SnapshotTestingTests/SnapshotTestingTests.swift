@@ -1137,7 +1137,11 @@ final class SnapshotTestingTests: XCTestCase {
       view.frame = .init(origin: .zero, size: newSize)
       message = verifySnapshot(of: view, as: .image, named: platform)
       let firstLine = message?.split(whereSeparator: \.isNewline).first
-      XCTAssertEqual(firstLine, "[\(platform)] Snapshot size (123.0, 123.0) is unequal to expected size (100.0, 100.0)")
+      #if os(iOS)
+      XCTAssertEqual(firstLine, "[ios] Snapshot size (246.0, 246.0) is unequal to expected size (200.0, 200.0)")
+      #elseif os(macOS)
+      XCTAssertEqual(firstLine, "[macos] Snapshot size (123.0, 123.0) is unequal to expected size (100.0, 100.0)")
+      #endif
     }
   #endif
 
