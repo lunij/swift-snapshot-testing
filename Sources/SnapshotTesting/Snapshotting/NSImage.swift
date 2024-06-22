@@ -20,13 +20,6 @@
         toData: convertToData,
         fromData: { NSImage(data: $0)! }
       ) { old, new in
-        func attachments(_ old: NSImage, _ new: NSImage) -> [XCTAttachment] {
-          [
-            XCTAttachment(name: "reference", image: old),
-            XCTAttachment(name: "failure", image: new),
-            XCTAttachment(name: "difference", image: diffImage(old, new))
-          ]
-        }
         let result = compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
         switch result {
         case .cgContextDataConversionFailed, .cgImageConversionFailed:
@@ -34,20 +27,24 @@
         case .isMatching:
           return nil
         case .isNotMatching:
-          return ("Snapshot does not match reference", attachments(old, new))
+          let diff = diffImage(old, new)
+          return ("Snapshot does not match reference", attachments(old, new, diff))
         case .perceptualComparisonFailed:
           return ("Perceptual comparison failed", [])
         case let .unequalSize(oldSize, newSize):
-          return ("Snapshot size \(newSize) is unequal to expected size \(oldSize)", attachments(old, new))
+          let diff = diffImage(old, new)
+          return ("Snapshot size \(newSize) is unequal to expected size \(oldSize)", attachments(old, new, diff))
         case let .unmatchedPrecision(expectedPrecision, actualPrecision):
-          return ("Actual image precision \(actualPrecision) is less than expected \(expectedPrecision)", attachments(old, new))
+          let diff = diffImage(old, new)
+          return ("Actual image precision \(actualPrecision) is less than expected \(expectedPrecision)", attachments(old, new, diff))
         case let .unmatchedPrecisions(expectedPixelPrecision, actualPixelPrecision, expectedPerceptualPrecision, actualPerceptualPrecision):
+          let diff = diffImage(old, new)
           return (
             """
             The percentage of pixels that match \(actualPixelPrecision) is less than expected \(expectedPixelPrecision)
             The lowest perceptual color precision \(actualPerceptualPrecision) is less than expected \(expectedPerceptualPrecision)
             """,
-            attachments(old, new)
+            attachments(old, new, diff)
           )
         }
       }
