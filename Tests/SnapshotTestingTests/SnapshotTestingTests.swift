@@ -1139,81 +1139,44 @@ final class SnapshotTestingTests: XCTestCase {
     }
   #endif
 
-  #if os(macOS)
-    func testSwiftUIView() {
-      struct SwiftUIView: View {
-        var body: some View {
-          ZStack {
-            Color.green
-            Color.yellow.padding()
-            Color.red.padding().padding()
-          }
-        }
+#if canImport(SwiftUI)
+  struct SwiftUIView: View {
+    var body: some View {
+      ZStack {
+        Color.green
+        Color.yellow.padding()
+        Color.red.frame(minWidth: 5, minHeight: 5).padding().padding()
       }
-
-      let view = SwiftUIView()
-
-      assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "fixed")
-      assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "size-that-fits")
     }
-  #endif
+  }
 
-  #if os(iOS)
-    @available(iOS 13.0, *)
-    func testSwiftUIView_iOS() {
-      struct MyView: SwiftUI.View {
-        var body: some SwiftUI.View {
-          HStack {
-            Image(systemName: "checkmark.circle.fill")
-            Text("Checked").fixedSize()
-          }
-          .padding(5)
-          .background(RoundedRectangle(cornerRadius: 5.0).fill(Color.blue))
-          .padding(10)
-        }
-      }
+#if os(macOS)
+  func testSwiftUIView() {
+    let view = SwiftUIView()
+    assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "\(platform)-fixed")
+    assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "\(platform)-size-that-fits")
+  }
+#endif
 
-      let view = MyView().background(Color.yellow)
+#if os(iOS)
+  func testSwiftUIView() {
+    let view = SwiftUIView()
+    assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100), traits: .init(userInterfaceStyle: .light)), named: "\(platform)-fixed")
+    assertSnapshot(of: view, as: .image(layout: .sizeThatFits, traits: .init(userInterfaceStyle: .light)), named: "\(platform)-size-that-fits")
+    assertSnapshot(of: view, as: .image(layout: .device(config: .iPhoneSe), traits: .init(userInterfaceStyle: .light)), named: "\(platform)-device")
+  }
+#endif
 
-      assertSnapshot(of: view, as: .image(traits: .init(userInterfaceStyle: .light)))
-      assertSnapshot(
-        of: view, as: .image(layout: .sizeThatFits, traits: .init(userInterfaceStyle: .light)),
-        named: "size-that-fits")
-      assertSnapshot(
-        of: view,
-        as: .image(
-          layout: .fixed(width: 200.0, height: 100.0), traits: .init(userInterfaceStyle: .light)),
-        named: "fixed")
-      assertSnapshot(
-        of: view,
-        as: .image(layout: .device(config: .iPhoneSe), traits: .init(userInterfaceStyle: .light)),
-        named: "device")
-    }
-  #endif
+#if os(tvOS)
+  func testSwiftUIView() {
+    let view = SwiftUIView()
+    assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "\(platform)-fixed")
+    assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "\(platform)-size-that-fits")
+    assertSnapshot(of: view, as: .image(layout: .device(config: .tv)), named: "\(platform)-device")
+  }
+#endif
 
-  #if os(tvOS)
-    @available(tvOS 13.0, *)
-    func testSwiftUIView_tvOS() {
-      struct MyView: SwiftUI.View {
-        var body: some SwiftUI.View {
-          HStack {
-            Image(systemName: "checkmark.circle.fill")
-            Text("Checked").fixedSize()
-          }
-          .padding(5)
-          .background(RoundedRectangle(cornerRadius: 5.0).fill(Color.blue))
-          .padding(10)
-        }
-      }
-      let view = MyView().background(Color.yellow)
-
-      assertSnapshot(of: view, as: .image())
-      assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "size-that-fits")
-      assertSnapshot(
-        of: view, as: .image(layout: .fixed(width: 300.0, height: 100.0)), named: "fixed")
-      assertSnapshot(of: view, as: .image(layout: .device(config: .tv)), named: "device")
-    }
-  #endif
+#endif
 }
 
 #if os(iOS)
