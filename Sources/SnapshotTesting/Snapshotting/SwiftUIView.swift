@@ -91,4 +91,55 @@
       }
     }
   #endif
+
+  #if os(macOS)
+    @available(macOS 10.15, *)
+    extension Snapshotting where Value: View, Format == NSImage {
+
+      /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
+      public static var image: Snapshotting {
+        .image()
+      }
+
+      /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
+      ///
+      /// - Parameters:
+      ///   - precision: The percentage of pixels that must match.
+      ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a match.
+      ///     98-99% mimics [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the human eye.
+      ///   - layout: A view layout override.
+      public static func image(
+        precision: Float = 0.99,
+        perceptualPrecision: Float = 0.99,
+        layout: SwiftUISnapshotLayout = .sizeThatFits,
+        scale: CGFloat = 1
+      ) -> Snapshotting {
+        SimplySnapshotting
+          .image(precision: precision, perceptualPrecision: perceptualPrecision)
+          .asyncPullback { view in
+            let controller = NSHostingController(rootView: view)
+            let initialFrame = controller.view.frame
+
+            let size: CGSize
+            switch layout {
+            case let .fixed(width, height):
+              size = CGSize(width: width, height: height)
+            case .sizeThatFits:
+              size = controller.sizeThatFits(in: .zero)
+            }
+
+            let view = controller.view
+            view.frame.size = size
+
+            return Async { callback in
+              addImagesForRenderedViews(view).sequence().run { views in
+                callback(view.convertToImage(scale: scale))
+                views.forEach { $0.removeFromSuperview() }
+                view.frame = initialFrame
+              }
+            }
+          }
+      }
+    }
+  #endif
 #endif
