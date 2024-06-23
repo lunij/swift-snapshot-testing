@@ -21,6 +21,10 @@ import XCTest
 #endif
 
 final class SnapshotTestingTests: XCTestCase {
+  private let fixturesURL = URL(fileURLWithPath: #file, isDirectory: false)
+    .deletingLastPathComponent()
+    .appendingPathComponent("__Fixtures__", isDirectory: true)
+
   override func setUp() {
     super.setUp()
     diffTool = "ksdiff"
@@ -231,25 +235,15 @@ final class SnapshotTestingTests: XCTestCase {
       message = verifySnapshot(of: view, as: .image(precision: 0.99, perceptualPrecision: 1), named: platform + "-original")
       XCTAssertNil(message)
     }
-  #endif
 
-  func testImagePrecision() throws {
-    #if os(iOS) || os(tvOS) || os(macOS)
-      let imageURL = URL(fileURLWithPath: String(#file), isDirectory: false)
-        .deletingLastPathComponent()
-        .appendingPathComponent("__Fixtures__/testImagePrecision.reference.png")
-      #if os(iOS) || os(tvOS)
-        let image = try XCTUnwrap(UIImage(contentsOfFile: imageURL.path))
-      #elseif os(macOS)
-        let image = try XCTUnwrap(NSImage(byReferencing: imageURL))
-      #endif
+    func testImagePrecision() throws {
+      let imageURL = fixturesURL.appendingPathComponent("testImagePrecision.reference.png")
+      let image = try XCTUnwrap(XImage(contentsOf: imageURL))
 
       assertSnapshot(of: image, as: .image(precision: 0.995), named: "exact")
-      if #available(iOS 11.0, tvOS 11.0, macOS 10.13, *) {
-        assertSnapshot(of: image, as: .image(perceptualPrecision: 0.98), named: "perceptual")
-      }
-    #endif
-  }
+      assertSnapshot(of: image, as: .image(perceptualPrecision: 0.98), named: "perceptual")
+    }
+  #endif
 
   func testSCNView() {
     // #if os(iOS) || os(macOS) || os(tvOS)
@@ -1190,6 +1184,18 @@ final class SnapshotTestingTests: XCTestCase {
       "accessibility-extra-extra-large": .accessibilityExtraExtraLarge,
       "accessibility-extra-extra-extra-large": .accessibilityExtraExtraExtraLarge,
     ]
+#endif
+
+#if os(iOS) || os(macOS) || os(tvOS)
+extension XImage {
+  convenience init?(contentsOf url: URL) {
+    #if os(iOS) || os(tvOS)
+    self.init(contentsOfFile: url.path)
+    #elseif os(macOS)
+    self.init(byReferencing: url)
+    #endif
+  }
+}
 #endif
 
 #if os(macOS)
