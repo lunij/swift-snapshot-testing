@@ -7,11 +7,16 @@ jobs:
   macos:
     strategy:
       matrix:
-        xcode:
-          - "14.3.1"
+        include:
+          - macos: "13"
+            xcode: "14.3.1"
+            swift: "5.8.1"
+          - macos: "14"
+            xcode: "15.4"
+            swift: "5.10"
 
-    name: macOS 13 (Xcode ${{ matrix.xcode }})
-    runs-on: macos-13
+    name: macOS ${{ matrix.macos }}, Xcode ${{ matrix.xcode }}, Swift ${{ matrix.swift }}
+    runs-on: macos-${{ matrix.macos }}
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode ${{ matrix.xcode }}
@@ -27,7 +32,7 @@ jobs:
         if: failure() && steps.zip-xcresult.conclusion == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: xcresult-macos.zip
+          name: xcresult-macos${{ matrix.macos }}.zip
           path: .xcresults/xcresult-macos.zip
 
   ios:

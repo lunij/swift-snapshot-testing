@@ -182,6 +182,7 @@ final class SnapshotTestingTests: XCTestCase {
       button.bezelStyle = .rounded
       button.title = "Push Me"
       button.sizeToFit()
+      button.appearance = NSAppearance(named: .darkAqua)
       assertSnapshot(of: button, as: .image, named: "\(platform)\(osVersion.majorVersion)")
       assertSnapshot(of: button, as: .recursiveDescription, named: "\(platform)\(osVersion.majorVersion)")
     }
@@ -192,6 +193,7 @@ final class SnapshotTestingTests: XCTestCase {
       view.wantsLayer = true
       view.layer?.backgroundColor = NSColor.green.cgColor
       view.layer?.cornerRadius = 5
+      view.appearance = NSAppearance(named: .darkAqua)
       assertSnapshot(of: view, as: .image, named: "\(platform)\(osVersion.majorVersion)")
       assertSnapshot(of: view, as: .recursiveDescription, named: "\(platform)\(osVersion.majorVersion)")
     }
