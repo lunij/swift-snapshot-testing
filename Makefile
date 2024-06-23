@@ -24,14 +24,18 @@ test-ios:
 		-resultBundlePath .xcresults/ios \
 		-workspace . | xcbeautify
 
-test-swift:
-	swift test
+TVOS_VERSION ?= 16.4
 
 test-tvos:
 	set -o pipefail && \
 	xcodebuild test \
-		-scheme SnapshotTesting \
-		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=13.3"
+		-scheme swift-snapshot-testing-Package \
+		-destination platform="tvOS Simulator,name=Apple TV 4K (3rd generation),OS=$(TVOS_VERSION)" \
+		-resultBundlePath .xcresults/tvos \
+		-workspace . | xcbeautify
+
+test-swift:
+	swift test
 
 format:
 	swift format \
