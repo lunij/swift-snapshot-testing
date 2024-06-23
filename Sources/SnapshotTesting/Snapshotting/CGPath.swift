@@ -31,19 +31,40 @@
       return SimplySnapshotting.image(
         precision: precision, perceptualPrecision: perceptualPrecision
       ).pullback { path in
-        let bounds = path.boundingBoxOfPath
-        var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
-        let path = path.copy(using: &transform)!
-
-        let image = NSImage(size: bounds.size)
-        image.lockFocus()
-        let context = NSGraphicsContext.current!.cgContext
-
-        context.addPath(path)
-        context.drawPath(using: drawingMode)
-        image.unlockFocus()
-        return image
+        path.image(drawingMode: drawingMode) ?? NSImage()
       }
+    }
+  }
+
+  private extension CGPath {
+    func image(drawingMode: CGPathDrawingMode) -> NSImage? {
+      guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
+        return nil
+      }
+
+      let size = boundingBoxOfPath.size
+      let context = CGContext(
+        data: nil,
+        width: Int(size.width),
+        height: Int(size.height),
+        bitsPerComponent: 8,
+        bytesPerRow: 0,
+        space: colorSpace,
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+      )
+
+      guard let context else {
+        return nil
+      }
+
+      context.addPath(self)
+      context.drawPath(using: drawingMode)
+
+      guard let cgImage = context.makeImage() else {
+        return nil
+      }
+
+      return NSImage(cgImage: cgImage, size: size)
     }
   }
 #elseif os(iOS) || os(tvOS)

@@ -22,38 +22,36 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
   extension CGPath {
     /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
     static var heart: CGPath {
-      let scale: CGFloat = 30.0
+      let scale: CGFloat = 30
       let path = CGMutablePath()
 
-      path.move(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
-      path.addLine(to: CGPoint(x: 0.0 * scale, y: 2.0 * scale))
+      path.move(to: CGPoint(x: 0 * scale, y: 0 * scale))
+      path.addLine(to: CGPoint(x: 0 * scale, y: 2 * scale))
       path.addQuadCurve(
-        to: CGPoint(x: 1.0 * scale, y: 3.0 * scale),
+        to: CGPoint(x: 1 * scale, y: 3 * scale),
         control: CGPoint(x: 0.125 * scale, y: 2.875 * scale)
       )
       path.addQuadCurve(
-        to: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
+        to: CGPoint(x: 2 * scale, y: 2 * scale),
         control: CGPoint(x: 1.875 * scale, y: 2.875 * scale)
       )
       path.addCurve(
-        to: CGPoint(x: 3.0 * scale, y: 1.0 * scale),
-        control1: CGPoint(x: 2.5 * scale, y: 2.0 * scale),
-        control2: CGPoint(x: 3.0 * scale, y: 1.5 * scale)
+        to: CGPoint(x: 3 * scale, y: 1 * scale),
+        control1: CGPoint(x: 2.5 * scale, y: 2 * scale),
+        control2: CGPoint(x: 3 * scale, y: 1.5 * scale)
       )
       path.addCurve(
-        to: CGPoint(x: 2.0 * scale, y: 0.0 * scale),
-        control1: CGPoint(x: 3.0 * scale, y: 0.5 * scale),
-        control2: CGPoint(x: 2.5 * scale, y: 0.0 * scale)
+        to: CGPoint(x: 2 * scale, y: 0 * scale),
+        control1: CGPoint(x: 3 * scale, y: 0.5 * scale),
+        control2: CGPoint(x: 2.5 * scale, y: 0 * scale)
       )
-      path.addLine(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
+      path.addLine(to: CGPoint(x: 0 * scale, y: 0 * scale))
       path.closeSubpath()
 
-      path.addEllipse(
-        in: CGRect(
-          origin: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
-          size: CGSize(width: scale, height: scale)
-        ))
-
+      path.addEllipse(in: CGRect(
+        origin: CGPoint(x: 2 * scale, y: 2 * scale),
+        size: CGSize(width: scale, height: scale)
+      ))
       return path
     }
   }
