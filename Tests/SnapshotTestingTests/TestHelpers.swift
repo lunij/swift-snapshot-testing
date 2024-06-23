@@ -70,40 +70,38 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
   extension NSBezierPath {
     /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
     static var heart: NSBezierPath {
-      let scale: CGFloat = 30.0
+      let scale: CGFloat = 30
       let path = NSBezierPath()
 
-      path.move(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
-      path.line(to: CGPoint(x: 0.0 * scale, y: 2.0 * scale))
+      path.move(to: CGPoint(x: 0 * scale, y: 0 * scale))
+      path.line(to: CGPoint(x: 0 * scale, y: 2 * scale))
       path.curve(
-        to: CGPoint(x: 1.0 * scale, y: 3.0 * scale),
-        controlPoint1: CGPoint(x: 0.0 * scale, y: 2.5 * scale),
-        controlPoint2: CGPoint(x: 0.5 * scale, y: 3.0 * scale)
+        to: CGPoint(x: 1 * scale, y: 3 * scale),
+        controlPoint1: CGPoint(x: 0 * scale, y: 2.5 * scale),
+        controlPoint2: CGPoint(x: 0.5 * scale, y: 3 * scale)
       )
       path.curve(
-        to: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
-        controlPoint1: CGPoint(x: 1.5 * scale, y: 3.0 * scale),
-        controlPoint2: CGPoint(x: 2.0 * scale, y: 2.5 * scale)
+        to: CGPoint(x: 2 * scale, y: 2 * scale),
+        controlPoint1: CGPoint(x: 1.5 * scale, y: 3 * scale),
+        controlPoint2: CGPoint(x: 2 * scale, y: 2.5 * scale)
       )
       path.curve(
-        to: CGPoint(x: 3.0 * scale, y: 1.0 * scale),
-        controlPoint1: CGPoint(x: 2.5 * scale, y: 2.0 * scale),
-        controlPoint2: CGPoint(x: 3.0 * scale, y: 1.5 * scale)
+        to: CGPoint(x: 3 * scale, y: 1 * scale),
+        controlPoint1: CGPoint(x: 2.5 * scale, y: 2 * scale),
+        controlPoint2: CGPoint(x: 3 * scale, y: 1.5 * scale)
       )
       path.curve(
-        to: CGPoint(x: 2.0 * scale, y: 0.0 * scale),
-        controlPoint1: CGPoint(x: 3.0 * scale, y: 0.5 * scale),
-        controlPoint2: CGPoint(x: 2.5 * scale, y: 0.0 * scale)
+        to: CGPoint(x: 2 * scale, y: 0 * scale),
+        controlPoint1: CGPoint(x: 3 * scale, y: 0.5 * scale),
+        controlPoint2: CGPoint(x: 2.5 * scale, y: 0 * scale)
       )
-      path.line(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
+      path.line(to: CGPoint(x: 0 * scale, y: 0 * scale))
       path.close()
 
-      path.appendOval(
-        in: CGRect(
-          origin: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
-          size: CGSize(width: scale, height: scale)
-        ))
-
+      path.appendOval(in: CGRect(
+        origin: CGPoint(x: 2 * scale, y: 2 * scale),
+        size: CGSize(width: scale, height: scale)
+      ))
       return path
     }
   }

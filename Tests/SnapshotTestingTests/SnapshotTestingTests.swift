@@ -117,6 +117,14 @@ final class SnapshotTestingTests: XCTestCase {
   }
 #endif
 
+#if os(macOS)
+  func testNSBezierPath() {
+    let path = NSBezierPath.heart
+    assertSnapshot(of: path, as: .image)
+    assertSnapshot(of: path, as: .elementsDescription)
+  }
+#endif
+
   func testData() {
     let data = Data([0xDE, 0xAD, 0xBE, 0xEF])
 
@@ -166,18 +174,6 @@ final class SnapshotTestingTests: XCTestCase {
     struct User { let id: Int, name: String, bio: String }
     let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
     assertSnapshot(of: user, as: .dump, named: "named")
-  }
-
-  func testNSBezierPath() {
-    #if os(macOS)
-      let path = NSBezierPath.heart
-
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(of: path, as: .image, named: "macOS")
-      }
-
-      assertSnapshot(of: path, as: .elementsDescription, named: "macOS")
-    #endif
   }
 
   #if os(macOS)

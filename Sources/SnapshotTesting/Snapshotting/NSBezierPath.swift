@@ -24,21 +24,16 @@
     ///     match. 98-99% mimics
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
-    public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
-      return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision
-      ).pullback { path in
-        // Move path info frame:
-        let bounds = path.bounds
-        let transform = AffineTransform(translationByX: -bounds.origin.x, byY: -bounds.origin.y)
-        path.transform(using: transform)
-
-        let image = NSImage(size: path.bounds.size)
-        image.lockFocus()
-        path.fill()
-        image.unlockFocus()
-        return image
-      }
+    public static func image(
+      precision: Float = 1,
+      perceptualPrecision: Float = 1,
+      drawingMode: CGPathDrawingMode = .eoFill
+    ) -> Snapshotting {
+      SimplySnapshotting
+        .image(precision: precision, perceptualPrecision: perceptualPrecision)
+        .pullback { path in
+          path.image(drawingMode: .eoFill) ?? NSImage()
+        }
     }
   }
 
@@ -109,4 +104,58 @@
     numberFormatter.maximumFractionDigits = 3
     return numberFormatter
   }()
+
+  private extension NSBezierPath {
+    func image(drawingMode: CGPathDrawingMode) -> NSImage? {
+      guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
+        return nil
+      }
+
+      let size = bounds.size
+      let context = CGContext(
+        data: nil,
+        width: Int(size.width),
+        height: Int(size.height),
+        bitsPerComponent: 8,
+        bytesPerRow: 0,
+        space: colorSpace,
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+      )
+
+      guard let context else {
+        return nil
+      }
+
+      context.addPath(toCGPath())
+      context.drawPath(using: drawingMode)
+
+      guard let cgImage = context.makeImage() else {
+        return nil
+      }
+
+      return NSImage(cgImage: cgImage, size: size)
+    }
+
+    func toCGPath() -> CGPath {
+      let path = CGMutablePath()
+      var points = [CGPoint](repeating: .zero, count: 3)
+
+      for index in 0 ..< elementCount {
+        let type = element(at: index, associatedPoints: &points)
+        switch type {
+        case .moveTo:
+          path.move(to: points[0])
+        case .lineTo:
+          path.addLine(to: points[0])
+        case .curveTo:
+          path.addCurve(to: points[2], control1: points[0], control2: points[1])
+        case .closePath:
+          path.closeSubpath()
+        default:
+          continue
+        }
+      }
+      return path
+    }
+  }
 #endif
