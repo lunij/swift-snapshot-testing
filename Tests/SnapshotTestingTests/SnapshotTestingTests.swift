@@ -236,6 +236,17 @@ final class SnapshotTestingTests: XCTestCase {
       XCTAssertNil(message)
     }
 
+    func testPerceptualPrecision() {
+      let view = XView(frame: .init(x: 0, y: 0, width: 100, height: 100))
+      view.backgroundColor = .black
+      assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: platform + "-original")
+
+      view.backgroundColor = .init(white: 0.0019, alpha: 1)
+      assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: platform + "-modified")
+
+      assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 0.98), named: platform + "-original")
+    }
+
     func testImagePrecision() throws {
       let imageURL = fixturesURL.appendingPathComponent("testImagePrecision.reference.png")
       let image = try XCTUnwrap(XImage(contentsOf: imageURL))
