@@ -18,7 +18,7 @@
     public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
       return .init(
         toData: convertToData,
-        fromData: { NSImage(data: $0)! }
+        fromData: { try $0.image() }
       ) { old, new in
         do {
           let result = try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)

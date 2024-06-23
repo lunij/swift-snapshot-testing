@@ -1137,6 +1137,13 @@ final class SnapshotTestingTests: XCTestCase {
       XCTAssertEqual(firstLine, "[macos] Snapshot size (123.0, 123.0) is unequal to expected size (100.0, 100.0)")
       #endif
     }
+
+    func testImageSnapshot_whenReferenceImageLoadingFails() {
+      let size = CGSize(width: 100, height: 100)
+      let view = XView(frame: .init(origin: .zero, size: size))
+      let message = verifySnapshot(of: view, as: .image)
+      XCTAssertEqual(message, "Invalid image data")
+    }
   #endif
 
 #if canImport(SwiftUI)

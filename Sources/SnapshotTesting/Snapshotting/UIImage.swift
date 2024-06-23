@@ -22,7 +22,7 @@
     ) -> Diffing {
       Diffing(
         toData: convertToData,
-        fromData: { UIImage(data: $0, scale: scale)! }
+        fromData: { try $0.image(scale: scale) }
       ) { old, new in
         do {
           let result = try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)

@@ -3,6 +3,7 @@ import Foundation
 
 enum ImageConversionError: Error {
   case cgImageConversionFailed
+  case invalidImageData
   case pngDataConversionFailed
   case zeroHeight
   case zeroSize
@@ -14,6 +15,8 @@ extension ImageConversionError: LocalizedError {
     switch self {
     case .cgImageConversionFailed, .pngDataConversionFailed:
       return "Snapshot could not be processed"
+    case .invalidImageData:
+      return "Invalid image data"
     case .zeroHeight:
       return "Snapshot has a height of zero"
     case .zeroSize:

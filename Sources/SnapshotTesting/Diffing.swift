@@ -7,7 +7,7 @@ public struct Diffing<Value> {
   public var toData: (Value) throws -> Data
 
   /// Produces a value _from_ data.
-  public var fromData: (Data) -> Value
+  public var fromData: (Data) throws -> Value
 
   /// Compares two values. If the values do not match, returns a failure message and artifacts
   /// describing the failure.
@@ -26,7 +26,7 @@ public struct Diffing<Value> {
   ///   - rhs: Another value to compare.
   public init(
     toData: @escaping (_ value: Value) throws -> Data,
-    fromData: @escaping (_ data: Data) -> Value,
+    fromData: @escaping (_ data: Data) throws -> Value,
     diff: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [XCTAttachment])?
   ) {
     self.toData = toData
