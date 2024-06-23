@@ -103,14 +103,6 @@
       #endif
       return nil
     }
-    #if os(iOS) || os(tvOS)
-      func asImage() -> XImage {
-        let renderer = UIGraphicsImageRenderer(bounds: bounds)
-        return renderer.image { rendererContext in
-          layer.render(in: rendererContext.cgContext)
-        }
-      }
-    #endif
 
     #if os(macOS)
       func convertToImage(scale: CGFloat) -> XImage {
