@@ -23,12 +23,7 @@
         precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
       ).pullback { path in
         let bounds = path.bounds
-        let format: UIGraphicsImageRendererFormat
-        if #available(iOS 11.0, tvOS 11.0, *) {
-          format = UIGraphicsImageRendererFormat.preferred()
-        } else {
-          format = UIGraphicsImageRendererFormat.default()
-        }
+        let format = UIGraphicsImageRendererFormat.preferred()
         format.scale = scale
         return UIGraphicsImageRenderer(bounds: bounds, format: format).image { ctx in
           path.fill()

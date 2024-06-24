@@ -907,34 +907,21 @@ final class SnapshotTestingTests: XCTestCase {
     #endif
   }
 
+#if os(iOS) || os(tvOS)
   func testUIBezierPath() {
-    #if os(iOS) || os(tvOS)
-      let path = UIBezierPath.heart
-
-      let osName: String
-      #if os(iOS)
-        osName = "iOS"
-      #elseif os(tvOS)
-        osName = "tvOS"
-      #endif
-
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(of: path, as: .image, named: osName)
-      }
-
-      if #available(iOS 11.0, tvOS 11.0, *) {
-        assertSnapshot(of: path, as: .elementsDescription, named: osName)
-      }
-    #endif
+    let path = UIBezierPath.heart
+    assertSnapshot(of: path, as: .image, named: platform)
+    assertSnapshot(of: path, as: .elementsDescription, named: platform)
   }
+#endif
 
+#if os(iOS)
   func testUIView() {
-    #if os(iOS)
-      let view = UIButton(type: .contactAdd)
-      assertSnapshot(of: view, as: .image)
-      assertSnapshot(of: view, as: .recursiveDescription)
-    #endif
+    let view = UIButton(type: .contactAdd)
+    assertSnapshot(of: view, as: .image)
+    assertSnapshot(of: view, as: .recursiveDescription)
   }
+#endif
 
   func testUIViewControllerLifeCycle() {
     #if os(iOS)
