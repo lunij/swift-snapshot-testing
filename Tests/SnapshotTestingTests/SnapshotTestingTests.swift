@@ -920,8 +920,8 @@ final class SnapshotTestingTests: XCTestCase {
 #if os(iOS)
   func testUIView() {
     let view = UIButton(type: .contactAdd)
-    assertSnapshot(of: view, as: .image)
-    assertSnapshot(of: view, as: .recursiveDescription)
+    assertSnapshot(of: view, as: .image(perceptualPrecision: 0.93))
+    assertSnapshot(of: view, as: .recursiveDescription, named: "\(platform)\(osVersion.majorVersion)")
   }
 #endif
 

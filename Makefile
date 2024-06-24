@@ -14,11 +14,13 @@ test-macos:
 		-resultBundlePath .xcresults/macos \
 		-workspace . | xcbeautify
 
+IOS_VERSION ?= 16.4
+
 test-ios:
 	set -o pipefail && \
 	xcodebuild test \
 		-scheme swift-snapshot-testing-Package \
-		-destination platform="iOS Simulator,name=iPhone 14,OS=16.4" \
+		-destination platform="iOS Simulator,name=iPhone 14,OS=$(IOS_VERSION)" \
 		-resultBundlePath .xcresults/ios \
 		-workspace . | xcbeautify
 

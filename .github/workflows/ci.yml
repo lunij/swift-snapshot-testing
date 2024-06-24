@@ -38,18 +38,25 @@ jobs:
   ios:
     strategy:
       matrix:
-        xcode:
-          - "14.3.1"
+        include:
+          - ios: "16.4"
+            macos: "13"
+            xcode: "14.3.1"
+            swift: "5.8.1"
+          - ios: "17.5"
+            macos: "14"
+            xcode: "15.4"
+            swift: "5.10"
 
-    name: iOS 16.4 (Xcode ${{ matrix.xcode }})
-    runs-on: macos-13
+    name: iOS ${{ matrix.ios }}, macOS ${{ matrix.macos }}, Xcode ${{ matrix.xcode }}, Swift ${{ matrix.swift }}
+    runs-on: macos-${{ matrix.macos }}
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode ${{ matrix.xcode }}
         run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
       - name: Run tests
         id: run-tests
-        run: make test-ios
+        run: make test-ios IOS_VERSION="${{ matrix.ios }}"
       - name: Zip XCResult
         id: zip-xcresult
         if: failure() && steps.run-tests.conclusion == 'failure'
@@ -58,7 +65,7 @@ jobs:
         if: failure() && steps.zip-xcresult.conclusion == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: xcresult-ios.zip
+          name: xcresult-ios${{ matrix.ios }}.zip
           path: .xcresults/xcresult-ios.zip
 
   ubuntu:
