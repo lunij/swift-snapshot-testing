@@ -1,7 +1,7 @@
 import Foundation
 
 extension Data {
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
     func image(scale: CGFloat) throws -> XImage {
         let image = XImage(data: self, scale: scale)
         guard let image else {

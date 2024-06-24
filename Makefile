@@ -34,6 +34,16 @@ test-tvos:
 		-resultBundlePath .xcresults/tvos \
 		-workspace . | xcbeautify
 
+VISIONOS_VERSION ?= 1.2
+
+test-visionos:
+	set -o pipefail && \
+	xcodebuild test \
+		-scheme swift-snapshot-testing-Package \
+		-destination platform="visionOS Simulator,name=Apple Vision Pro,OS=$(VISIONOS_VERSION)" \
+		-resultBundlePath .xcresults/visionos \
+		-workspace . | xcbeautify
+
 test-swift:
 	swift test
 
@@ -44,4 +54,4 @@ format:
 		--recursive \
 		./Package.swift ./Sources ./Tests
 
-test-all: test-linux test-macos test-ios
+test-all: test-linux test-macos test-ios test-visionos

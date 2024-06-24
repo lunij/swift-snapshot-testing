@@ -1,4 +1,4 @@
-#if os(iOS) || os(macOS) || os(tvOS)
+#if os(iOS) || os(macOS) || os(tvOS) || os(visionOS)
 import Foundation
 
 enum ImageConversionError: Error {

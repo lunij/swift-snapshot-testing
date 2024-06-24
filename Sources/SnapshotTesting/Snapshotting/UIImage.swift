@@ -1,4 +1,4 @@
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
   import UIKit
   import XCTest
 
@@ -137,7 +137,7 @@
     if precision >= 1, perceptualPrecision >= 1 {
       return .isNotMatching
     }
-    if perceptualPrecision < 1, #available(iOS 11.0, tvOS 11.0, *) {
+    if perceptualPrecision < 1, #available(iOS 11.0, tvOS 11.0, visionOS 1.0, *) {
       return perceptuallyCompare(
         CIImage(cgImage: oldCgImage),
         CIImage(cgImage: newCgImage),

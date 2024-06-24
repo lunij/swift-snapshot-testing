@@ -1,13 +1,13 @@
-#if os(iOS) || os(macOS) || os(tvOS)
+#if os(iOS) || os(macOS) || os(tvOS) || os(visionOS)
   #if os(macOS)
     import Cocoa
   #endif
   import SceneKit
   import SpriteKit
-  #if os(iOS) || os(tvOS)
+  #if os(iOS) || os(tvOS) || os(visionOS)
     import UIKit
   #endif
-  #if os(iOS) || os(macOS)
+  #if os(iOS) || os(macOS) || os(visionOS)
     import WebKit
   #endif
 
@@ -22,7 +22,7 @@
               imageView.frame = view.frame
               #if os(macOS)
                 view.superview?.addSubview(imageView, positioned: .above, relativeTo: view)
-              #elseif os(iOS) || os(tvOS)
+              #elseif os(iOS) || os(tvOS) || os(visionOS)
                 view.superview?.insertSubview(imageView, aboveSubview: view)
               #endif
               callback(imageView)
@@ -53,7 +53,7 @@
           let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
           #if os(macOS)
             let image = XImage(cgImage: cgImage, size: skView.bounds.size)
-          #elseif os(iOS) || os(tvOS)
+          #elseif os(iOS) || os(tvOS) || os(visionOS)
             let image = XImage(cgImage: cgImage)
           #endif
           return Async(value: image)
@@ -61,11 +61,11 @@
           fatalError("Taking SKView snapshots requires macOS 10.11 or greater")
         }
       }
-      #if os(iOS) || os(macOS)
+      #if os(iOS) || os(macOS) || os(visionOS)
         if let wkWebView = self as? WKWebView {
           return Async<XImage> { callback in
             let work = {
-              if #available(iOS 11.0, macOS 10.13, *) {
+              if #available(iOS 11.0, macOS 10.13, visionOS 1.0, *) {
                 inWindow {
                   wkWebView.takeSnapshot(with: nil) { image, error in
                     guard let image else {
@@ -136,7 +136,7 @@
         image.addRepresentation(bitmapRep)
         return image
       }
-    #elseif os(iOS) || os(tvOS)
+    #elseif os(iOS) || os(tvOS) || os(visionOS)
     func convertToImage(scale: CGFloat, traits: UITraitCollection, drawHierarchyInKeyWindow: Bool) -> XImage {
       renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
         if drawHierarchyInKeyWindow {
@@ -149,7 +149,7 @@
     #endif
   }
 
-  #if os(iOS) || os(tvOS)
+  #if os(iOS) || os(tvOS) || os(visionOS)
     extension UIApplication {
       static var sharedIfAvailable: UIApplication? {
         let sharedSelector = NSSelectorFromString("sharedApplication")
@@ -292,13 +292,7 @@
     }
 
     private func getKeyWindow() -> UIWindow? {
-      var window: UIWindow?
-      if #available(iOS 13.0, *) {
-        window = UIApplication.sharedIfAvailable?.windows.first { $0.isKeyWindow }
-      } else {
-        window = UIApplication.sharedIfAvailable?.keyWindow
-      }
-      return window
+      UIApplication.sharedIfAvailable?.windows.first { $0.isKeyWindow }
     }
 
     private final class Window: UIWindow {
@@ -329,7 +323,7 @@
         fatalError("init(coder:) has not been implemented")
       }
 
-      @available(iOS 11.0, *)
+      @available(iOS 11.0, visionOS 1.0, *)
       override var safeAreaInsets: UIEdgeInsets {
         #if os(iOS)
           let removeTopInset =

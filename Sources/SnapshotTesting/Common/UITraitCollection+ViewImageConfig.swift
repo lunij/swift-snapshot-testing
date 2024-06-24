@@ -484,6 +484,21 @@ extension UITraitCollection {
     )
 #elseif os(tvOS)
     // TODO
+#elseif os(visionOS)
+    public static let visionPro = UITraitCollection(
+        traitsFrom: [
+            .init(userInterfaceIdiom: .vision),
+            .init(horizontalSizeClass: .regular),
+            .init(verticalSizeClass: .regular),
+            .init(displayScale: 2),
+            .init(userInterfaceStyle: .dark),
+            .init(layoutDirection: .leftToRight),
+            .init(forceTouchCapability: .unavailable),
+            .init(preferredContentSizeCategory: .large),
+            .init(accessibilityContrast: .normal),
+            .init(userInterfaceLevel: .base),
+        ]
+    )
 #endif
 }
 #endif

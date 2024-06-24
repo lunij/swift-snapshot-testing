@@ -8,6 +8,8 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
   let platform = "ios"
 #elseif os(tvOS)
   let platform = "tvos"
+#elseif os(visionOS)
+  let platform = "visionos"
 #elseif os(macOS)
   let platform = "macos"
   extension NSTextField {
@@ -18,7 +20,7 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
   }
 #endif
 
-#if os(macOS) || os(iOS) || os(tvOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
   extension CGPath {
     /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
     static var heart: CGPath {
@@ -57,7 +59,7 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
   }
 #endif
 
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
   extension UIBezierPath {
     /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
     static var heart: UIBezierPath {

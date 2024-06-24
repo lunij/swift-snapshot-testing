@@ -1,4 +1,4 @@
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
   import UIKit
 
   extension Snapshotting where Value == UIBezierPath, Format == UIImage {
@@ -32,7 +32,7 @@
     }
   }
 
-  @available(iOS 11.0, tvOS 11.0, *)
+  @available(iOS 11.0, tvOS 11.0, visionOS 1.0, *)
   extension Snapshotting where Value == UIBezierPath, Format == String {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     public static var elementsDescription: Snapshotting {

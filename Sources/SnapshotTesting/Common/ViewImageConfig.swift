@@ -1,4 +1,4 @@
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
 import UIKit
 
 public struct ViewImageConfig: Sendable {
@@ -625,6 +625,12 @@ public struct ViewImageConfig: Sendable {
     public static let tv4K = ViewImageConfig(
         safeArea: .init(top: 120, left: 180, bottom: 120, right: 180),
         size: .init(width: 3840, height: 2160),
+        traits: .init()
+    )
+#elseif os(visionOS)
+    public static let visionPro = ViewImageConfig(
+        safeArea: .zero,
+        size: .init(width: 2700, height: 1360),
         traits: .init()
     )
 #endif

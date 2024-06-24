@@ -101,6 +101,35 @@ jobs:
           name: xcresult-tvos${{ matrix.tvos }}.zip
           path: .xcresults/xcresult-tvos.zip
 
+  visionos:
+    strategy:
+      matrix:
+        include:
+          - visionos: "1.2"
+            macos: "14"
+            xcode: "15.4"
+            swift: "5.10"
+
+    name: visionOS ${{ matrix.visionos }}, macOS ${{ matrix.macos }}, Xcode ${{ matrix.xcode }}, Swift ${{ matrix.swift }}
+    runs-on: macos-${{ matrix.macos }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode ${{ matrix.xcode }}
+        run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
+      - name: Run tests
+        id: run-tests
+        run: make test-visionos VISIONOS_VERSION="${{ matrix.visionos }}"
+      - name: Zip XCResult
+        id: zip-xcresult
+        if: failure() && steps.run-tests.conclusion == 'failure'
+        run: cd .xcresults; zip -r xcresult-visionos.zip visionos.xcresult
+      - name: Upload XCResult
+        if: failure() && steps.zip-xcresult.conclusion == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult-visionos${{ matrix.visionos }}.zip
+          path: .xcresults/xcresult-visionos.zip
+
   ubuntu:
     strategy:
       matrix:
