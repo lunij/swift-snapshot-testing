@@ -17,6 +17,7 @@ jobs:
 
     name: macOS ${{ matrix.macos }}, Xcode ${{ matrix.xcode }}, Swift ${{ matrix.swift }}
     runs-on: macos-${{ matrix.macos }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode ${{ matrix.xcode }}
@@ -50,6 +51,7 @@ jobs:
 
     name: iOS ${{ matrix.ios }}, macOS ${{ matrix.macos }}, Xcode ${{ matrix.xcode }}, Swift ${{ matrix.swift }}
     runs-on: macos-${{ matrix.macos }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode ${{ matrix.xcode }}
@@ -83,6 +85,7 @@ jobs:
 
     name: tvOS ${{ matrix.tvos }}, macOS ${{ matrix.macos }}, Xcode ${{ matrix.xcode }}, Swift ${{ matrix.swift }}
     runs-on: macos-${{ matrix.macos }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode ${{ matrix.xcode }}
@@ -112,6 +115,7 @@ jobs:
 
     name: visionOS ${{ matrix.visionos }}, macOS ${{ matrix.macos }}, Xcode ${{ matrix.xcode }}, Swift ${{ matrix.swift }}
     runs-on: macos-${{ matrix.macos }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode ${{ matrix.xcode }}
@@ -138,6 +142,7 @@ jobs:
 
     name: Ubuntu (Swift ${{ matrix.swift }})
     runs-on: ubuntu-20.04
+    timeout-minutes: 30
     steps:
       - uses: swift-actions/setup-swift@v2
         with:
@@ -153,7 +158,7 @@ jobs:
 
     name: Windows (Swift ${{ matrix.swift }})
     runs-on: windows-latest
-
+    timeout-minutes: 30
     steps:
       - uses: compnerd/gha-setup-swift@main
         with:
