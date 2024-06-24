@@ -1005,7 +1005,7 @@ final class SnapshotTestingTests: XCTestCase {
       viewController.viewWillDisappearExpectation.expectedFulfillmentCount = 1
       viewController.viewDidDisappearExpectation.expectedFulfillmentCount = 1
 
-      assertSnapshot(of: viewController, as: .image)
+      assertSnapshot(of: viewController, as: .image, named: platform)
 
       wait(for: [
         viewController.viewDidLoadExpectation,
