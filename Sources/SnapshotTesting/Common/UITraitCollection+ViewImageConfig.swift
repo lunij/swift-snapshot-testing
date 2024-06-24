@@ -253,9 +253,109 @@ extension UITraitCollection {
         }
     }
 
+    public static func iPhone14(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        let base: [UITraitCollection] = [
+            .init(forceTouchCapability: .available),
+            .init(layoutDirection: .leftToRight),
+            .init(preferredContentSizeCategory: .medium),
+            .init(userInterfaceIdiom: .phone)
+        ]
+        switch orientation {
+        case .landscape:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .regular),
+                    .init(verticalSizeClass: .compact)
+                ]
+            )
+        case .portrait:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .compact),
+                    .init(verticalSizeClass: .regular)
+                ]
+            )
+        }
+    }
+
+    public static func iPhone14Plus(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        let base: [UITraitCollection] = [
+            .init(forceTouchCapability: .available),
+            .init(layoutDirection: .leftToRight),
+            .init(preferredContentSizeCategory: .medium),
+            .init(userInterfaceIdiom: .phone)
+        ]
+        switch orientation {
+        case .landscape:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .regular),
+                    .init(verticalSizeClass: .compact)
+                ]
+            )
+        case .portrait:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .compact),
+                    .init(verticalSizeClass: .regular)
+                ]
+            )
+        }
+    }
+
+    public static func iPhone14Pro(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        let base: [UITraitCollection] = [
+            .init(forceTouchCapability: .available),
+            .init(layoutDirection: .leftToRight),
+            .init(preferredContentSizeCategory: .medium),
+            .init(userInterfaceIdiom: .phone)
+        ]
+        switch orientation {
+        case .landscape:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .regular),
+                    .init(verticalSizeClass: .compact)
+                ]
+            )
+        case .portrait:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .compact),
+                    .init(verticalSizeClass: .regular)
+                ]
+            )
+        }
+    }
+
+    public static func iPhone14ProMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        let base: [UITraitCollection] = [
+            .init(forceTouchCapability: .available),
+            .init(layoutDirection: .leftToRight),
+            .init(preferredContentSizeCategory: .medium),
+            .init(userInterfaceIdiom: .phone)
+        ]
+        switch orientation {
+        case .landscape:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .regular),
+                    .init(verticalSizeClass: .compact)
+                ]
+            )
+        case .portrait:
+            return .init(
+                traitsFrom: base + [
+                    .init(horizontalSizeClass: .compact),
+                    .init(verticalSizeClass: .regular)
+                ]
+            )
+        }
+    }
+
     public static func iPhone15(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
         let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .unavailable),
+            .init(forceTouchCapability: .available),
             .init(layoutDirection: .leftToRight),
             .init(preferredContentSizeCategory: .medium),
             .init(userInterfaceIdiom: .phone)
@@ -280,7 +380,7 @@ extension UITraitCollection {
 
     public static func iPhone15Plus(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
         let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .unavailable),
+            .init(forceTouchCapability: .available),
             .init(layoutDirection: .leftToRight),
             .init(preferredContentSizeCategory: .medium),
             .init(userInterfaceIdiom: .phone)
@@ -305,7 +405,7 @@ extension UITraitCollection {
 
     public static func iPhone15Pro(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
         let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .unavailable),
+            .init(forceTouchCapability: .available),
             .init(layoutDirection: .leftToRight),
             .init(preferredContentSizeCategory: .medium),
             .init(userInterfaceIdiom: .phone)
@@ -330,7 +430,7 @@ extension UITraitCollection {
 
     public static func iPhone15ProMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
         let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .unavailable),
+            .init(forceTouchCapability: .available),
             .init(layoutDirection: .leftToRight),
             .init(preferredContentSizeCategory: .medium),
             .init(userInterfaceIdiom: .phone)
