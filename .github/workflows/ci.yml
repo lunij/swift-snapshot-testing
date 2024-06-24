@@ -105,6 +105,7 @@ jobs:
           path: .xcresults/xcresult-tvos.zip
 
   visionos:
+    if: false # GitHub Actions is timing out with the Apple Vision Pro Simulator
     strategy:
       matrix:
         include:
