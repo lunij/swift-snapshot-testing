@@ -11,21 +11,6 @@ import XCTest
   import Testing
 #endif
 
-/// Enhances failure messages with a command line diff tool expression that can be copied and pasted
-/// into a terminal.
-@available(
-  *,
-  deprecated,
-  message:
-    "Use 'withSnapshotTesting' to customize the diff tool. See the documentation for more information."
-)
-public var diffTool: SnapshotTestingConfiguration.DiffTool {
-  get {
-    _diffTool
-  }
-  set { _diffTool = newValue }
-}
-
 @_spi(Internals)
 public var _diffTool: SnapshotTestingConfiguration.DiffTool {
   get {
@@ -47,18 +32,6 @@ public var _diffTool: SnapshotTestingConfiguration.DiffTool {
 
 @_spi(Internals)
 public var __diffTool: SnapshotTestingConfiguration.DiffTool = .default
-
-/// Whether or not to record all new references.
-@available(
-  *,
-  deprecated,
-  message:
-    "Use 'withSnapshotTesting' to customize the record mode. See the documentation for more information."
-)
-public var isRecording: Bool {
-  get { SnapshotTestingConfiguration.current?.record ?? _record == .all }
-  set { _record = newValue ? .all : .missing }
-}
 
 @_spi(Internals)
 public var _record: SnapshotTestingConfiguration.Record {
@@ -485,8 +458,6 @@ public func verifySnapshot<Value, Format>(
               #if compiler(>=6.2)
                 attachments.forEach {
                   switch $0 {
-                  case .xcTest:
-                    break
                   case .data(let data, let name):
                     recordSwiftTestingAttachment(
                       data,
@@ -505,8 +476,6 @@ public func verifySnapshot<Value, Format>(
               XCTContext.runActivity(named: "Attached Failure Diff") { activity in
                 attachments.forEach {
                   switch $0 {
-                  case .xcTest(let attachment):
-                    activity.add(attachment)
                   case .data(let data, let name):
                     let attachment = XCTAttachment(data: data)
                     attachment.name = name
