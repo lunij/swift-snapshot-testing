@@ -338,12 +338,12 @@ public func verifySnapshot<Value, Format>(
         return "Couldn't snapshot value"
       }
 
-      guard var diffable = optionalDiffable else {
+      guard let diffable = optionalDiffable else {
         return "Couldn't snapshot value"
       }
 
       func recordSnapshot(writeToDisk: Bool) throws {
-        let snapshotData = snapshotting.diffing.toData(diffable)
+        let snapshotData = try snapshotting.diffing.toData(diffable)
 
         if writeToDisk {
           try snapshotData.write(to: snapshotFileUrl)
@@ -425,17 +425,7 @@ public func verifySnapshot<Value, Format>(
       let data = try Data(contentsOf: snapshotFileUrl)
       let reference = snapshotting.diffing.fromData(data)
 
-      #if os(iOS) || os(tvOS)
-        // If the image generation fails for the diffable part and the reference was empty, use the reference
-        if let localDiff = diffable as? UIImage,
-          let refImage = reference as? UIImage,
-          localDiff.size == .zero && refImage.size == .zero
-        {
-          diffable = reference
-        }
-      #endif
-
-      guard let (failure, attachments) = snapshotting.diffing.diffV2(reference, diffable) else {
+      guard let (failure, attachments) = try snapshotting.diffing.diffV2(reference, diffable) else {
         return nil
       }
 
