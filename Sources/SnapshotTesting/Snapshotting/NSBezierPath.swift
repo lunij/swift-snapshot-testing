@@ -33,10 +33,28 @@
         let transform = AffineTransform(translationByX: -bounds.origin.x, byY: -bounds.origin.y)
         path.transform(using: transform)
 
-        let image = NSImage(size: path.bounds.size)
-        image.lockFocus()
+        // Draw into an explicitly sized bitmap so the image is rendered at 1x
+        // regardless of the main display's backing scale factor.
+        let size = path.bounds.size
+        let bitmapRep = NSBitmapImageRep(
+          bitmapDataPlanes: nil,
+          pixelsWide: Int(ceil(size.width)),
+          pixelsHigh: Int(ceil(size.height)),
+          bitsPerSample: 8,
+          samplesPerPixel: 4,
+          hasAlpha: true,
+          isPlanar: false,
+          colorSpaceName: .calibratedRGB,
+          bytesPerRow: 0,
+          bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        defer { NSGraphicsContext.restoreGraphicsState() }
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmapRep)
         path.fill()
-        image.unlockFocus()
+
+        let image = NSImage(size: size)
+        image.addRepresentation(bitmapRep)
         return image
       }
     }

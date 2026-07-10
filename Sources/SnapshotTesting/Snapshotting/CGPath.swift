@@ -38,13 +38,31 @@
         var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
         let path = path.copy(using: &transform)!
 
-        let image = NSImage(size: bounds.size)
-        image.lockFocus()
-        let context = NSGraphicsContext.current!.cgContext
+        // Draw into an explicitly sized bitmap so the image is rendered at 1x
+        // regardless of the main display's backing scale factor.
+        let bitmapRep = NSBitmapImageRep(
+          bitmapDataPlanes: nil,
+          pixelsWide: Int(ceil(bounds.width)),
+          pixelsHigh: Int(ceil(bounds.height)),
+          bitsPerSample: 8,
+          samplesPerPixel: 4,
+          hasAlpha: true,
+          isPlanar: false,
+          colorSpaceName: .calibratedRGB,
+          bytesPerRow: 0,
+          bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        defer { NSGraphicsContext.restoreGraphicsState() }
+        let graphicsContext = NSGraphicsContext(bitmapImageRep: bitmapRep)!
+        NSGraphicsContext.current = graphicsContext
 
+        let context = graphicsContext.cgContext
         context.addPath(path)
         context.drawPath(using: drawingMode)
-        image.unlockFocus()
+
+        let image = NSImage(size: bounds.size)
+        image.addRepresentation(bitmapRep)
         return image
       }
     }

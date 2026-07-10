@@ -118,28 +118,13 @@ final class SnapshotTestingTests: BaseTestCase {
     )
   }
 
+  #if os(iOS) || os(macOS) || os(tvOS)
   func testCGPath() {
-    #if os(iOS) || os(tvOS) || os(macOS)
-      let path = CGPath.heart
-
-      let osName: String
-      #if os(iOS)
-        osName = "iOS"
-      #elseif os(tvOS)
-        osName = "tvOS"
-      #elseif os(macOS)
-        osName = "macOS"
-      #endif
-
-      if !CI {
-        assertSnapshot(of: path, as: .image, named: osName)
-      }
-
-      if #available(iOS 11.0, OSX 10.13, tvOS 11.0, *) {
-        assertSnapshot(of: path, as: .elementsDescription, named: osName)
-      }
-    #endif
+    let path = CGPath.heart
+    assertSnapshot(of: path, as: .image, named: platform)
+    assertSnapshot(of: path, as: .elementsDescription, named: platform)
   }
+  #endif
 
   func testData() {
     let data = Data([0xDE, 0xAD, 0xBE, 0xEF])
@@ -192,19 +177,13 @@ final class SnapshotTestingTests: BaseTestCase {
     assertSnapshot(of: user, as: .dump, named: "named")
   }
 
+  #if os(macOS)
   func testNSBezierPath() {
-    #if os(macOS)
-      let path = NSBezierPath.heart
-
-      if !CI {
-        assertSnapshot(of: path, as: .image, named: "macOS")
-      }
-
-      assertSnapshot(of: path, as: .elementsDescription, named: "macOS")
-    #endif
+    let path = NSBezierPath.heart
+    assertSnapshot(of: path, as: .image, named: platform)
+    assertSnapshot(of: path, as: .elementsDescription, named: platform)
   }
 
-  #if os(macOS)
   func testNSView() {
     let button = NSButton()
     button.bezelStyle = .rounded
