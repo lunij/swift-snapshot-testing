@@ -200,32 +200,26 @@ final class SnapshotTestingTests: BaseTestCase {
     #endif
   }
 
+  #if os(macOS)
   func testNSView() {
-    #if os(macOS)
-      let button = NSButton()
-      button.bezelStyle = .rounded
-      button.title = "Push Me"
-      button.sizeToFit()
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(of: button, as: .image)
-        assertSnapshot(of: button, as: .recursiveDescription)
-      }
-    #endif
+    let button = NSButton()
+    button.bezelStyle = .rounded
+    button.title = "Push Me"
+    button.sizeToFit()
+    assertSnapshot(of: button, as: .image)
+    assertSnapshot(of: button, as: .recursiveDescription)
   }
 
   func testNSViewWithLayer() {
-    #if os(macOS)
-      let view = NSView()
-      view.frame = CGRect(x: 0.0, y: 0.0, width: 10.0, height: 10.0)
-      view.wantsLayer = true
-      view.layer?.backgroundColor = NSColor.green.cgColor
-      view.layer?.cornerRadius = 5
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        assertSnapshot(of: view, as: .image)
-        assertSnapshot(of: view, as: .recursiveDescription)
-      }
-    #endif
+    let view = NSView()
+    view.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
+    view.wantsLayer = true
+    view.layer?.backgroundColor = NSColor.green.cgColor
+    view.layer?.cornerRadius = 5
+    assertSnapshot(of: view, as: .image)
+    assertSnapshot(of: view, as: .recursiveDescription)
   }
+  #endif
 
   func testPrecision() {
     #if os(iOS) || os(macOS) || os(tvOS)
