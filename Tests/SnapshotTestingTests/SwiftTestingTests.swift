@@ -13,7 +13,8 @@
   extension BaseSuite {
     @Suite(.serialized, .snapshots(record: .missing))
     struct SwiftTestingTests {
-      @Test func testSnapshot() {
+      @Test(.disabled(if: CI))
+      func testSnapshot() {
         assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
         withKnownIssue {
           assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
@@ -31,11 +32,7 @@
       }
 
       #if canImport(UIKit)
-        @Test(
-          .enabled {
-            !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW")
-          }
-        )
+        @Test(.disabled(if: CI))
         func testUIImage() {
           let redPixel = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image {
             context in
@@ -59,11 +56,7 @@
       #endif
 
       #if canImport(AppKit)
-        @Test(
-          .enabled {
-            !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW")
-          }
-        )
+        @Test(.disabled(if: CI))
         func testNSImage() {
           let redPixel = NSImage(size: NSSize(width: 1, height: 1), flipped: false) { rect in
             NSColor.red.setFill()

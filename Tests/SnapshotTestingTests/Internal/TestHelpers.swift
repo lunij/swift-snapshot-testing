@@ -18,6 +18,8 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
   }
 #endif
 
+let CI = ProcessInfo.processInfo.environment["CI"] != nil
+
 #if os(macOS) || os(iOS) || os(tvOS)
   extension CGPath {
     /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:

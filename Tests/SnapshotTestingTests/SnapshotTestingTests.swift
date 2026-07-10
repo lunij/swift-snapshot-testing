@@ -131,7 +131,7 @@ final class SnapshotTestingTests: BaseTestCase {
         osName = "macOS"
       #endif
 
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+      if !CI {
         assertSnapshot(of: path, as: .image, named: osName)
       }
 
@@ -160,7 +160,7 @@ final class SnapshotTestingTests: BaseTestCase {
   func testMixedViews() {
     //    #if os(iOS) || os(macOS)
     //    // NB: CircleCI crashes while trying to instantiate SKView.
-    //    if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+    //    if !CI {
     //      let webView = WKWebView(frame: .init(x: 0, y: 0, width: 50, height: 50))
     //      webView.loadHTMLString("🌎", baseURL: nil)
     //
@@ -196,7 +196,7 @@ final class SnapshotTestingTests: BaseTestCase {
     #if os(macOS)
       let path = NSBezierPath.heart
 
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+      if !CI {
         assertSnapshot(of: path, as: .image, named: "macOS")
       }
 
@@ -268,7 +268,7 @@ final class SnapshotTestingTests: BaseTestCase {
   func testSCNView() {
     // #if os(iOS) || os(macOS) || os(tvOS)
     // // NB: CircleCI crashes while trying to instantiate SCNView.
-    // if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+    // if !CI {
     //   let scene = SCNScene()
     //
     //   let sphereGeometry = SCNSphere(radius: 3)
@@ -305,7 +305,7 @@ final class SnapshotTestingTests: BaseTestCase {
   func testSKView() {
     // #if os(iOS) || os(macOS) || os(tvOS)
     // // NB: CircleCI crashes while trying to instantiate SKView.
-    // if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+    // if !CI {
     //   let scene = SKScene(size: .init(width: 50, height: 50))
     //   let node = SKShapeNode(circleOfRadius: 15)
     //   node.fillColor = .red
@@ -946,7 +946,7 @@ final class SnapshotTestingTests: BaseTestCase {
         osName = "tvOS"
       #endif
 
-      if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+      if !CI {
         assertSnapshot(of: path, as: .image, named: osName)
       }
 
