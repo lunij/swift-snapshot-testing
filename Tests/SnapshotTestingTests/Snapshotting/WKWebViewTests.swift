@@ -22,7 +22,12 @@ final class WKWebViewTests: XCTestCase {
     webView.load(.init(url: .htmlFixture))
     assertSnapshot(
       of: webView,
-      as: .image(precision: 0.98, perceptualPrecision: 0.95, size: .init(width: 800, height: 600)),
+      as: .image(
+        precision: 0.98,
+        perceptualPrecision: 0.95,
+        scale: 1,
+        size: .init(width: 800, height: 600)
+      ),
       named: platform
     )
   }
@@ -39,8 +44,13 @@ final class WKWebViewTests: XCTestCase {
     webView.load(.init(url: .htmlFixture))
     assertSnapshot(
       of: webView,
-      as: .image(precision: 0.98, perceptualPrecision: 0.95, size: .init(width: 800, height: 600)),
-      named: platform
+      as: .image(
+        precision: 0.98,
+        perceptualPrecision: 0.95,
+        scale: 1,
+        size: .init(width: 800, height: 600)
+      ),
+      named: platform,
     )
     _ = manipulatingWKWebViewNavigationDelegate
   }

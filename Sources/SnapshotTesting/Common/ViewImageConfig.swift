@@ -23,15 +23,18 @@ public struct ViewImageConfig: Sendable {
     }
 
     public var safeArea: UIEdgeInsets
+    public var scale: CGFloat
     public var size: CGSize?
     public var traits: UITraitCollection
 
     public init(
         safeArea: UIEdgeInsets = .zero,
+        scale: CGFloat = 2,
         size: CGSize? = nil,
         traits: UITraitCollection = .init()
     ) {
         self.safeArea = safeArea
+        self.scale = scale
         self.size = size
         self.traits = traits
     }

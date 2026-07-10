@@ -240,7 +240,6 @@ final class SnapshotTestingTests: BaseTestCase {
       #elseif os(macOS)
         let label = NSTextField()
         label.frame = CGRect(origin: .zero, size: CGSize(width: 37, height: 16))
-        label.backgroundColor = .white
         label.isBezeled = false
         label.isEditable = false
       #endif
@@ -1110,7 +1109,7 @@ final class SnapshotTestingTests: BaseTestCase {
       """.utf8)
   }
 
-#if os(iOS) || os(macOS) || os(tvOS)
+  #if os(iOS) || os(macOS) || os(tvOS)
   func testSnapshotWithZeroHeight_whenNoReferenceImage() {
     let size = CGSize(width: 350, height: 0)
     let view = XView(frame: .init(origin: .zero, size: size))
@@ -1145,20 +1144,14 @@ final class SnapshotTestingTests: BaseTestCase {
     let newSize = CGSize(width: 123, height: 123)
     view.frame = .init(origin: .zero, size: newSize)
     message = verifySnapshot(of: view, as: .image, named: platform, record: .never)
-    let firstLine = message?.split(separator: "\n").first.map(String.init)
+    let firstLine = message?.split(whereSeparator: \.isNewline).first
     #if os(macOS)
-    XCTAssertEqual(
-      firstLine,
-      "[\(platform)] Image size 246×246 does not match reference size 200×200."
-    )
+    XCTAssertEqual(firstLine, "[macos] Image size 123×123 does not match reference size 100×100.")
     #else
-    XCTAssertEqual(
-      firstLine,
-      "[\(platform)] Image size 369×369 does not match reference size 300×300."
-    )
+    XCTAssertEqual(firstLine, "[\(platform)] Image size 246×246 does not match reference size 200×200.")
     #endif
   }
-#endif
+  #endif
 
   #if os(iOS)
     @available(iOS 13.0, *)

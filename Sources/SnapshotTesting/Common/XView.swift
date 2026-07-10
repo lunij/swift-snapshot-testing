@@ -113,18 +113,40 @@
     #endif
 
     #if os(macOS)
-    func convertToImage() -> XImage {
-      let image = NSImage(size: bounds.size)
-      guard let bitmapRep = bitmapImageRepForCachingDisplay(in: bounds) else {
+      func convertToImage(scale: CGFloat) -> XImage {
+        let originalSize = bounds.size
+        let scaledSize = NSSize(width: originalSize.width * scale, height: originalSize.height * scale)
+        let image = NSImage(size: scaledSize)
+
+        guard let bitmapRep = NSBitmapImageRep(
+          bitmapDataPlanes: nil,
+          pixelsWide: Int(scaledSize.width),
+          pixelsHigh: Int(scaledSize.height),
+          bitsPerSample: 8,
+          samplesPerPixel: 4,
+          hasAlpha: true,
+          isPlanar: false,
+          colorSpaceName: .deviceRGB,
+          bytesPerRow: 0,
+          bitsPerPixel: 0
+        ) else {
+          return image
+        }
+
+        let graphicsContext = NSGraphicsContext(bitmapImageRep: bitmapRep)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = graphicsContext
+        
+        graphicsContext?.cgContext.scaleBy(x: scale, y: scale)
+        cacheDisplay(in: bounds, to: bitmapRep)
+
+        NSGraphicsContext.restoreGraphicsState()
+        image.addRepresentation(bitmapRep)
         return image
       }
-      cacheDisplay(in: bounds, to: bitmapRep)
-      image.addRepresentation(bitmapRep)
-      return image
-    }
     #elseif os(iOS) || os(tvOS)
-    func convertToImage(traits: UITraitCollection, drawHierarchyInKeyWindow: Bool) -> XImage {
-      renderer(bounds: bounds, for: traits).image { ctx in
+    func convertToImage(scale: CGFloat, traits: UITraitCollection, drawHierarchyInKeyWindow: Bool) -> XImage {
+      renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
         if drawHierarchyInKeyWindow {
           drawHierarchy(in: bounds, afterScreenUpdates: true)
         } else {
@@ -206,7 +228,7 @@
       )
       return Async { callback in
         addImagesForRenderedViews(view).sequence().run { views in
-          callback(view.convertToImage(traits: traits, drawHierarchyInKeyWindow: drawHierarchyInKeyWindow))
+          callback(view.convertToImage(scale: config.scale, traits: traits, drawHierarchyInKeyWindow: drawHierarchyInKeyWindow))
           views.forEach { $0.removeFromSuperview() }
           view.frame = initialFrame
         }
@@ -216,14 +238,10 @@
       }
     }
 
-    func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageRenderer {
-      let renderer: UIGraphicsImageRenderer
-      if #available(iOS 11.0, tvOS 11.0, *) {
-        renderer = UIGraphicsImageRenderer(bounds: bounds, format: .init(for: traits))
-      } else {
-        renderer = UIGraphicsImageRenderer(bounds: bounds)
-      }
-      return renderer
+    func renderer(bounds: CGRect, scale: CGFloat, traits: UITraitCollection) -> UIGraphicsImageRenderer {
+      let format = UIGraphicsImageRendererFormat(for: traits)
+      format.scale = scale
+      return UIGraphicsImageRenderer(bounds: bounds, format: format)
     }
 
     private func add(

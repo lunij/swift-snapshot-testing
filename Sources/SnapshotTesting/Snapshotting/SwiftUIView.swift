@@ -41,6 +41,7 @@
         precision: Float = 0.99,
         perceptualPrecision: Float = 0.99,
         layout: SwiftUISnapshotLayout = .sizeThatFits,
+        scale: CGFloat = 2,
         traits: UITraitCollection = .init()
       )
         -> Snapshotting
@@ -53,14 +54,14 @@
             config = deviceConfig
         #endif
         case .sizeThatFits:
-          config = .init(safeArea: .zero, size: nil, traits: traits)
+          config = .init(safeArea: .zero, scale: scale, size: nil, traits: traits)
         case let .fixed(width: width, height: height):
           let size = CGSize(width: width, height: height)
-          config = .init(safeArea: .zero, size: size, traits: traits)
+          config = .init(safeArea: .zero, scale: scale, size: size, traits: traits)
         }
 
         return SimplySnapshotting.image(
-          precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+          precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
         ).asyncPullback { view in
           var config = config
 

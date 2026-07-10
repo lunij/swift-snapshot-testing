@@ -33,7 +33,7 @@
     {
 
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+        precision: precision, perceptualPrecision: perceptualPrecision, scale: config.scale
       ).asyncPullback { viewController in
         snapshotView(
           config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
@@ -63,6 +63,7 @@
       drawHierarchyInKeyWindow: Bool = false,
       precision: Float = 0.99,
       perceptualPrecision: Float = 0.99,
+      scale: CGFloat = 2,
       size: CGSize? = nil,
       traits: UITraitCollection = .init()
     )
@@ -70,7 +71,7 @@
     {
 
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+        precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
       ).asyncPullback { viewController in
         snapshotView(
           config: .init(safeArea: .zero, size: size, traits: traits),
