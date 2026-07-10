@@ -8,6 +8,7 @@ test-linux:
 
 test-macos:
 	set -o pipefail && \
+	TEST_RUNNER_CI=$(CI) \
 	xcodebuild test \
 		-scheme swift-snapshot-testing-Package \
 		-destination platform="macOS" \
@@ -16,6 +17,7 @@ test-macos:
 
 test-ios:
 	set -o pipefail && \
+	TEST_RUNNER_CI=$(CI) \
 	xcodebuild test \
 		-scheme swift-snapshot-testing-Package \
 		-destination platform="iOS Simulator,name=iPhone 17,OS=26.4.1" \
