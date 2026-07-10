@@ -2,6 +2,8 @@ import XCTest
 
 @testable import SnapshotTesting
 
+let osVersion = ProcessInfo.processInfo.operatingSystemVersion
+
 #if os(iOS)
   let platform = "ios"
 #elseif os(tvOS)
