@@ -13,16 +13,20 @@ extension Diffing where Value == String {
     fromData: { String(decoding: $0, as: UTF8.self) }
   ) { old, new in
     guard old != new else { return nil }
-    let hunks = chunk(
-      diff: SnapshotTesting.diff(
-        old.split(separator: "\n", omittingEmptySubsequences: false).map(String.init),
-        new.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-      ))
-    let failure =
-      hunks
+    let differences = SnapshotTesting.diff(
+      old.split(separator: "\n", omittingEmptySubsequences: false).map(String.init),
+      new.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    )
+    let removed = differences.filter { $0.which == .first }.reduce(0) { $0 + $1.elements.count }
+    let added = differences.filter { $0.which == .second }.reduce(0) { $0 + $1.elements.count }
+    let patch =
+      chunk(diff: differences)
       .flatMap { [$0.patchMark] + $0.lines }
       .joined(separator: "\n")
-    let attachment = DiffAttachment.data(Data(failure.utf8), name: "difference.patch")
-    return (failure, [attachment])
+    return SnapshotFailure(
+      reason: "Text does not match reference (+\(added) −\(removed) lines).",
+      detail: patch,
+      attachments: [.data(Data(patch.utf8), name: "difference.patch")]
+    )
   }
 }

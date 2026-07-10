@@ -8,11 +8,11 @@ extension Snapshotting where Value == Data, Format == Data {
       pathExtension: nil,
       diffing: .diff(toData: { $0 }, fromData: { $0 }) { old, new in
         guard old != new else { return nil }
-        let message =
+        let reason =
           old.count == new.count
-          ? "Expected data to match"
-          : "Expected \(new) to match \(old)"
-        return (message, [])
+          ? "Data does not match reference (\(new.count) bytes)."
+          : "Data size \(new.count) bytes does not match reference size \(old.count) bytes."
+        return SnapshotFailure(reason: reason)
       }
     )
   }

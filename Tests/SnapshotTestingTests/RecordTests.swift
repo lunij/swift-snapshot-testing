@@ -86,7 +86,7 @@ class RecordTests: BaseTestCase {
       } issueMatcher: {
         $0.compactDescription.hasPrefix(
           """
-          failed - Snapshot does not match reference.
+          failed - Text does not match reference (+1 −1 lines).
           """)
       }
 
@@ -150,7 +150,7 @@ class RecordTests: BaseTestCase {
       } issueMatcher: {
         $0.compactDescription.hasPrefix(
           """
-          failed - Snapshot does not match reference. A new snapshot was automatically recorded.
+          failed - Text does not match reference (+1 −1 lines). A new snapshot was automatically recorded.
           """)
       }
 

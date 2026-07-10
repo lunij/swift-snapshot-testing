@@ -425,9 +425,10 @@ public func verifySnapshot<Value, Format>(
       let data = try Data(contentsOf: snapshotFileUrl)
       let reference = snapshotting.diffing.fromData(data)
 
-      guard let (failure, attachments) = try snapshotting.diffing.diffV2(reference, diffable) else {
+      guard let failure = try snapshotting.diffing.diffV2(reference, diffable) else {
         return nil
       }
+      let attachments = failure.attachments
 
       let artifactsUrl = URL(
         fileURLWithPath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
@@ -484,11 +485,14 @@ public func verifySnapshot<Value, Format>(
         failedFilePath: failedSnapshotFileUrl.path
       )
 
+      // The first line is the only line Xcode shows in the issue navigator, so it must carry the
+      // specific reason. Everything below it is ordered by decreasing usefulness: failure detail,
+      // then file URLs / diff tool command.
       var failureMessage: String
-      if let name = name {
-        failureMessage = "Snapshot \"\(name)\" does not match reference."
+      if let name {
+        failureMessage = "[\(name)] \(failure.reason)"
       } else {
-        failureMessage = "Snapshot does not match reference."
+        failureMessage = failure.reason
       }
 
       if record == .failed {
@@ -496,15 +500,19 @@ public func verifySnapshot<Value, Format>(
         failureMessage += " A new snapshot was automatically recorded."
       }
 
+      if let detail = failure.detail?.trimmingCharacters(in: .whitespacesAndNewlines),
+        !detail.isEmpty
+      {
+        failureMessage += "\n\n\(detail)"
+      }
+
       return """
         \(failureMessage)
 
         \(diffMessage)
-
-        \(failure.trimmingCharacters(in: .whitespacesAndNewlines))
         """
     } catch {
-      return error.localizedDescription
+      return "Snapshot test failed: \(error.localizedDescription)"
     }
   }
 }

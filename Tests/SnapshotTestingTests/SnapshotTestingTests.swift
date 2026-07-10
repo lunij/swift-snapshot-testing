@@ -1115,26 +1115,26 @@ final class SnapshotTestingTests: BaseTestCase {
     let size = CGSize(width: 350, height: 0)
     let view = XView(frame: .init(origin: .zero, size: size))
     let message = verifySnapshot(of: view, as: .image)
-    XCTAssertEqual(message, "Snapshot is empty")
+    XCTAssertEqual(message, "Snapshot test failed: Snapshot is empty")
   }
 
   func testSnapshotWithZeroWidth_whenNoReferenceImage() {
     let size = CGSize(width: 0, height: 350)
     let view = XView(frame: .init(origin: .zero, size: size))
     let message = verifySnapshot(of: view, as: .image)
-    XCTAssertEqual(message, "Snapshot is empty")
+    XCTAssertEqual(message, "Snapshot test failed: Snapshot is empty")
   }
 
   func testSnapshotWithZeroSize_whenNoReferenceImage() {
     let view = XView(frame: .zero)
     let message = verifySnapshot(of: view, as: .image)
-    XCTAssertEqual(message, "Snapshot is empty")
+    XCTAssertEqual(message, "Snapshot test failed: Snapshot is empty")
   }
 
   func testSnapshotWithZeroSize_whenReferenceImageExists() {
     let view = XView(frame: .zero)
     let message = verifySnapshot(of: view, as: .image)
-    XCTAssertEqual(message, "Snapshot is empty")
+    XCTAssertEqual(message, "Snapshot test failed: Snapshot is empty")
   }
 
   func testSnapshotWithUnequalSize() {
@@ -1145,7 +1145,18 @@ final class SnapshotTestingTests: BaseTestCase {
     let newSize = CGSize(width: 123, height: 123)
     view.frame = .init(origin: .zero, size: newSize)
     message = verifySnapshot(of: view, as: .image, named: platform, record: .never)
-    XCTAssertEqual(message?.suffix(71), "Snapshot size (369.0, 369.0) is unequal to expected size (300.0, 300.0)")
+    let firstLine = message?.split(separator: "\n").first.map(String.init)
+    #if os(macOS)
+    XCTAssertEqual(
+      firstLine,
+      "[\(platform)] Image size 246×246 does not match reference size 200×200."
+    )
+    #else
+    XCTAssertEqual(
+      firstLine,
+      "[\(platform)] Image size 369×369 does not match reference size 300×300."
+    )
+    #endif
   }
 #endif
 

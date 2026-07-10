@@ -30,32 +30,10 @@
         toData: convertToData,
         fromData: { UIImage(data: $0, scale: imageScale)! }
       ) { old, new in
-        func attachments(_ old: XImage, _ new: XImage) throws -> [DiffAttachment] {
-          try self.attachments(old, new, diffImage, convertToData)
-        }
-        let result = compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
-        switch result {
-        case .cgContextDataConversionFailed, .cgImageConversionFailed:
-          return ("Core Graphics failure", [])
-        case .isMatching:
-          return nil
-        case .isNotMatching:
-          return ("Snapshot does not match reference", try attachments(old, new))
-        case .perceptualComparisonFailed:
-          return ("Perceptual comparison failed", [])
-        case let .unequalSize(oldSize, newSize):
-          return ("Snapshot size \(newSize) is unequal to expected size \(oldSize)", try attachments(old, new))
-        case let .unmatchedPrecision(expectedPrecision, actualPrecision):
-          return ("Actual image precision \(actualPrecision) is less than expected \(expectedPrecision)", try attachments(old, new))
-        case let .unmatchedPrecisions(expectedPixelPrecision, actualPixelPrecision, expectedPerceptualPrecision, actualPerceptualPrecision):
-          return (
-            """
-            The percentage of pixels that match \(actualPixelPrecision) is less than expected \(expectedPixelPrecision)
-            The lowest perceptual color precision \(actualPerceptualPrecision) is less than expected \(expectedPerceptualPrecision)
-            """,
-            try attachments(old, new)
-          )
-        }
+        try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
+          .snapshotFailure {
+            try self.attachments(old, new, diffImage, convertToData)
+          }
       }
     }
   }

@@ -18,7 +18,7 @@
         withKnownIssue {
           assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
         } matching: { issue in
-          issue.description.hasSuffix(
+          issue.description.contains(
             """
             @@ −1,4 +1,4 @@
              ▿ 2 elements
@@ -51,8 +51,8 @@
           withKnownIssue {
             assertSnapshot(of: bluePixel, as: .image, named: "pixel")
           } matching: { issue in
-            issue.description.hasSuffix(
-              "Newly-taken snapshot does not match reference."
+            issue.description.contains(
+              "Image does not match reference."
             )
           }
         }
@@ -79,8 +79,8 @@
           withKnownIssue {
             assertSnapshot(of: bluePixel, as: .image, named: "pixel")
           } matching: { issue in
-            issue.description.hasSuffix(
-              "Newly-taken snapshot does not match reference."
+            issue.description.contains(
+              "Image does not match reference."
             )
           }
         }
