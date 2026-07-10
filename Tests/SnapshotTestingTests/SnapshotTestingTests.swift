@@ -221,7 +221,7 @@ final class SnapshotTestingTests: BaseTestCase {
     view.layer?.backgroundColor = NSColor.green.cgColor
     view.layer?.cornerRadius = 5
     assertSnapshot(of: view, as: .image, named: "\(platform)\(osVersion.majorVersion)")
-    assertSnapshot(of: view, as: .recursiveDescription, named: "\(platform)\(osVersion.majorVersion)")
+    assertSnapshot(of: view, as: .recursiveDescription, named: platform)
   }
   #endif
 

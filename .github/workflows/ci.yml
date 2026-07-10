@@ -8,10 +8,10 @@ jobs:
     strategy:
       matrix:
         xcode:
-          - '16.4'
+          - '26.4'
 
-    name: macOS
-    runs-on: macos-15
+    name: macOS (Xcode ${{ matrix.xcode }})
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
       - name: Select Xcode ${{ matrix.xcode }}
@@ -34,10 +34,10 @@ jobs:
     strategy:
       matrix:
         xcode:
-          - '16.4'
+          - '26.4'
 
-    name: iOS 18.5 (Xcode ${{ matrix.xcode }})
-    runs-on: macos-15
+    name: iOS (Xcode ${{ matrix.xcode }})
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
       - name: Select Xcode ${{ matrix.xcode }}
@@ -56,11 +56,11 @@ jobs:
           name: xcresult-ios.zip
           path: .xcresults/xcresult-ios.zip
 
-  ubuntu:
+  linux:
     strategy:
       matrix:
         swift:
-          - '6.1'
+          - '6.3'
 
     container: swift:${{ matrix.swift }}
     name: Linux (Swift ${{ matrix.swift }})

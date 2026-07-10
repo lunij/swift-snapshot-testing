@@ -18,7 +18,7 @@ test-ios:
 	set -o pipefail && \
 	xcodebuild test \
 		-scheme swift-snapshot-testing-Package \
-		-destination platform="iOS Simulator,name=iPhone 16,OS=18.5" \
+		-destination platform="iOS Simulator,name=iPhone 17,OS=26.4.1" \
 		-resultBundlePath .xcresults/ios \
 		-workspace . | xcbeautify
 
