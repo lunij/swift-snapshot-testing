@@ -377,7 +377,7 @@ public struct InlineSnapshotSyntaxDescriptor: Hashable {
     guard let testSource = testSourceCache[file]
     else {
       let filePath = "\(file.path)"
-      let source = try String(contentsOfFile: filePath)
+      let source = try String(contentsOfFile: filePath, encoding: .utf8)
       let sourceFile = Parser.parse(source: source)
       let sourceLocationConverter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
       let testSource = TestSource(

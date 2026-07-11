@@ -183,7 +183,7 @@
         viewController.view.bounds = view.bounds
         viewController.view.addSubview(view)
       }
-      let traits = UITraitCollection(traitsFrom: [config.traits, traits])
+      let traits = config.traits.merging(traits)
       let window: UIWindow
       if drawHierarchyInKeyWindow {
         guard let keyWindow = getKeyWindow() else {
@@ -274,7 +274,7 @@
       } else {
         rootViewController = viewController
       }
-      rootViewController.setOverrideTraitCollection(traits, forChild: viewController)
+      viewController.traitOverrides.apply(traits)
       viewController.didMove(toParent: rootViewController)
 
       window.rootViewController = rootViewController
@@ -289,6 +289,7 @@
       viewController.view.layoutIfNeeded()
 
       return {
+        viewController.traitOverrides.removeTraits(specifiedBy: traits)
         viewController.beginAppearanceTransition(false, animated: false)
         viewController.willMove(toParent: nil)
         viewController.view.removeFromSuperview()
@@ -299,14 +300,129 @@
       }
     }
 
-    private func getKeyWindow() -> UIWindow? {
-      var window: UIWindow?
-      if #available(iOS 13.0, *) {
-        window = UIApplication.sharedIfAvailable?.windows.first { $0.isKeyWindow }
-      } else {
-        window = UIApplication.sharedIfAvailable?.keyWindow
+    extension UITraitCollection {
+      /// Merges the traits specified by `other` over the receiver's traits, mirroring the
+      /// semantics of the deprecated `init(traitsFrom:)`.
+      fileprivate func merging(_ other: UITraitCollection) -> UITraitCollection {
+        modifyingTraits { mutableTraits in
+          mutableTraits.apply(other)
+        }
       }
-      return window
+    }
+
+    extension UIMutableTraits {
+      /// Copies every system trait that `traits` explicitly specifies into these mutable
+      /// traits.
+      ///
+      /// Each trait is stored with a concrete data type (NSInteger, CGFloat, object), and
+      /// the generic trait subscripts cannot dispatch to the matching typed accessor for an
+      /// opaque trait at runtime, so the known system traits are copied individually here.
+      /// Custom traits are not merged.
+      fileprivate mutating func apply(_ traits: UITraitCollection) {
+        if traits.userInterfaceIdiom != .unspecified {
+          userInterfaceIdiom = traits.userInterfaceIdiom
+        }
+        if traits.userInterfaceStyle != .unspecified {
+          userInterfaceStyle = traits.userInterfaceStyle
+        }
+        if traits.horizontalSizeClass != .unspecified {
+          horizontalSizeClass = traits.horizontalSizeClass
+        }
+        if traits.verticalSizeClass != .unspecified {
+          verticalSizeClass = traits.verticalSizeClass
+        }
+        if traits.layoutDirection != .unspecified {
+          layoutDirection = traits.layoutDirection
+        }
+        if traits.forceTouchCapability != .unknown {
+          forceTouchCapability = traits.forceTouchCapability
+        }
+        if traits.preferredContentSizeCategory != .unspecified {
+          preferredContentSizeCategory = traits.preferredContentSizeCategory
+        }
+        if traits.displayScale > 0 {
+          displayScale = traits.displayScale
+        }
+        if traits.displayGamut != .unspecified {
+          displayGamut = traits.displayGamut
+        }
+        if traits.accessibilityContrast != .unspecified {
+          accessibilityContrast = traits.accessibilityContrast
+        }
+        if traits.userInterfaceLevel != .unspecified {
+          userInterfaceLevel = traits.userInterfaceLevel
+        }
+        if traits.legibilityWeight != .unspecified {
+          legibilityWeight = traits.legibilityWeight
+        }
+        if traits.activeAppearance != .unspecified {
+          activeAppearance = traits.activeAppearance
+        }
+        if traits.imageDynamicRange != .unspecified {
+          imageDynamicRange = traits.imageDynamicRange
+        }
+        if traits.sceneCaptureState != .unspecified {
+          sceneCaptureState = traits.sceneCaptureState
+        }
+      }
+    }
+
+    extension UITraitOverrides {
+      /// Removes the overrides for every system trait that `traits` explicitly specifies,
+      /// undoing a prior `apply(_:)` of the same collection.
+      fileprivate mutating func removeTraits(specifiedBy traits: UITraitCollection) {
+        if traits.userInterfaceIdiom != .unspecified {
+          remove(UITraitUserInterfaceIdiom.self)
+        }
+        if traits.userInterfaceStyle != .unspecified {
+          remove(UITraitUserInterfaceStyle.self)
+        }
+        if traits.horizontalSizeClass != .unspecified {
+          remove(UITraitHorizontalSizeClass.self)
+        }
+        if traits.verticalSizeClass != .unspecified {
+          remove(UITraitVerticalSizeClass.self)
+        }
+        if traits.layoutDirection != .unspecified {
+          remove(UITraitLayoutDirection.self)
+        }
+        if traits.forceTouchCapability != .unknown {
+          remove(UITraitForceTouchCapability.self)
+        }
+        if traits.preferredContentSizeCategory != .unspecified {
+          remove(UITraitPreferredContentSizeCategory.self)
+        }
+        if traits.displayScale > 0 {
+          remove(UITraitDisplayScale.self)
+        }
+        if traits.displayGamut != .unspecified {
+          remove(UITraitDisplayGamut.self)
+        }
+        if traits.accessibilityContrast != .unspecified {
+          remove(UITraitAccessibilityContrast.self)
+        }
+        if traits.userInterfaceLevel != .unspecified {
+          remove(UITraitUserInterfaceLevel.self)
+        }
+        if traits.legibilityWeight != .unspecified {
+          remove(UITraitLegibilityWeight.self)
+        }
+        if traits.activeAppearance != .unspecified {
+          remove(UITraitActiveAppearance.self)
+        }
+        if traits.imageDynamicRange != .unspecified {
+          remove(UITraitImageDynamicRange.self)
+        }
+        if traits.sceneCaptureState != .unspecified {
+          remove(UITraitSceneCaptureState.self)
+        }
+      }
+    }
+
+    private func getKeyWindow() -> UIWindow? {
+      UIApplication.sharedIfAvailable?.connectedScenes
+        .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+        .first
     }
 
     private final class Window: UIWindow {
