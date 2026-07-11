@@ -1,10 +1,10 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-extension UITraitCollection {
+extension ViewImageConfig {
 #if os(iOS)
-    public static func iPhoneSe(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhoneSeTraits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .available
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -20,8 +20,8 @@ extension UITraitCollection {
         }
     }
 
-    public static func iPhone8(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhone8Traits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .available
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -37,8 +37,8 @@ extension UITraitCollection {
         }
     }
 
-    public static func iPhone8Plus(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhone8PlusTraits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .available
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -54,8 +54,8 @@ extension UITraitCollection {
         }
     }
 
-    public static func iPhoneX(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhoneXTraits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .available
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -71,8 +71,8 @@ extension UITraitCollection {
         }
     }
 
-    public static func iPhoneXr(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhoneXrTraits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .unavailable
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -88,8 +88,8 @@ extension UITraitCollection {
         }
     }
 
-    public static func iPhoneXsMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhoneXsMaxTraits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .available
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -105,8 +105,8 @@ extension UITraitCollection {
         }
     }
 
-    public static func iPhone12(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhone12Traits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .available
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -122,42 +122,8 @@ extension UITraitCollection {
         }
     }
 
-    public static func iPhone12ProMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
-            traits.forceTouchCapability = .available
-            traits.layoutDirection = .leftToRight
-            traits.preferredContentSizeCategory = .medium
-            traits.userInterfaceIdiom = .phone
-            switch orientation {
-            case .landscape:
-                traits.horizontalSizeClass = .regular
-                traits.verticalSizeClass = .compact
-            case .portrait:
-                traits.horizontalSizeClass = .compact
-                traits.verticalSizeClass = .regular
-            }
-        }
-    }
-
-    public static func iPhone13(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
-            traits.forceTouchCapability = .available
-            traits.layoutDirection = .leftToRight
-            traits.preferredContentSizeCategory = .medium
-            traits.userInterfaceIdiom = .phone
-            switch orientation {
-            case .landscape:
-                traits.horizontalSizeClass = .compact
-                traits.verticalSizeClass = .compact
-            case .portrait:
-                traits.horizontalSizeClass = .compact
-                traits.verticalSizeClass = .regular
-            }
-        }
-    }
-
-    public static func iPhone13ProMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        UITraitCollection { traits in
+    public static func iPhone12ProMaxTraits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
             traits.forceTouchCapability = .available
             traits.layoutDirection = .leftToRight
             traits.preferredContentSizeCategory = .medium
@@ -173,32 +139,51 @@ extension UITraitCollection {
         }
     }
 
-    public static let iPadMini = iPad
-    public static let iPadMini_Compact_SplitView = iPadCompactSplitView
-    public static let iPad9_7 = iPad
-    public static let iPad9_7_Compact_SplitView = iPadCompactSplitView
-    public static let iPad10_2 = iPad
-    public static let iPad10_2_Compact_SplitView = iPadCompactSplitView
-    public static let iPadPro10_5 = iPad
-    public static let iPadPro10_5_Compact_SplitView = iPadCompactSplitView
-    public static let iPadPro11 = iPad
-    public static let iPadPro11_Compact_SplitView = iPadCompactSplitView
-    public static let iPadPro12_9 = iPad
-    public static let iPadPro12_9_Compact_SplitView = iPadCompactSplitView
-
-    private static let iPad = UITraitCollection { mutableTraits in
-        mutableTraits.horizontalSizeClass = .regular
-        mutableTraits.verticalSizeClass = .regular
-        mutableTraits.userInterfaceIdiom = .pad
+    public static func iPhone13Traits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
+            traits.forceTouchCapability = .available
+            traits.layoutDirection = .leftToRight
+            traits.preferredContentSizeCategory = .medium
+            traits.userInterfaceIdiom = .phone
+            switch orientation {
+            case .landscape:
+                traits.horizontalSizeClass = .compact
+                traits.verticalSizeClass = .compact
+            case .portrait:
+                traits.horizontalSizeClass = .compact
+                traits.verticalSizeClass = .regular
+            }
+        }
     }
 
-    private static let iPadCompactSplitView = UITraitCollection { mutableTraits in
-        mutableTraits.horizontalSizeClass = .compact
-        mutableTraits.verticalSizeClass = .regular
-        mutableTraits.userInterfaceIdiom = .pad
+    public static func iPhone13ProMaxTraits(_ orientation: Orientation) -> TraitMutations {
+        { traits in
+            traits.forceTouchCapability = .available
+            traits.layoutDirection = .leftToRight
+            traits.preferredContentSizeCategory = .medium
+            traits.userInterfaceIdiom = .phone
+            switch orientation {
+            case .landscape:
+                traits.horizontalSizeClass = .regular
+                traits.verticalSizeClass = .compact
+            case .portrait:
+                traits.horizontalSizeClass = .compact
+                traits.verticalSizeClass = .regular
+            }
+        }
     }
-#elseif os(tvOS)
-    // TODO
+
+    public static let iPadTraits: TraitMutations = { traits in
+        traits.horizontalSizeClass = .regular
+        traits.verticalSizeClass = .regular
+        traits.userInterfaceIdiom = .pad
+    }
+
+    public static let iPadCompactSplitViewTraits: TraitMutations = { traits in
+        traits.horizontalSizeClass = .compact
+        traits.verticalSizeClass = .regular
+        traits.userInterfaceIdiom = .pad
+    }
 #endif
 }
 #endif

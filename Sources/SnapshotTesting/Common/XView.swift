@@ -145,7 +145,7 @@
         return image
       }
     #elseif os(iOS) || os(tvOS)
-    func convertToImage(scale: CGFloat, traits: UITraitCollection, drawHierarchyInKeyWindow: Bool) -> XImage {
+    func convertToImage(scale: CGFloat, traits: @escaping TraitMutations, drawHierarchyInKeyWindow: Bool) -> XImage {
       renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
         if drawHierarchyInKeyWindow {
           drawHierarchy(in: bounds, afterScreenUpdates: true)
@@ -173,7 +173,7 @@
     func prepareView(
       config: ViewImageConfig,
       drawHierarchyInKeyWindow: Bool,
-      traits: UITraitCollection,
+      traits: @escaping TraitMutations,
       view: UIView,
       viewController: UIViewController
     ) -> () -> Void {
@@ -183,7 +183,13 @@
         viewController.view.bounds = view.bounds
         viewController.view.addSubview(view)
       }
-      let traits = config.traits.merging(traits)
+      // Mutations run in order, so the passed-in traits override the config's,
+      // mirroring the merge semantics of the old `UITraitCollection(traitsFrom:)`.
+      let configTraits = config.traits
+      let traits: TraitMutations = { mutableTraits in
+        configTraits(&mutableTraits)
+        traits(&mutableTraits)
+      }
       let window: UIWindow
       if drawHierarchyInKeyWindow {
         guard let keyWindow = getKeyWindow() else {
@@ -212,7 +218,7 @@
     func snapshotView(
       config: ViewImageConfig,
       drawHierarchyInKeyWindow: Bool,
-      traits: UITraitCollection,
+      traits: @escaping TraitMutations,
       view: UIView,
       viewController: UIViewController
     )
@@ -238,14 +244,14 @@
       }
     }
 
-    func renderer(bounds: CGRect, scale: CGFloat, traits: UITraitCollection) -> UIGraphicsImageRenderer {
-      let format = UIGraphicsImageRendererFormat(for: traits)
+    func renderer(bounds: CGRect, scale: CGFloat, traits: @escaping TraitMutations) -> UIGraphicsImageRenderer {
+      let format = UIGraphicsImageRendererFormat(for: UITraitCollection(mutations: traits))
       format.scale = scale
       return UIGraphicsImageRenderer(bounds: bounds, format: format)
     }
 
     private func add(
-      traits: UITraitCollection, viewController: UIViewController, to window: UIWindow
+      traits: @escaping TraitMutations, viewController: UIViewController, to window: UIWindow
     ) -> () -> Void {
       let rootViewController: UIViewController
       if viewController != window.rootViewController {
@@ -274,7 +280,13 @@
       } else {
         rootViewController = viewController
       }
-      viewController.traitOverrides.apply(traits)
+      // Overrides propagate to descendants, so applying them on the root also
+      // applies them to `viewController`. Saving the previous value lets `dispose`
+      // restore the controller untouched when it is the window's own root.
+      let originalTraitOverrides = rootViewController.traitOverrides
+      var mutableTraits: any UIMutableTraits = rootViewController.traitOverrides
+      traits(&mutableTraits)
+      rootViewController.traitOverrides = mutableTraits as! UITraitOverrides
       viewController.didMove(toParent: rootViewController)
 
       window.rootViewController = rootViewController
@@ -289,7 +301,7 @@
       viewController.view.layoutIfNeeded()
 
       return {
-        viewController.traitOverrides.removeTraits(specifiedBy: traits)
+        rootViewController.traitOverrides = originalTraitOverrides
         viewController.beginAppearanceTransition(false, animated: false)
         viewController.willMove(toParent: nil)
         viewController.view.removeFromSuperview()
@@ -297,125 +309,6 @@
         viewController.didMove(toParent: nil)
         viewController.endAppearanceTransition()
         window.rootViewController = nil
-      }
-    }
-
-    extension UITraitCollection {
-      /// Merges the traits specified by `other` over the receiver's traits, mirroring the
-      /// semantics of the deprecated `init(traitsFrom:)`.
-      fileprivate func merging(_ other: UITraitCollection) -> UITraitCollection {
-        modifyingTraits { mutableTraits in
-          mutableTraits.apply(other)
-        }
-      }
-    }
-
-    extension UIMutableTraits {
-      /// Copies every system trait that `traits` explicitly specifies into these mutable
-      /// traits.
-      ///
-      /// Each trait is stored with a concrete data type (NSInteger, CGFloat, object), and
-      /// the generic trait subscripts cannot dispatch to the matching typed accessor for an
-      /// opaque trait at runtime, so the known system traits are copied individually here.
-      /// Custom traits are not merged.
-      fileprivate mutating func apply(_ traits: UITraitCollection) {
-        if traits.userInterfaceIdiom != .unspecified {
-          userInterfaceIdiom = traits.userInterfaceIdiom
-        }
-        if traits.userInterfaceStyle != .unspecified {
-          userInterfaceStyle = traits.userInterfaceStyle
-        }
-        if traits.horizontalSizeClass != .unspecified {
-          horizontalSizeClass = traits.horizontalSizeClass
-        }
-        if traits.verticalSizeClass != .unspecified {
-          verticalSizeClass = traits.verticalSizeClass
-        }
-        if traits.layoutDirection != .unspecified {
-          layoutDirection = traits.layoutDirection
-        }
-        if traits.forceTouchCapability != .unknown {
-          forceTouchCapability = traits.forceTouchCapability
-        }
-        if traits.preferredContentSizeCategory != .unspecified {
-          preferredContentSizeCategory = traits.preferredContentSizeCategory
-        }
-        if traits.displayScale > 0 {
-          displayScale = traits.displayScale
-        }
-        if traits.displayGamut != .unspecified {
-          displayGamut = traits.displayGamut
-        }
-        if traits.accessibilityContrast != .unspecified {
-          accessibilityContrast = traits.accessibilityContrast
-        }
-        if traits.userInterfaceLevel != .unspecified {
-          userInterfaceLevel = traits.userInterfaceLevel
-        }
-        if traits.legibilityWeight != .unspecified {
-          legibilityWeight = traits.legibilityWeight
-        }
-        if traits.activeAppearance != .unspecified {
-          activeAppearance = traits.activeAppearance
-        }
-        if traits.imageDynamicRange != .unspecified {
-          imageDynamicRange = traits.imageDynamicRange
-        }
-        if traits.sceneCaptureState != .unspecified {
-          sceneCaptureState = traits.sceneCaptureState
-        }
-      }
-    }
-
-    extension UITraitOverrides {
-      /// Removes the overrides for every system trait that `traits` explicitly specifies,
-      /// undoing a prior `apply(_:)` of the same collection.
-      fileprivate mutating func removeTraits(specifiedBy traits: UITraitCollection) {
-        if traits.userInterfaceIdiom != .unspecified {
-          remove(UITraitUserInterfaceIdiom.self)
-        }
-        if traits.userInterfaceStyle != .unspecified {
-          remove(UITraitUserInterfaceStyle.self)
-        }
-        if traits.horizontalSizeClass != .unspecified {
-          remove(UITraitHorizontalSizeClass.self)
-        }
-        if traits.verticalSizeClass != .unspecified {
-          remove(UITraitVerticalSizeClass.self)
-        }
-        if traits.layoutDirection != .unspecified {
-          remove(UITraitLayoutDirection.self)
-        }
-        if traits.forceTouchCapability != .unknown {
-          remove(UITraitForceTouchCapability.self)
-        }
-        if traits.preferredContentSizeCategory != .unspecified {
-          remove(UITraitPreferredContentSizeCategory.self)
-        }
-        if traits.displayScale > 0 {
-          remove(UITraitDisplayScale.self)
-        }
-        if traits.displayGamut != .unspecified {
-          remove(UITraitDisplayGamut.self)
-        }
-        if traits.accessibilityContrast != .unspecified {
-          remove(UITraitAccessibilityContrast.self)
-        }
-        if traits.userInterfaceLevel != .unspecified {
-          remove(UITraitUserInterfaceLevel.self)
-        }
-        if traits.legibilityWeight != .unspecified {
-          remove(UITraitLegibilityWeight.self)
-        }
-        if traits.activeAppearance != .unspecified {
-          remove(UITraitActiveAppearance.self)
-        }
-        if traits.imageDynamicRange != .unspecified {
-          remove(UITraitImageDynamicRange.self)
-        }
-        if traits.sceneCaptureState != .unspecified {
-          remove(UITraitSceneCaptureState.self)
-        }
       }
     }
 

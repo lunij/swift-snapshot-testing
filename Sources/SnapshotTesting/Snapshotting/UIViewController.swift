@@ -20,14 +20,14 @@
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - size: A view size override.
-    ///   - traits: A trait collection override.
+    ///   - traits: Trait overrides to apply when rendering.
     public static func image(
       on config: ViewImageConfig,
       drawHierarchyInKeyWindow: Bool = false,
       precision: Float = 0.99,
       perceptualPrecision: Float = 0.99,
       size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+      traits: @escaping TraitMutations = { _ in }
     )
       -> Snapshotting
     {
@@ -58,14 +58,14 @@
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - size: A view size override.
-    ///   - traits: A trait collection override.
+    ///   - traits: Trait overrides to apply when rendering.
     public static func image(
       drawHierarchyInKeyWindow: Bool = false,
       precision: Float = 0.99,
       perceptualPrecision: Float = 0.99,
       scale: CGFloat = 2,
       size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+      traits: @escaping TraitMutations = { _ in }
     )
       -> Snapshotting
     {
@@ -113,7 +113,7 @@
         let dispose = prepareView(
           config: .init(),
           drawHierarchyInKeyWindow: false,
-          traits: .init(),
+          traits: { _ in },
           view: viewController.view,
           viewController: viewController
         )
@@ -137,11 +137,11 @@
     /// - Parameters:
     ///   - config: A set of device configuration settings.
     ///   - size: A view size override.
-    ///   - traits: A trait collection override.
+    ///   - traits: Trait overrides to apply when rendering.
     public static func recursiveDescription(
       on config: ViewImageConfig = .init(),
       size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+      traits: @escaping TraitMutations = { _ in }
     )
       -> Snapshotting<UIViewController, String>
     {

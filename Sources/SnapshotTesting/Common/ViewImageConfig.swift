@@ -1,18 +1,23 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
+/// A closure that mutates a set of UI traits.
+///
+/// The `Sendable` counterpart of `UITraitCollection.TraitMutations`.
+public typealias TraitMutations = @Sendable (inout any UIMutableTraits) -> Void
+
 public struct ViewImageConfig: Sendable {
-    public enum Orientation {
+    public enum Orientation: Sendable {
         case landscape
         case portrait
     }
-    public enum TabletOrientation {
-        public enum PortraitSplits {
+    public enum TabletOrientation: Sendable {
+        public enum PortraitSplits: Sendable {
             case oneThird
             case twoThirds
             case full
         }
-        public enum LandscapeSplits {
+        public enum LandscapeSplits: Sendable {
             case oneThird
             case oneHalf
             case twoThirds
@@ -25,13 +30,13 @@ public struct ViewImageConfig: Sendable {
     public var safeArea: UIEdgeInsets
     public var scale: CGFloat
     public var size: CGSize?
-    public var traits: UITraitCollection
+    public var traits: TraitMutations
 
     public init(
         safeArea: UIEdgeInsets = .zero,
         scale: CGFloat = 2,
         size: CGSize? = nil,
-        traits: UITraitCollection = .init()
+        traits: @escaping TraitMutations = { _ in }
     ) {
         self.safeArea = safeArea
         self.scale = scale
@@ -53,7 +58,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 20, left: 0, bottom: 0, right: 0)
             size = .init(width: 320, height: 568)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneSe(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhoneSeTraits(orientation))
     }
 
     public static let iPhone8 = ViewImageConfig.iPhone8(.portrait)
@@ -69,7 +74,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 20, left: 0, bottom: 0, right: 0)
             size = .init(width: 375, height: 667)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone8(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhone8Traits(orientation))
     }
 
     public static let iPhone8Plus = ViewImageConfig.iPhone8Plus(.portrait)
@@ -85,7 +90,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 20, left: 0, bottom: 0, right: 0)
             size = .init(width: 414, height: 736)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone8Plus(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhone8PlusTraits(orientation))
     }
 
     public static let iPhoneX = ViewImageConfig.iPhoneX(.portrait)
@@ -101,7 +106,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 44, left: 0, bottom: 34, right: 0)
             size = .init(width: 375, height: 812)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneX(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhoneXTraits(orientation))
     }
 
     public static let iPhoneXsMax = ViewImageConfig.iPhoneXsMax(.portrait)
@@ -117,7 +122,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 44, left: 0, bottom: 34, right: 0)
             size = .init(width: 414, height: 896)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneXsMax(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhoneXsMaxTraits(orientation))
     }
 
     @available(iOS 11.0, *)
@@ -135,7 +140,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 44, left: 0, bottom: 34, right: 0)
             size = .init(width: 414, height: 896)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneXr(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhoneXrTraits(orientation))
     }
 
     public static let iPhone12 = ViewImageConfig.iPhone12(.portrait)
@@ -151,7 +156,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 47, left: 0, bottom: 34, right: 0)
             size = .init(width: 390, height: 844)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone12(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhone12Traits(orientation))
     }
 
     public static let iPhone12Pro = ViewImageConfig.iPhone12Pro(.portrait)
@@ -173,7 +178,7 @@ public struct ViewImageConfig: Sendable {
             safeArea = .init(top: 47, left: 0, bottom: 34, right: 0)
             size = .init(width: 428, height: 926)
         }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone12ProMax(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhone12ProMaxTraits(orientation))
     }
 
     public static let iPhone13 = ViewImageConfig.iPhone13(.portrait)
@@ -191,7 +196,7 @@ public struct ViewImageConfig: Sendable {
         }
 
         return .init(
-            safeArea: safeArea, size: size, traits: UITraitCollection.iPhone13(orientation))
+            safeArea: safeArea, size: size, traits: iPhone13Traits(orientation))
     }
 
     public static let iPhone13Mini = ViewImageConfig.iPhone13Mini(.portrait)
@@ -208,7 +213,7 @@ public struct ViewImageConfig: Sendable {
             size = .init(width: 375, height: 812)
         }
 
-        return .init(safeArea: safeArea, size: size, traits: .iPhone13(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhone13Traits(orientation))
     }
 
     public static let iPhone13Pro = ViewImageConfig.iPhone13Pro(.portrait)
@@ -231,7 +236,7 @@ public struct ViewImageConfig: Sendable {
             size = .init(width: 428, height: 926)
         }
 
-        return .init(safeArea: safeArea, size: size, traits: .iPhone13ProMax(orientation))
+        return .init(safeArea: safeArea, size: size, traits: iPhone13ProMaxTraits(orientation))
     }
 
     public static let iPadMini = ViewImageConfig.iPadMini(.landscape)
@@ -247,34 +252,34 @@ public struct ViewImageConfig: Sendable {
 
     public static func iPadMini(_ orientation: TabletOrientation) -> ViewImageConfig {
         let size: CGSize
-        let traits: UITraitCollection
+        let traits: TraitMutations
         switch orientation {
         case .landscape(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 320, height: 768)
-                traits = .iPadMini_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .oneHalf:
                 size = .init(width: 507, height: 768)
-                traits = .iPadMini_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 694, height: 768)
-                traits = .iPadMini
+                traits = iPadTraits
             case .full:
                 size = .init(width: 1024, height: 768)
-                traits = .iPadMini
+                traits = iPadTraits
             }
         case .portrait(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 320, height: 1024)
-                traits = .iPadMini_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 438, height: 1024)
-                traits = .iPadMini_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .full:
                 size = .init(width: 768, height: 1024)
-                traits = .iPadMini
+                traits = iPadTraits
             }
         }
         return .init(
@@ -304,34 +309,34 @@ public struct ViewImageConfig: Sendable {
 
     public static func iPad10_2(_ orientation: TabletOrientation) -> ViewImageConfig {
         let size: CGSize
-        let traits: UITraitCollection
+        let traits: TraitMutations
         switch orientation {
         case .landscape(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 320, height: 810)
-                traits = .iPad10_2_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .oneHalf:
                 size = .init(width: 535, height: 810)
-                traits = .iPad10_2_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 750, height: 810)
-                traits = .iPad10_2
+                traits = iPadTraits
             case .full:
                 size = .init(width: 1080, height: 810)
-                traits = .iPad10_2
+                traits = iPadTraits
             }
         case .portrait(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 320, height: 1080)
-                traits = .iPad10_2_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 480, height: 1080)
-                traits = .iPad10_2_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .full:
                 size = .init(width: 810, height: 1080)
-                traits = .iPad10_2
+                traits = iPadTraits
             }
         }
         return .init(
@@ -351,34 +356,34 @@ public struct ViewImageConfig: Sendable {
 
     public static func iPadPro10_5(_ orientation: TabletOrientation) -> ViewImageConfig {
         let size: CGSize
-        let traits: UITraitCollection
+        let traits: TraitMutations
         switch orientation {
         case .landscape(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 320, height: 834)
-                traits = .iPadPro10_5_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .oneHalf:
                 size = .init(width: 551, height: 834)
-                traits = .iPadPro10_5_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 782, height: 834)
-                traits = .iPadPro10_5
+                traits = iPadTraits
             case .full:
                 size = .init(width: 1112, height: 834)
-                traits = .iPadPro10_5
+                traits = iPadTraits
             }
         case .portrait(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 320, height: 1112)
-                traits = .iPadPro10_5_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 504, height: 1112)
-                traits = .iPadPro10_5_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .full:
                 size = .init(width: 834, height: 1112)
-                traits = .iPadPro10_5
+                traits = iPadTraits
             }
         }
         return .init(
@@ -398,34 +403,34 @@ public struct ViewImageConfig: Sendable {
 
     public static func iPadPro11(_ orientation: TabletOrientation) -> ViewImageConfig {
         let size: CGSize
-        let traits: UITraitCollection
+        let traits: TraitMutations
         switch orientation {
         case .landscape(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 375, height: 834)
-                traits = .iPadPro11_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .oneHalf:
                 size = .init(width: 592, height: 834)
-                traits = .iPadPro11_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 809, height: 834)
-                traits = .iPadPro11
+                traits = iPadTraits
             case .full:
                 size = .init(width: 1194, height: 834)
-                traits = .iPadPro11
+                traits = iPadTraits
             }
         case .portrait(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 320, height: 1194)
-                traits = .iPadPro11_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 504, height: 1194)
-                traits = .iPadPro11_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .full:
                 size = .init(width: 834, height: 1194)
-                traits = .iPadPro11
+                traits = iPadTraits
             }
         }
         return .init(
@@ -445,35 +450,35 @@ public struct ViewImageConfig: Sendable {
 
     public static func iPadPro12_9(_ orientation: TabletOrientation) -> ViewImageConfig {
         let size: CGSize
-        let traits: UITraitCollection
+        let traits: TraitMutations
         switch orientation {
         case .landscape(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 375, height: 1024)
-                traits = .iPadPro12_9_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .oneHalf:
                 size = .init(width: 678, height: 1024)
-                traits = .iPadPro12_9
+                traits = iPadTraits
             case .twoThirds:
                 size = .init(width: 981, height: 1024)
-                traits = .iPadPro12_9
+                traits = iPadTraits
             case .full:
                 size = .init(width: 1366, height: 1024)
-                traits = .iPadPro12_9
+                traits = iPadTraits
             }
 
         case .portrait(let splitView):
             switch splitView {
             case .oneThird:
                 size = .init(width: 375, height: 1366)
-                traits = .iPadPro12_9_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .twoThirds:
                 size = .init(width: 639, height: 1366)
-                traits = .iPadPro12_9_Compact_SplitView
+                traits = iPadCompactSplitViewTraits
             case .full:
                 size = .init(width: 1024, height: 1366)
-                traits = .iPadPro12_9
+                traits = iPadTraits
             }
 
         }
@@ -483,13 +488,11 @@ public struct ViewImageConfig: Sendable {
 #elseif os(tvOS)
     public static let tv = ViewImageConfig(
         safeArea: .init(top: 60, left: 90, bottom: 60, right: 90),
-        size: .init(width: 1920, height: 1080),
-        traits: .init()
+        size: .init(width: 1920, height: 1080)
     )
     public static let tv4K = ViewImageConfig(
         safeArea: .init(top: 120, left: 180, bottom: 120, right: 180),
-        size: .init(width: 3840, height: 2160),
-        traits: .init()
+        size: .init(width: 3840, height: 2160)
     )
 #endif
 }

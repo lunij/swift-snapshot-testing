@@ -19,14 +19,14 @@
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - size: A view size override.
-    ///   - traits: A trait collection override.
+    ///   - traits: Trait overrides to apply when rendering.
     public static func image(
       drawHierarchyInKeyWindow: Bool = false,
       precision: Float = 0.99,
       perceptualPrecision: Float = 0.99,
       scale: CGFloat = 2,
       size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+      traits: @escaping TraitMutations = { _ in }
     )
       -> Snapshotting
     {
@@ -38,8 +38,7 @@
           config: .init(
             safeArea: .zero,
             scale: scale,
-            size: size ?? view.frame.size,
-            traits: .init()
+            size: size ?? view.frame.size
           ),
           drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
           traits: traits,
@@ -62,7 +61,7 @@
     /// assertSnapshot(of: view, as: .recursiveDescription(size: .init(width: 22, height: 22)))
     ///
     /// // Layout with a certain trait collection.
-    /// assertSnapshot(of: view, as: .recursiveDescription(traits: .init(horizontalSizeClass: .regular)))
+    /// assertSnapshot(of: view, as: .recursiveDescription(traits: { $0.horizontalSizeClass = .regular }))
     /// ```
     ///
     /// Records:
@@ -79,7 +78,7 @@
     /// and hierarchies.
     public static func recursiveDescription(
       size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+      traits: @escaping TraitMutations = { _ in }
     )
       -> Snapshotting<UIView, String>
     {
@@ -87,7 +86,7 @@
         let dispose = prepareView(
           config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
           drawHierarchyInKeyWindow: false,
-          traits: .init(),
+          traits: { _ in },
           view: view,
           viewController: .init()
         )

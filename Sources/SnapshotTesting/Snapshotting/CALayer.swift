@@ -57,9 +57,9 @@
     ///     match. 98-99% mimics
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
-    ///   - traits: A trait collection override.
+    ///   - traits: Trait overrides to apply when rendering.
     public static func image(
-      precision: Float = 0.99, perceptualPrecision: Float = 0.99, scale: CGFloat = 1, traits: UITraitCollection = .init()
+      precision: Float = 0.99, perceptualPrecision: Float = 0.99, scale: CGFloat = 1, traits: @escaping TraitMutations = { _ in }
     )
       -> Snapshotting
     {

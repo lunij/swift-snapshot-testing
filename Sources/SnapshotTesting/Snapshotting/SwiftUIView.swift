@@ -35,14 +35,14 @@
       ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
       ///     human eye.
       ///   - layout: A view layout override.
-      ///   - traits: A trait collection override.
+      ///   - traits: Trait overrides to apply when rendering.
       public static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 0.99,
         perceptualPrecision: Float = 0.99,
         layout: SwiftUISnapshotLayout = .sizeThatFits,
         scale: CGFloat = 2,
-        traits: UITraitCollection = .init()
+        traits: @escaping TraitMutations = { _ in }
       )
         -> Snapshotting
       {

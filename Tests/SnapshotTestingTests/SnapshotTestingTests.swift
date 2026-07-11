@@ -625,7 +625,7 @@ final class SnapshotTestingTests: BaseTestCase {
           allContentSizes.forEach { name, contentSize in
             assertSnapshot(
               of: viewController,
-              as: .image(on: .iPhoneSe, traits: .init(preferredContentSizeCategory: contentSize)),
+              as: .image(on: .iPhoneSe, traits: { $0.preferredContentSizeCategory = contentSize }),
               named: "iphone-se-\(name)"
             )
           }
@@ -887,7 +887,7 @@ final class SnapshotTestingTests: BaseTestCase {
         allContentSizes.forEach { name, contentSize in
           assertSnapshot(
             of: label,
-            as: .image(traits: .init(preferredContentSizeCategory: contentSize)),
+            as: .image(traits: { $0.preferredContentSizeCategory = contentSize }),
             named: "label-\(name)"
           )
         }
@@ -918,7 +918,7 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(
           of: viewController,
           as: .recursiveDescription(
-            on: .iPhoneSe, traits: .init(preferredContentSizeCategory: contentSize)),
+            on: .iPhoneSe, traits: { $0.preferredContentSizeCategory = contentSize }),
           named: "label-\(name)"
         )
       }
@@ -1160,9 +1160,9 @@ final class SnapshotTestingTests: BaseTestCase {
   #if os(iOS)
   func testSwiftUIView() {
     let view = SwiftUIView()
-    assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100), traits: .init(userInterfaceStyle: .light)), named: "\(platform)-fixed")
-    assertSnapshot(of: view, as: .image(layout: .sizeThatFits, traits: .init(userInterfaceStyle: .light)), named: "\(platform)-size-that-fits")
-    assertSnapshot(of: view, as: .image(layout: .device(config: .iPhoneSe), traits: .init(userInterfaceStyle: .light)), named: "\(platform)-device")
+    assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100), traits: { $0.userInterfaceStyle = .light }), named: "\(platform)-fixed")
+    assertSnapshot(of: view, as: .image(layout: .sizeThatFits, traits: { $0.userInterfaceStyle = .light }), named: "\(platform)-size-that-fits")
+    assertSnapshot(of: view, as: .image(layout: .device(config: .iPhoneSe), traits: { $0.userInterfaceStyle = .light }), named: "\(platform)-device")
   }
   #endif
 
