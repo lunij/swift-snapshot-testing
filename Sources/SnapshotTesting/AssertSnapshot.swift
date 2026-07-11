@@ -143,7 +143,7 @@ public func assertSnapshots<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) {
-  try? strategies.forEach { name, strategy in
+  for (name, strategy) in strategies {
     assertSnapshot(
       of: try value(),
       as: strategy,
@@ -187,7 +187,7 @@ public func assertSnapshots<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) {
-  try? strategies.forEach { strategy in
+  for strategy in strategies {
     assertSnapshot(
       of: try value(),
       as: strategy,
@@ -423,7 +423,18 @@ public func verifySnapshot<Value, Format>(
       }
 
       let data = try Data(contentsOf: snapshotFileUrl)
-      let reference = snapshotting.diffing.fromData(data)
+      let reference: Format
+      do {
+        reference = try snapshotting.diffing.fromData(data)
+      } catch {
+        return """
+          Couldn't load reference snapshot: \(error.localizedDescription)
+
+          The reference file may be corrupt. Delete it and re-run the test to record a new one:
+
+          open "\(snapshotFileUrl.absoluteString)"
+          """
+      }
 
       guard let failure = try snapshotting.diffing.diffV2(reference, diffable) else {
         return nil

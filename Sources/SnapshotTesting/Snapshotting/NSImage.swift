@@ -18,7 +18,12 @@
     public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
       return .diff(
         toData: convertToData,
-        fromData: { NSImage(data: $0)! }
+        fromData: { data in
+          guard let image = NSImage(data: data) else {
+            throw ImageConversionError.imageDecodingFailed
+          }
+          return image
+        }
       ) { old, new in
         try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
           .snapshotFailure {

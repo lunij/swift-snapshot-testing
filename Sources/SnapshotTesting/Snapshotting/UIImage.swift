@@ -22,7 +22,12 @@
     ) -> Diffing {
       .diff(
         toData: convertToData,
-        fromData: { UIImage(data: $0, scale: scale)! }
+        fromData: { data in
+          guard let image = UIImage(data: data, scale: scale) else {
+            throw ImageConversionError.imageDecodingFailed
+          }
+          return image
+        }
       ) { old, new in
         try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
           .snapshotFailure {

@@ -67,6 +67,40 @@
           try verifyImageSnapshotting(reference: redPixel, mismatching: bluePixel)
         }
       #endif
+
+      #if canImport(UIKit) || canImport(AppKit)
+        // A reference file that can't be decoded as an image must produce a test failure with a
+        // readable message, not crash the test process.
+        @Test func testCorruptImageReference() throws {
+          let snapshotDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SwiftTestingTests-\(UUID().uuidString)", isDirectory: true)
+          defer { try? FileManager.default.removeItem(at: snapshotDirectory) }
+
+          func verify() -> String? {
+            verifySnapshot(
+              of: redPixelImage(),
+              as: .image,
+              named: "pixel",
+              record: .missing,
+              snapshotDirectory: snapshotDirectory.path
+            )
+          }
+
+          let recordMessage = try #require(verify())
+          #expect(recordMessage.hasPrefix("No reference was found on disk."))
+          #expect(verify() == nil)
+
+          let referenceURL = try #require(
+            try FileManager.default
+              .contentsOfDirectory(at: snapshotDirectory, includingPropertiesForKeys: nil)
+              .first { $0.pathExtension == "png" }
+          )
+          try Data("not a png".utf8).write(to: referenceURL)
+
+          let failure = try #require(verify())
+          #expect(failure.hasPrefix("Couldn't load reference snapshot:"))
+        }
+      #endif
     }
   }
 
@@ -76,6 +110,21 @@
     #else
       private typealias Image = NSImage
     #endif
+
+    private func redPixelImage() -> Image {
+      #if canImport(UIKit)
+        return UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { context in
+          UIColor.red.setFill()
+          context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
+      #else
+        return NSImage(size: NSSize(width: 1, height: 1), flipped: false) { rect in
+          NSColor.red.setFill()
+          rect.fill()
+          return true
+        }
+      #endif
+    }
 
     /// Records `reference` into a temporary snapshot directory, then verifies that re-snapshotting
     /// it succeeds and that snapshotting `mismatching` fails with the expected message. Both images
