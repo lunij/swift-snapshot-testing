@@ -178,16 +178,15 @@
 
 private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage? {
   guard let oldCgImage = old.cgImage,
-        let pngData = new.pngData(),
-        let newCgImage = UIImage(data: pngData)?.cgImage,
+        let newCgImage = new.cgImage,
         oldCgImage.width == newCgImage.width,
         oldCgImage.height == newCgImage.height,
-        let oldData = oldCgImage.dataProvider?.data,
-        let newData = newCgImage.dataProvider?.data
+        oldCgImage.width > 0,
+        oldCgImage.height > 0
   else {
     return nil
   }
-  
+
   guard let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
         let outputFormat = vImage_CGImageFormat(
           bitsPerComponent: imageContextBitsPerComponent,
@@ -198,14 +197,24 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
   else {
     return nil
   }
-  
+
   let width = oldCgImage.width
   let height = oldCgImage.height
   let pixelCount = width * height
   let scale = old.scale
-  
-  let oldBytes = CFDataGetBytePtr(oldData)!
-  let newBytes = CFDataGetBytePtr(newData)!
+
+  // Draw both images into contexts with an identical, known layout (RGBA8888,
+  // tightly packed rows). Reading the source images' raw backing bytes instead
+  // would depend on their pixel format and row padding, which ImageIO does not
+  // guarantee.
+  let byteCount = pixelCount * imageContextBytesPerPixel
+  var oldBytes = [UInt8](repeating: 0, count: byteCount)
+  var newBytes = [UInt8](repeating: 0, count: byteCount)
+  guard context(for: oldCgImage, data: &oldBytes) != nil,
+        context(for: newCgImage, data: &newBytes) != nil
+  else {
+    return nil
+  }
   var diffBytes = [UInt8](repeating: 0, count: pixelCount)
   
   var index = 0
