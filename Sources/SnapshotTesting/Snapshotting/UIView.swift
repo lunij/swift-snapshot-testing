@@ -3,6 +3,9 @@
 
   extension Snapshotting where Value == UIView, Format == UIImage {
     /// A snapshot strategy for comparing views based on pixel equality.
+    ///
+    /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
+    /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
     public static var image: Snapshotting {
       return .image()
     }
@@ -13,16 +16,19 @@
     ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
     ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
     ///     tests and will _not_ work for framework test targets.
-    ///   - precision: The percentage of pixels that must match.
+    ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
+    ///     pixel to match within `perceptualPrecision`.
     ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
     ///     match. 98-99% mimics
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
+    ///   - scale: The scale at which the view is rendered and the reference image is stored.
+    ///     Defaults to `2`.
     ///   - size: A view size override.
     ///   - traits: Trait overrides to apply when rendering.
     public static func image(
       drawHierarchyInKeyWindow: Bool = false,
-      precision: Float = 0.99,
+      precision: Float = 1,
       perceptualPrecision: Float = 0.99,
       scale: CGFloat = 2,
       size: CGSize? = nil,
