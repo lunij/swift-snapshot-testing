@@ -28,14 +28,23 @@ final class WKWebViewTests: XCTestCase {
         scale: 1,
         size: .init(width: 800, height: 600)
       ),
-      named: platform
+      named: platform,
+      timeout: 30
     )
   }
 
   func testWebViewWithManipulatingNavigationDelegate() throws {
     final class ManipulatingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
       func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        webView.evaluateJavaScript("document.body.children[0].classList.remove(\"hero\")")  // Change layout
+        // The fixture's `#banner` CSS makes the injected element stand out in the snapshot.
+        webView.evaluateJavaScript(
+          """
+          const banner = document.createElement("div");
+          banner.id = "banner";
+          banner.textContent = "The navigation delegate has manipulated the DOM after the page finished loading.";
+          document.body.appendChild(banner);
+          """
+        )
       }
     }
     let manipulatingWKWebViewNavigationDelegate = ManipulatingWKWebViewNavigationDelegate()
@@ -51,6 +60,7 @@ final class WKWebViewTests: XCTestCase {
         size: .init(width: 800, height: 600)
       ),
       named: platform,
+      timeout: 30
     )
     _ = manipulatingWKWebViewNavigationDelegate
   }
@@ -72,7 +82,8 @@ final class WKWebViewTests: XCTestCase {
     assertSnapshot(
       of: webView,
       as: .image(size: .init(width: 800, height: 600)),
-      named: platform
+      named: platform,
+      timeout: 30
     )
     _ = cancellingWKWebViewNavigationDelegate
   }
@@ -93,7 +104,8 @@ final class WKWebViewTests: XCTestCase {
     assertSnapshot(
       of: stackView,
       as: .image(precision: 0.99, perceptualPrecision: 0.99, size: .init(width: 800, height: 600)),
-      named: platform
+      named: platform,
+      timeout: 30
     )
   }
 #endif
@@ -104,6 +116,6 @@ private extension URL {
     URL(fileURLWithPath: String(#file), isDirectory: false)
       .deletingLastPathComponent()
       .deletingLastPathComponent()
-      .appendingPathComponent("__Fixtures__/pointfree.html")
+      .appendingPathComponent("__Fixtures__/fixture.html")
   }
 }

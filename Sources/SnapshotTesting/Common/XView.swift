@@ -65,35 +65,56 @@
         if let wkWebView = self as? WKWebView {
           return Async<XImage> { callback in
             let work = {
-              if #available(iOS 11.0, macOS 10.13, *) {
-                inWindow {
-                  wkWebView.takeSnapshot(with: nil) { image, error in
-                    guard let image else {
-                      debugPrint("No image taken. Error: \(error.description)")
-                      callback(XImage())
-                      return
-                    }
-                    callback(image)
+              #if os(macOS)
+                // The window must stay alive until `takeSnapshot` completes;
+                // tearing it down earlier yields blank or failed captures.
+                let superview = wkWebView.superview
+                let window = ScaledWindow()
+                window.contentView = NSView()
+                window.contentView?.addSubview(wkWebView)
+                window.makeKey()
+              #endif
+              // This no-op script runs after any JavaScript enqueued by the
+              // page or a navigation delegate (e.g. DOM manipulation in
+              // `didFinish`), so the snapshot sees its effects.
+              wkWebView.evaluateJavaScript("void 0") { _, _ in
+                wkWebView.takeSnapshot(with: nil) { image, error in
+                  #if os(macOS)
+                    _ = window
+                    superview?.addSubview(wkWebView)
+                  #endif
+                  guard let image else {
+                    debugPrint("No image taken. Error: \(error.description)")
+                    callback(XImage())
+                    return
                   }
+                  callback(image)
                 }
-              } else {
-                #if os(iOS)
-                  fatalError("Taking WKWebView snapshots requires iOS 11.0 or greater")
-                #elseif os(macOS)
-                  fatalError("Taking WKWebView snapshots requires macOS 10.13 or greater")
-                #endif
               }
             }
 
             if wkWebView.isLoading {
               var subscription: NSKeyValueObservation?
-              subscription = wkWebView.observe(\.isLoading, options: [.initial, .new]) {
-                (webview, change) in
+              var didWork = false
+              let workOnce = {
+                guard !didWork else { return }
+                didWork = true
                 subscription?.invalidate()
                 subscription = nil
+                // Loading can finish inside the same runloop callout that
+                // invokes navigation delegates; hop the main queue so any
+                // JavaScript they enqueue is submitted before the snapshot's.
+                DispatchQueue.main.async(execute: work)
+              }
+              subscription = wkWebView.observe(\.isLoading, options: [.new]) { _, change in
                 if change.newValue == false {
-                  work()
+                  workOnce()
                 }
+              }
+              // The load may have finished between the `isLoading` check
+              // above and installing the observer.
+              if !wkWebView.isLoading {
+                workOnce()
               }
             } else {
               work()
