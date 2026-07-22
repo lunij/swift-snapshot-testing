@@ -1,159 +1,159 @@
 #if canImport(SwiftUI)
-  import Foundation
-  import SwiftUI
+import Foundation
+import SwiftUI
 
-  /// The size constraint for a snapshot (similar to `PreviewLayout`).
-  public enum SwiftUISnapshotLayout {
-    #if os(iOS) || os(tvOS)
-      /// Center the view in a device container described by`config`.
-      case device(config: ViewImageConfig)
-    #endif
-    /// Center the view in a fixed size container.
-    case fixed(width: CGFloat, height: CGFloat)
-    /// Fit the view to the ideal size that fits its content.
-    case sizeThatFits
+/// The size constraint for a snapshot (similar to `PreviewLayout`).
+public enum SwiftUISnapshotLayout {
+  #if os(iOS) || os(tvOS)
+  /// Center the view in a device container described by`config`.
+  case device(config: ViewImageConfig)
+  #endif
+  /// Center the view in a fixed size container.
+  case fixed(width: CGFloat, height: CGFloat)
+  /// Fit the view to the ideal size that fits its content.
+  case sizeThatFits
+}
+
+#if os(iOS) || os(tvOS)
+@available(iOS 13.0, tvOS 13.0, *)
+extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
+
+  /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
+  ///
+  /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
+  /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
+  public static var image: Snapshotting {
+    return .image()
   }
 
-  #if os(iOS) || os(tvOS)
-    @available(iOS 13.0, tvOS 13.0, *)
-    extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
+  /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
+  ///
+  /// - Parameters:
+  ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
+  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
+  ///     tests and will _not_ work for framework test targets.
+  ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
+  ///     pixel to match within `perceptualPrecision`.
+  ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
+  ///     match. 98-99% mimics
+  ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
+  ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
+  ///   - layout: A view layout override.
+  ///   - scale: The scale at which the view is rendered and the reference image is stored.
+  ///     Defaults to `2`.
+  ///   - traits: Trait overrides to apply when rendering.
+  public static func image(
+    drawHierarchyInKeyWindow: Bool = false,
+    precision: Float = 1,
+    perceptualPrecision: Float = 0.99,
+    layout: SwiftUISnapshotLayout = .sizeThatFits,
+    scale: CGFloat = 2,
+    traits: @escaping TraitMutations = { _ in }
+  )
+    -> Snapshotting
+  {
+    let config: ViewImageConfig
 
-      /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
-      ///
-      /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
-      /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
-      public static var image: Snapshotting {
-        return .image()
+    switch layout {
+    #if os(iOS) || os(tvOS)
+    case let .device(config: deviceConfig):
+      config = deviceConfig
+    #endif
+    case .sizeThatFits:
+      config = .init(safeArea: .zero, scale: scale, size: nil, traits: traits)
+    case let .fixed(width: width, height: height):
+      let size = CGSize(width: width, height: height)
+      config = .init(safeArea: .zero, scale: scale, size: size, traits: traits)
+    }
+
+    return SimplySnapshotting.image(
+      precision: precision,
+      perceptualPrecision: perceptualPrecision,
+      scale: scale
+    ).asyncPullback { view in
+      var config = config
+
+      let controller: UIViewController
+
+      if config.size != nil {
+        controller = UIHostingController.init(
+          rootView: view
+        )
+      } else {
+        let hostingController = UIHostingController.init(rootView: view)
+
+        let maxSize = CGSize(width: 0.0, height: 0.0)
+        config.size = hostingController.sizeThatFits(in: maxSize)
+
+        controller = hostingController
       }
 
-      /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
-      ///
-      /// - Parameters:
-      ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
-      ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
-      ///     tests and will _not_ work for framework test targets.
-      ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
-      ///     pixel to match within `perceptualPrecision`.
-      ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-      ///     match. 98-99% mimics
-      ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-      ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
-      ///   - layout: A view layout override.
-      ///   - scale: The scale at which the view is rendered and the reference image is stored.
-      ///     Defaults to `2`.
-      ///   - traits: Trait overrides to apply when rendering.
-      public static func image(
-        drawHierarchyInKeyWindow: Bool = false,
-        precision: Float = 1,
-        perceptualPrecision: Float = 0.99,
-        layout: SwiftUISnapshotLayout = .sizeThatFits,
-        scale: CGFloat = 2,
-        traits: @escaping TraitMutations = { _ in }
+      return snapshotView(
+        config: config,
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        traits: traits,
+        view: controller.view,
+        viewController: controller
       )
-        -> Snapshotting
-      {
-        let config: ViewImageConfig
+    }
+  }
+}
+#endif
 
+#if os(macOS)
+@available(macOS 10.15, *)
+extension Snapshotting where Value: View, Format == NSImage {
+
+  /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
+  ///
+  /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
+  /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
+  public static var image: Snapshotting {
+    .image()
+  }
+
+  /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
+  ///
+  /// - Parameters:
+  ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
+  ///     pixel to match within `perceptualPrecision`.
+  ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a match.
+  ///     98-99% mimics [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the human eye.
+  ///     Defaults to `0.99`, tolerating imperceptible rendering differences.
+  ///   - layout: A view layout override.
+  ///   - scale: The scale at which the view is rendered. Defaults to `1`.
+  public static func image(
+    precision: Float = 1,
+    perceptualPrecision: Float = 0.99,
+    layout: SwiftUISnapshotLayout = .sizeThatFits,
+    scale: CGFloat = 1
+  ) -> Snapshotting {
+    SimplySnapshotting
+      .image(precision: precision, perceptualPrecision: perceptualPrecision)
+      .asyncPullback { view in
+        let controller = NSHostingController(rootView: view)
+        let initialFrame = controller.view.frame
+
+        let size: CGSize
         switch layout {
-        #if os(iOS) || os(tvOS)
-          case let .device(config: deviceConfig):
-            config = deviceConfig
-        #endif
+        case let .fixed(width, height):
+          size = CGSize(width: width, height: height)
         case .sizeThatFits:
-          config = .init(safeArea: .zero, scale: scale, size: nil, traits: traits)
-        case let .fixed(width: width, height: height):
-          let size = CGSize(width: width, height: height)
-          config = .init(safeArea: .zero, scale: scale, size: size, traits: traits)
+          size = controller.sizeThatFits(in: .zero)
         }
 
-        return SimplySnapshotting.image(
-          precision: precision,
-          perceptualPrecision: perceptualPrecision,
-          scale: scale
-        ).asyncPullback { view in
-          var config = config
+        let view = controller.view
+        view.frame.size = size
 
-          let controller: UIViewController
-
-          if config.size != nil {
-            controller = UIHostingController.init(
-              rootView: view
-            )
-          } else {
-            let hostingController = UIHostingController.init(rootView: view)
-
-            let maxSize = CGSize(width: 0.0, height: 0.0)
-            config.size = hostingController.sizeThatFits(in: maxSize)
-
-            controller = hostingController
+        return Async { callback in
+          addImagesForRenderedViews(view).sequence().run { views in
+            callback(view.convertToImage(scale: scale))
+            views.forEach { $0.removeFromSuperview() }
+            view.frame = initialFrame
           }
-
-          return snapshotView(
-            config: config,
-            drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-            traits: traits,
-            view: controller.view,
-            viewController: controller
-          )
         }
       }
-    }
-  #endif
-
-  #if os(macOS)
-    @available(macOS 10.15, *)
-    extension Snapshotting where Value: View, Format == NSImage {
-
-      /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
-      ///
-      /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
-      /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
-      public static var image: Snapshotting {
-        .image()
-      }
-
-      /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
-      ///
-      /// - Parameters:
-      ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
-      ///     pixel to match within `perceptualPrecision`.
-      ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a match.
-      ///     98-99% mimics [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the human eye.
-      ///     Defaults to `0.99`, tolerating imperceptible rendering differences.
-      ///   - layout: A view layout override.
-      ///   - scale: The scale at which the view is rendered. Defaults to `1`.
-      public static func image(
-        precision: Float = 1,
-        perceptualPrecision: Float = 0.99,
-        layout: SwiftUISnapshotLayout = .sizeThatFits,
-        scale: CGFloat = 1
-      ) -> Snapshotting {
-        SimplySnapshotting
-          .image(precision: precision, perceptualPrecision: perceptualPrecision)
-          .asyncPullback { view in
-            let controller = NSHostingController(rootView: view)
-            let initialFrame = controller.view.frame
-
-            let size: CGSize
-            switch layout {
-            case let .fixed(width, height):
-              size = CGSize(width: width, height: height)
-            case .sizeThatFits:
-              size = controller.sizeThatFits(in: .zero)
-            }
-
-            let view = controller.view
-            view.frame.size = size
-
-            return Async { callback in
-              addImagesForRenderedViews(view).sequence().run { views in
-                callback(view.convertToImage(scale: scale))
-                views.forEach { $0.removeFromSuperview() }
-                view.frame = initialFrame
-              }
-            }
-          }
-      }
-    }
-  #endif
+  }
+}
+#endif
 #endif

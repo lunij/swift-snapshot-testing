@@ -37,138 +37,138 @@ class RecordTests: BaseTestCase {
   }
 
   #if canImport(Darwin)
-    func testRecordNever() {
-      XCTExpectFailure {
-        withSnapshotTesting(record: .never) {
-          assertSnapshot(of: 42, as: .json)
-        }
-      } issueMatcher: {
-        $0.compactDescription == """
-          failed - No reference was found on disk. New snapshot was not recorded because recording is disabled
-          """
+  func testRecordNever() {
+    XCTExpectFailure {
+      withSnapshotTesting(record: .never) {
+        assertSnapshot(of: 42, as: .json)
       }
-
-      XCTAssertEqual(
-        FileManager.default.fileExists(atPath: snapshotURL.path),
-        false
-      )
+    } issueMatcher: {
+      $0.compactDescription == """
+        failed - No reference was found on disk. New snapshot was not recorded because recording is disabled
+        """
     }
+
+    XCTAssertEqual(
+      FileManager.default.fileExists(atPath: snapshotURL.path),
+      false
+    )
+  }
   #endif
 
   #if canImport(Darwin)
-    func testRecordMissing() {
-      XCTExpectFailure {
-        withSnapshotTesting(record: .missing) {
-          assertSnapshot(of: 42, as: .json)
-        }
-      } issueMatcher: {
-        $0.compactDescription.hasPrefix(
-          """
-          failed - No reference was found on disk. Automatically recorded snapshot: …
-          """
-        )
+  func testRecordMissing() {
+    XCTExpectFailure {
+      withSnapshotTesting(record: .missing) {
+        assertSnapshot(of: 42, as: .json)
       }
-
-      try XCTAssertEqual(
-        String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
-        "42"
+    } issueMatcher: {
+      $0.compactDescription.hasPrefix(
+        """
+        failed - No reference was found on disk. Automatically recorded snapshot: …
+        """
       )
     }
+
+    try XCTAssertEqual(
+      String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+      "42"
+    )
+  }
   #endif
 
   #if canImport(Darwin)
-    func testRecordMissing_ExistingFile() throws {
-      try Data("999".utf8).write(to: snapshotURL)
+  func testRecordMissing_ExistingFile() throws {
+    try Data("999".utf8).write(to: snapshotURL)
 
-      XCTExpectFailure {
-        withSnapshotTesting(record: .missing) {
-          assertSnapshot(of: 42, as: .json)
-        }
-      } issueMatcher: {
-        $0.compactDescription.hasPrefix(
-          """
-          failed - Text does not match reference (+1 −1 lines).
-          """
-        )
+    XCTExpectFailure {
+      withSnapshotTesting(record: .missing) {
+        assertSnapshot(of: 42, as: .json)
       }
-
-      try XCTAssertEqual(
-        String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
-        "999"
+    } issueMatcher: {
+      $0.compactDescription.hasPrefix(
+        """
+        failed - Text does not match reference (+1 −1 lines).
+        """
       )
     }
+
+    try XCTAssertEqual(
+      String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+      "999"
+    )
+  }
   #endif
 
   #if canImport(Darwin)
-    func testRecordAll_Fresh() throws {
-      XCTExpectFailure {
-        withSnapshotTesting(record: .all) {
-          assertSnapshot(of: 42, as: .json)
-        }
-      } issueMatcher: {
-        $0.compactDescription.hasPrefix(
-          """
-          failed - Record mode is on. Automatically recorded snapshot: …
-          """
-        )
+  func testRecordAll_Fresh() throws {
+    XCTExpectFailure {
+      withSnapshotTesting(record: .all) {
+        assertSnapshot(of: 42, as: .json)
       }
-
-      try XCTAssertEqual(
-        String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
-        "42"
+    } issueMatcher: {
+      $0.compactDescription.hasPrefix(
+        """
+        failed - Record mode is on. Automatically recorded snapshot: …
+        """
       )
     }
+
+    try XCTAssertEqual(
+      String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+      "42"
+    )
+  }
   #endif
 
   #if canImport(Darwin)
-    func testRecordAll_Overwrite() throws {
-      try Data("999".utf8).write(to: snapshotURL)
+  func testRecordAll_Overwrite() throws {
+    try Data("999".utf8).write(to: snapshotURL)
 
-      XCTExpectFailure {
-        withSnapshotTesting(record: .all) {
-          assertSnapshot(of: 42, as: .json)
-        }
-      } issueMatcher: {
-        $0.compactDescription.hasPrefix(
-          """
-          failed - Record mode is on. Automatically recorded snapshot: …
-          """
-        )
+    XCTExpectFailure {
+      withSnapshotTesting(record: .all) {
+        assertSnapshot(of: 42, as: .json)
       }
-
-      try XCTAssertEqual(
-        String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
-        "42"
+    } issueMatcher: {
+      $0.compactDescription.hasPrefix(
+        """
+        failed - Record mode is on. Automatically recorded snapshot: …
+        """
       )
     }
+
+    try XCTAssertEqual(
+      String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+      "42"
+    )
+  }
   #endif
 
   #if canImport(Darwin)
-    func testRecordFailed_WhenFailure() throws {
-      try Data("999".utf8).write(to: snapshotURL)
+  func testRecordFailed_WhenFailure() throws {
+    try Data("999".utf8).write(to: snapshotURL)
 
-      XCTExpectFailure {
-        withSnapshotTesting(record: .failed) {
-          assertSnapshot(of: 42, as: .json)
-        }
-      } issueMatcher: {
-        $0.compactDescription.hasPrefix(
-          """
-          failed - Text does not match reference (+1 −1 lines). A new snapshot was automatically recorded.
-          """
-        )
+    XCTExpectFailure {
+      withSnapshotTesting(record: .failed) {
+        assertSnapshot(of: 42, as: .json)
       }
-
-      try XCTAssertEqual(
-        String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
-        "42"
+    } issueMatcher: {
+      $0.compactDescription.hasPrefix(
+        """
+        failed - Text does not match reference (+1 −1 lines). A new snapshot was automatically recorded.
+        """
       )
     }
+
+    try XCTAssertEqual(
+      String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+      "42"
+    )
+  }
   #endif
 
   func testRecordFailed_NoFailure() throws {
     #if os(Android)
-      throw XCTSkip("cannot save next to file on Android")
+    throw XCTSkip("cannot save next to file on Android")
     #endif
     try Data("42".utf8).write(to: snapshotURL)
     let modifiedDate =
@@ -191,23 +191,23 @@ class RecordTests: BaseTestCase {
   }
 
   #if canImport(Darwin)
-    func testRecordFailed_MissingFile() throws {
-      XCTExpectFailure {
-        withSnapshotTesting(record: .failed) {
-          assertSnapshot(of: 42, as: .json)
-        }
-      } issueMatcher: {
-        $0.compactDescription.hasPrefix(
-          """
-          failed - No reference was found on disk. Automatically recorded snapshot: …
-          """
-        )
+  func testRecordFailed_MissingFile() throws {
+    XCTExpectFailure {
+      withSnapshotTesting(record: .failed) {
+        assertSnapshot(of: 42, as: .json)
       }
-
-      try XCTAssertEqual(
-        String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
-        "42"
+    } issueMatcher: {
+      $0.compactDescription.hasPrefix(
+        """
+        failed - No reference was found on disk. Automatically recorded snapshot: …
+        """
       )
     }
+
+    try XCTAssertEqual(
+      String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+      "42"
+    )
+  }
   #endif
 }
