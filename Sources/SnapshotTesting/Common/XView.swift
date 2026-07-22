@@ -137,7 +137,6 @@
       func convertToImage(scale: CGFloat) -> XImage {
         let originalSize = bounds.size
         let scaledSize = NSSize(width: originalSize.width * scale, height: originalSize.height * scale)
-        let image = NSImage(size: scaledSize)
 
         guard let bitmapRep = NSBitmapImageRep(
           bitmapDataPlanes: nil,
@@ -151,17 +150,17 @@
           bytesPerRow: 0,
           bitsPerPixel: 0
         ) else {
-          return image
+          return NSImage(size: originalSize)
         }
 
-        let graphicsContext = NSGraphicsContext(bitmapImageRep: bitmapRep)
-        NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = graphicsContext
-        
-        graphicsContext?.cgContext.scaleBy(x: scale, y: scale)
+        // Setting the rep's point size to the unscaled bounds while keeping
+        // its pixel dimensions at Nx causes `cacheDisplay` to render at the
+        // higher backing resolution. (`cacheDisplay` ignores the current
+        // NSGraphicsContext, so applying `scaleBy` to it has no effect.)
+        bitmapRep.size = originalSize
         cacheDisplay(in: bounds, to: bitmapRep)
 
-        NSGraphicsContext.restoreGraphicsState()
+        let image = NSImage(size: originalSize)
         image.addRepresentation(bitmapRep)
         return image
       }
