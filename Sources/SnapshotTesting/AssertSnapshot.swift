@@ -324,6 +324,7 @@ public func verifySnapshot<Value, Format>(
       case .completed:
         break
       case .timedOut:
+        PendingSnapshotTeardowns.drain()
         return """
           Exceeded timeout of \(timeout) seconds waiting for snapshot.
 

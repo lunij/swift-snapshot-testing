@@ -253,6 +253,8 @@
         view: view,
         viewController: viewController
       )
+      let teardown = SnapshotTeardown(dispose)
+      PendingSnapshotTeardowns.register(teardown)
       return Async { callback in
         addImagesForRenderedViews(view).sequence().run { views in
           callback(view.convertToImage(scale: config.scale, traits: traits, drawHierarchyInKeyWindow: drawHierarchyInKeyWindow))
@@ -260,7 +262,8 @@
           view.frame = initialFrame
         }
       }.map {
-        dispose()
+        PendingSnapshotTeardowns.unregister(teardown)
+        teardown.run()
         return $0
       }
     }
