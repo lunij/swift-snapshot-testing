@@ -17,7 +17,8 @@ final class InlineSnapshotTestingTests: BaseTestCase {
 
   func testInlineSnapshot_NamedTrailingClosure() {
     assertInlineSnapshot(
-      of: ["Hello", "World"], as: .dump,
+      of: ["Hello", "World"],
+      as: .dump,
       matches: {
         """
         ▿ 2 elements
@@ -25,7 +26,8 @@ final class InlineSnapshotTestingTests: BaseTestCase {
           - "World"
 
         """
-      })
+      }
+    )
   }
 
   func testInlineSnapshot_Escaping() {

@@ -49,7 +49,9 @@
       /// Builds a `UIImage` backed by ImageIO's native decode of a grayscale PNG, like a reference
       /// image loaded from disk by `Diffing.fromData`.
       private func grayscalePNGImage(
-        width: Int, height: Int, value: (_ x: Int, _ y: Int) -> UInt8
+        width: Int,
+        height: Int,
+        value: (_ x: Int, _ y: Int) -> UInt8
       ) throws -> UIImage {
         var bytes = [UInt8](repeating: 0, count: width * height)
         for y in 0..<height {

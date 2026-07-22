@@ -65,7 +65,8 @@ class RecordTests: BaseTestCase {
         $0.compactDescription.hasPrefix(
           """
           failed - No reference was found on disk. Automatically recorded snapshot: …
-          """)
+          """
+        )
       }
 
       try XCTAssertEqual(
@@ -87,7 +88,8 @@ class RecordTests: BaseTestCase {
         $0.compactDescription.hasPrefix(
           """
           failed - Text does not match reference (+1 −1 lines).
-          """)
+          """
+        )
       }
 
       try XCTAssertEqual(
@@ -107,7 +109,8 @@ class RecordTests: BaseTestCase {
         $0.compactDescription.hasPrefix(
           """
           failed - Record mode is on. Automatically recorded snapshot: …
-          """)
+          """
+        )
       }
 
       try XCTAssertEqual(
@@ -129,7 +132,8 @@ class RecordTests: BaseTestCase {
         $0.compactDescription.hasPrefix(
           """
           failed - Record mode is on. Automatically recorded snapshot: …
-          """)
+          """
+        )
       }
 
       try XCTAssertEqual(
@@ -151,7 +155,8 @@ class RecordTests: BaseTestCase {
         $0.compactDescription.hasPrefix(
           """
           failed - Text does not match reference (+1 −1 lines). A new snapshot was automatically recorded.
-          """)
+          """
+        )
       }
 
       try XCTAssertEqual(
@@ -195,7 +200,8 @@ class RecordTests: BaseTestCase {
         $0.compactDescription.hasPrefix(
           """
           failed - No reference was found on disk. Automatically recorded snapshot: …
-          """)
+          """
+        )
       }
 
       try XCTAssertEqual(

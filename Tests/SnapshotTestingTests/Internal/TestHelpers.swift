@@ -54,7 +54,8 @@ let CI = ProcessInfo.processInfo.environment["CI"] != nil
         in: CGRect(
           origin: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
           size: CGSize(width: scale, height: scale)
-        ))
+        )
+      )
 
       return path
     }
@@ -106,7 +107,8 @@ let CI = ProcessInfo.processInfo.environment["CI"] != nil
         in: CGRect(
           origin: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
           size: CGSize(width: scale, height: scale)
-        ))
+        )
+      )
 
       return path
     }

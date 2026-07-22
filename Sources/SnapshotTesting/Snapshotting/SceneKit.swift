@@ -17,7 +17,11 @@
       ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
       ///     human eye.
       ///   - size: The size of the scene.
-      public static func image(precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize)
+      public static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        size: CGSize
+      )
         -> Snapshotting
       {
         return .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
@@ -34,7 +38,11 @@
       ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
       ///     human eye.
       ///   - size: The size of the scene.
-      public static func image(precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize)
+      public static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        size: CGSize
+      )
         -> Snapshotting
       {
         return .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
@@ -43,11 +51,16 @@
   #endif
 
   extension Snapshotting where Value == SCNScene, Format == XImage {
-    fileprivate static func scnScene(precision: Float, perceptualPrecision: Float, size: CGSize)
+    fileprivate static func scnScene(
+      precision: Float,
+      perceptualPrecision: Float,
+      size: CGSize
+    )
       -> Snapshotting
     {
       return Snapshotting<XView, XImage>.image(
-        precision: precision, perceptualPrecision: perceptualPrecision
+        precision: precision,
+        perceptualPrecision: perceptualPrecision
       ).pullback { scene in
         let view = SCNView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
         view.scene = scene

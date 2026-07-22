@@ -37,7 +37,9 @@
     {
 
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: config.scale
+        precision: precision,
+        perceptualPrecision: perceptualPrecision,
+        scale: config.scale
       ).asyncPullback { viewController in
         snapshotView(
           config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
@@ -78,7 +80,9 @@
     {
 
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+        precision: precision,
+        perceptualPrecision: perceptualPrecision,
+        scale: scale
       ).asyncPullback { viewController in
         snapshotView(
           config: .init(safeArea: .zero, size: size, traits: traits),
@@ -155,7 +159,10 @@
       return SimplySnapshotting.lines.pullback { viewController in
         let dispose = prepareView(
           config: .init(
-            safeArea: config.safeArea, size: size ?? config.size, traits: config.traits),
+            safeArea: config.safeArea,
+            size: size ?? config.size,
+            traits: config.traits
+          ),
           drawHierarchyInKeyWindow: false,
           traits: traits,
           view: viewController.view,

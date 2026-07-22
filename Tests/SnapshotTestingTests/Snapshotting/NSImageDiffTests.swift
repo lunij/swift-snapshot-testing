@@ -42,7 +42,9 @@
       /// Builds an NSImage backed by ImageIO's native decode of a grayscale PNG, matching how
       /// reference images are loaded from disk by Diffing.fromData.
       private func grayscaleNSImage(
-        width: Int, height: Int, value: (_ x: Int, _ y: Int) -> UInt8
+        width: Int,
+        height: Int,
+        value: (_ x: Int, _ y: Int) -> UInt8
       ) throws -> NSImage {
         var bytes = [UInt8](repeating: 0, count: width * height)
         for y in 0..<height {

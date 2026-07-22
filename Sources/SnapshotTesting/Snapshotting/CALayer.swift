@@ -27,7 +27,8 @@
     ///     human eye.
     public static func image(precision: Float, perceptualPrecision: Float = 1) -> Snapshotting {
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision
+        precision: precision,
+        perceptualPrecision: perceptualPrecision
       ).pullback { layer in
         let image = NSImage(size: layer.bounds.size)
         image.lockFocus()
@@ -65,12 +66,17 @@
     ///     Defaults to `1`.
     ///   - traits: Trait overrides to apply when rendering.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 0.99, scale: CGFloat = 1, traits: @escaping TraitMutations = { _ in }
+      precision: Float = 1,
+      perceptualPrecision: Float = 0.99,
+      scale: CGFloat = 1,
+      traits: @escaping TraitMutations = { _ in }
     )
       -> Snapshotting
     {
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+        precision: precision,
+        perceptualPrecision: perceptualPrecision,
+        scale: scale
       ).pullback { layer in
         renderer(bounds: layer.bounds, scale: scale, traits: traits).image { ctx in
           layer.setNeedsLayout()

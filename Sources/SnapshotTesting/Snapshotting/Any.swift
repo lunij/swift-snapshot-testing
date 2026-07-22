@@ -72,14 +72,17 @@ extension Snapshotting where Format == String {
   public static var json: Snapshotting {
     let options: JSONSerialization.WritingOptions = [
       .prettyPrinted,
-      .sortedKeys,
+      .sortedKeys
     ]
 
     var snapshotting = SimplySnapshotting.lines.pullback { (data: Value) in
       try! String(
         decoding: JSONSerialization.data(
           withJSONObject: data,
-          options: options), as: UTF8.self)
+          options: options
+        ),
+        as: UTF8.self
+      )
     }
     snapshotting.pathExtension = "json"
     return snapshotting
@@ -149,7 +152,10 @@ private func snap<T>(
   return lines.joined()
 }
 
-private func sort(_ children: Mirror.Children, visitedValues: Set<ObjectIdentifier>)
+private func sort(
+  _ children: Mirror.Children,
+  visitedValues: Set<ObjectIdentifier>
+)
   -> Mirror.Children
 {
   return .init(
@@ -237,5 +243,8 @@ private let snapshotDateFormatter: DateFormatter = {
 
 func purgePointers(_ string: String) -> String {
   return string.replacingOccurrences(
-    of: ":?\\s*0x[\\da-f]+(\\s*)", with: "$1", options: .regularExpression)
+    of: ":?\\s*0x[\\da-f]+(\\s*)",
+    with: "$1",
+    options: .regularExpression
+  )
 }

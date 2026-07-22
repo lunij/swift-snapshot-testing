@@ -26,6 +26,7 @@ extension Snapshotting {
           _ = XCTWaiter.wait(for: [expectation], timeout: duration + 1)
           strategy.snapshot(value).run(callback)
         }
-      })
+      }
+    )
   }
 }

@@ -26,7 +26,8 @@
     ///     human eye.
     public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision
+        precision: precision,
+        perceptualPrecision: perceptualPrecision
       ).pullback { path in
         // Move path info frame:
         let bounds = path.bounds
@@ -78,14 +79,14 @@
         .moveTo: "MoveTo",
         .lineTo: "LineTo",
         .cubicCurveTo: "CubicCurveTo",
-        .closePath: "Close",
+        .closePath: "Close"
       ]
 
       let numberOfPointsByType: [NSBezierPath.ElementType: Int] = [
         .moveTo: 1,
         .lineTo: 1,
         .cubicCurveTo: 3,
-        .closePath: 0,
+        .closePath: 0
       ]
 
       return SimplySnapshotting.lines.pullback { path in

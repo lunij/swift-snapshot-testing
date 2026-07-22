@@ -15,21 +15,21 @@ func diff<A: Hashable>(_ fst: [A], _ snd: [A]) -> [Difference<A>] {
   var idxsOf = [A: [Int]]()
   fst.enumerated().forEach { idxsOf[$1, default: []].append($0) }
 
-  let sub = snd.enumerated().reduce((overlap: [Int: Int](), fst: 0, snd: 0, len: 0)) {
-    sub, sndPair in
-    (idxsOf[sndPair.element] ?? [])
-      .reduce((overlap: [Int: Int](), fst: sub.fst, snd: sub.snd, len: sub.len)) {
-        innerSub, fstIdx in
+  let sub =
+    snd
+    .enumerated()
+    .reduce((overlap: [Int: Int](), fst: 0, snd: 0, len: 0)) { sub, sndPair in
+      (idxsOf[sndPair.element] ?? [])
+        .reduce((overlap: [Int: Int](), fst: sub.fst, snd: sub.snd, len: sub.len)) { innerSub, fstIdx in
+          var newOverlap = innerSub.overlap
+          newOverlap[fstIdx] = (sub.overlap[fstIdx - 1] ?? 0) + 1
 
-        var newOverlap = innerSub.overlap
-        newOverlap[fstIdx] = (sub.overlap[fstIdx - 1] ?? 0) + 1
-
-        if let newLen = newOverlap[fstIdx], newLen > sub.len {
-          return (newOverlap, fstIdx - newLen + 1, sndPair.offset - newLen + 1, newLen)
+          if let newLen = newOverlap[fstIdx], newLen > sub.len {
+            return (newOverlap, fstIdx - newLen + 1, sndPair.offset - newLen + 1, newLen)
+          }
+          return (newOverlap, innerSub.fst, innerSub.snd, innerSub.len)
         }
-        return (newOverlap, innerSub.fst, innerSub.snd, innerSub.len)
-      }
-  }
+    }
   let (_, fstIdx, sndIdx, len) = sub
 
   if len == 0 {

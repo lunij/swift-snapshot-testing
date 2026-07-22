@@ -138,18 +138,20 @@
         let originalSize = bounds.size
         let scaledSize = NSSize(width: originalSize.width * scale, height: originalSize.height * scale)
 
-        guard let bitmapRep = NSBitmapImageRep(
-          bitmapDataPlanes: nil,
-          pixelsWide: Int(scaledSize.width),
-          pixelsHigh: Int(scaledSize.height),
-          bitsPerSample: 8,
-          samplesPerPixel: 4,
-          hasAlpha: true,
-          isPlanar: false,
-          colorSpaceName: .deviceRGB,
-          bytesPerRow: 0,
-          bitsPerPixel: 0
-        ) else {
+        guard
+          let bitmapRep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int(scaledSize.width),
+            pixelsHigh: Int(scaledSize.height),
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+          )
+        else {
           return NSImage(size: originalSize)
         }
 
@@ -165,15 +167,15 @@
         return image
       }
     #elseif os(iOS) || os(tvOS)
-    func convertToImage(scale: CGFloat, traits: @escaping TraitMutations, drawHierarchyInKeyWindow: Bool) -> XImage {
-      renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
-        if drawHierarchyInKeyWindow {
-          drawHierarchy(in: bounds, afterScreenUpdates: true)
-        } else {
-          layer.render(in: ctx.cgContext)
+      func convertToImage(scale: CGFloat, traits: @escaping TraitMutations, drawHierarchyInKeyWindow: Bool) -> XImage {
+        renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
+          if drawHierarchyInKeyWindow {
+            drawHierarchy(in: bounds, afterScreenUpdates: true)
+          } else {
+            layer.render(in: ctx.cgContext)
+          }
         }
       }
-    }
     #endif
   }
 
@@ -274,7 +276,9 @@
     }
 
     private func add(
-      traits: @escaping TraitMutations, viewController: UIViewController, to window: UIWindow
+      traits: @escaping TraitMutations,
+      viewController: UIViewController,
+      to window: UIWindow
     ) -> () -> Void {
       let rootViewController: UIViewController
       if viewController != window.rootViewController {
@@ -292,11 +296,14 @@
           NSLayoutConstraint.activate([
             viewController.view.topAnchor.constraint(equalTo: rootViewController.view.topAnchor),
             viewController.view.bottomAnchor.constraint(
-              equalTo: rootViewController.view.bottomAnchor),
+              equalTo: rootViewController.view.bottomAnchor
+            ),
             viewController.view.leadingAnchor.constraint(
-              equalTo: rootViewController.view.leadingAnchor),
+              equalTo: rootViewController.view.leadingAnchor
+            ),
             viewController.view.trailingAnchor.constraint(
-              equalTo: rootViewController.view.trailingAnchor),
+              equalTo: rootViewController.view.trailingAnchor
+            )
           ])
         }
         rootViewController.addChild(viewController)
@@ -414,11 +421,11 @@ extension Array {
 }
 
 extension Optional {
-    var description: String {
-        if let value = self {
-            return String(describing: value)
-        } else {
-            return "nil"
-        }
+  var description: String {
+    if let value = self {
+      return String(describing: value)
+    } else {
+      return "nil"
     }
+  }
 }

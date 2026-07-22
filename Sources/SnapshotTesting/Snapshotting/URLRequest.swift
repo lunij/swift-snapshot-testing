@@ -42,7 +42,9 @@
               .map { try JSONSerialization.jsonObject(with: $0, options: []) }
               .map {
                 try JSONSerialization.data(
-                  withJSONObject: $0, options: [.prettyPrinted, .sortedKeys])
+                  withJSONObject: $0,
+                  options: [.prettyPrinted, .sortedKeys]
+                )
               }
               .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
               ?? []

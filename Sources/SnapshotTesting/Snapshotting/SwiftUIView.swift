@@ -67,7 +67,9 @@
         }
 
         return SimplySnapshotting.image(
-          precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+          precision: precision,
+          perceptualPrecision: perceptualPrecision,
+          scale: scale
         ).asyncPullback { view in
           var config = config
 

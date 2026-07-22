@@ -26,9 +26,9 @@
 
         for (x, y) in [(0, 0), (19, 0), (0, 19), (19, 19)] {
           let color = try #require(rep.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB))
-          #expect(color.redComponent < 0.1,   "red at (\(x),\(y)) should be ~0")
+          #expect(color.redComponent < 0.1, "red at (\(x),\(y)) should be ~0")
           #expect(color.greenComponent > 0.9, "green at (\(x),\(y)) should be ~1")
-          #expect(color.blueComponent < 0.1,  "blue at (\(x),\(y)) should be ~0")
+          #expect(color.blueComponent < 0.1, "blue at (\(x),\(y)) should be ~0")
           #expect(color.alphaComponent > 0.9, "alpha at (\(x),\(y)) should be ~1")
         }
       }

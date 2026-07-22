@@ -8,7 +8,7 @@ let package = Package(
     .iOS(.v18),
     .macOS(.v15),
     .tvOS(.v18),
-    .watchOS(.v11),
+    .watchOS(.v11)
   ],
   products: [
     .library(
@@ -22,11 +22,11 @@ let package = Package(
     .library(
       name: "SnapshotTestingCustomDump",
       targets: ["SnapshotTestingCustomDump"]
-    ),
+    )
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
-    .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0"..<"605.0.0"),
+    .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0"..<"605.0.0")
   ],
   targets: [
     .target(
@@ -40,7 +40,7 @@ let package = Package(
       exclude: [
         "__Fixtures__",
         "__Snapshots__",
-        "Snapshotting/__Snapshots__",
+        "Snapshotting/__Snapshots__"
       ]
     ),
     .target(
@@ -50,7 +50,7 @@ let package = Package(
         "SnapshotTestingCustomDump",
         .product(name: "SwiftParser", package: "swift-syntax"),
         .product(name: "SwiftSyntax", package: "swift-syntax"),
-        .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
+        .product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
       ]
     ),
     .testTarget(
@@ -63,9 +63,9 @@ let package = Package(
       name: "SnapshotTestingCustomDump",
       dependencies: [
         "SnapshotTesting",
-        .product(name: "CustomDump", package: "swift-custom-dump"),
+        .product(name: "CustomDump", package: "swift-custom-dump")
       ]
-    ),
+    )
   ],
   swiftLanguageModes: [.v5]
 )

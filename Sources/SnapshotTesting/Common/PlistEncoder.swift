@@ -4,7 +4,11 @@
 import Foundation
 
 extension DecodingError {
-  internal static func _typeMismatch(at path: [CodingKey], expectation: Any.Type, reality: Any)
+  internal static func _typeMismatch(
+    at path: [CodingKey],
+    expectation: Any.Type,
+    reality: Any
+  )
     -> DecodingError
   {
     let description = "Expected to decode \(expectation) but found \(type(of: reality)) instead."
@@ -73,31 +77,42 @@ open class PropertyListEncoder {
         value,
         EncodingError.Context(
           codingPath: [],
-          debugDescription: "Top-level \(Value.self) encoded as number property list fragment."))
+          debugDescription: "Top-level \(Value.self) encoded as number property list fragment."
+        )
+      )
     } else if topLevel is NSString {
       throw EncodingError.invalidValue(
         value,
         EncodingError.Context(
           codingPath: [],
-          debugDescription: "Top-level \(Value.self) encoded as string property list fragment."))
+          debugDescription: "Top-level \(Value.self) encoded as string property list fragment."
+        )
+      )
     } else if topLevel is NSDate {
       throw EncodingError.invalidValue(
         value,
         EncodingError.Context(
           codingPath: [],
-          debugDescription: "Top-level \(Value.self) encoded as date property list fragment."))
+          debugDescription: "Top-level \(Value.self) encoded as date property list fragment."
+        )
+      )
     }
 
     do {
       return try PropertyListSerialization.data(
-        fromPropertyList: topLevel, format: self.outputFormat, options: 0)
+        fromPropertyList: topLevel,
+        format: self.outputFormat,
+        options: 0
+      )
     } catch {
       throw EncodingError.invalidValue(
         value,
         EncodingError.Context(
           codingPath: [],
           debugDescription: "Unable to encode the given top-level value as a property list",
-          underlyingError: error))
+          underlyingError: error
+        )
+      )
     }
   }
 
@@ -114,7 +129,9 @@ open class PropertyListEncoder {
         value,
         EncodingError.Context(
           codingPath: [],
-          debugDescription: "Top-level \(Value.self) did not encode any values."))
+          debugDescription: "Top-level \(Value.self) did not encode any values."
+        )
+      )
     }
 
     return topLevel
@@ -180,7 +197,10 @@ private class _PlistEncoder: Encoder {
     }
 
     let container = _PlistKeyedEncodingContainer<Key>(
-      referencing: self, codingPath: self.codingPath, wrapping: topContainer)
+      referencing: self,
+      codingPath: self.codingPath,
+      wrapping: topContainer
+    )
     return KeyedEncodingContainer(container)
   }
 
@@ -201,7 +221,10 @@ private class _PlistEncoder: Encoder {
     }
 
     return _PlistUnkeyedEncodingContainer(
-      referencing: self, codingPath: self.codingPath, wrapping: topContainer)
+      referencing: self,
+      codingPath: self.codingPath,
+      wrapping: topContainer
+    )
   }
 
   public func singleValueContainer() -> SingleValueEncodingContainer {
@@ -271,7 +294,8 @@ private struct _PlistKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContaine
 
   /// Initializes `self` with the given references.
   fileprivate init(
-    referencing encoder: _PlistEncoder, codingPath: [CodingKey],
+    referencing encoder: _PlistEncoder,
+    codingPath: [CodingKey],
     wrapping container: NSMutableDictionary
   ) {
     self.encoder = encoder
@@ -333,7 +357,10 @@ private struct _PlistKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContaine
     self.container[key.stringValue] = try self.encoder.box(value)
   }
 
-  public mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key)
+  public mutating func nestedContainer<NestedKey>(
+    keyedBy keyType: NestedKey.Type,
+    forKey key: Key
+  )
     -> KeyedEncodingContainer<NestedKey>
   {
     let dictionary = NSMutableDictionary()
@@ -343,7 +370,10 @@ private struct _PlistKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContaine
     defer { self.codingPath.removeLast() }
 
     let container = _PlistKeyedEncodingContainer<NestedKey>(
-      referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
+      referencing: self.encoder,
+      codingPath: self.codingPath,
+      wrapping: dictionary
+    )
     return KeyedEncodingContainer(container)
   }
 
@@ -354,12 +384,18 @@ private struct _PlistKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContaine
     self.codingPath.append(key)
     defer { self.codingPath.removeLast() }
     return _PlistUnkeyedEncodingContainer(
-      referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
+      referencing: self.encoder,
+      codingPath: self.codingPath,
+      wrapping: array
+    )
   }
 
   public mutating func superEncoder() -> Encoder {
     return _PlistReferencingEncoder(
-      referencing: self.encoder, at: _PlistKey.super, wrapping: self.container)
+      referencing: self.encoder,
+      at: _PlistKey.super,
+      wrapping: self.container
+    )
   }
 
   public mutating func superEncoder(forKey key: Key) -> Encoder {
@@ -388,7 +424,9 @@ private struct _PlistUnkeyedEncodingContainer: UnkeyedEncodingContainer {
 
   /// Initializes `self` with the given references.
   fileprivate init(
-    referencing encoder: _PlistEncoder, codingPath: [CodingKey], wrapping container: NSMutableArray
+    referencing encoder: _PlistEncoder,
+    codingPath: [CodingKey],
+    wrapping container: NSMutableArray
   ) {
     self.encoder = encoder
     self.codingPath = codingPath
@@ -429,7 +467,9 @@ private struct _PlistUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     self.container.add(try self.encoder.box(value))
   }
 
-  public mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type)
+  public mutating func nestedContainer<NestedKey>(
+    keyedBy keyType: NestedKey.Type
+  )
     -> KeyedEncodingContainer<NestedKey>
   {
     self.codingPath.append(_PlistKey(index: self.count))
@@ -439,7 +479,10 @@ private struct _PlistUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     self.container.add(dictionary)
 
     let container = _PlistKeyedEncodingContainer<NestedKey>(
-      referencing: self.encoder, codingPath: self.codingPath, wrapping: dictionary)
+      referencing: self.encoder,
+      codingPath: self.codingPath,
+      wrapping: dictionary
+    )
     return KeyedEncodingContainer(container)
   }
 
@@ -450,12 +493,18 @@ private struct _PlistUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     let array = NSMutableArray()
     self.container.add(array)
     return _PlistUnkeyedEncodingContainer(
-      referencing: self.encoder, codingPath: self.codingPath, wrapping: array)
+      referencing: self.encoder,
+      codingPath: self.codingPath,
+      wrapping: array
+    )
   }
 
   public mutating func superEncoder() -> Encoder {
     return _PlistReferencingEncoder(
-      referencing: self.encoder, at: self.container.count, wrapping: self.container)
+      referencing: self.encoder,
+      at: self.container.count,
+      wrapping: self.container
+    )
   }
 }
 
@@ -633,7 +682,9 @@ private class _PlistReferencingEncoder: _PlistEncoder {
 
   /// Initializes `self` by referencing the given array container in the given encoder.
   fileprivate init(
-    referencing encoder: _PlistEncoder, at index: Int, wrapping array: NSMutableArray
+    referencing encoder: _PlistEncoder,
+    at index: Int,
+    wrapping array: NSMutableArray
   ) {
     self.encoder = encoder
     self.reference = .array(array, index)
@@ -644,7 +695,9 @@ private class _PlistReferencingEncoder: _PlistEncoder {
 
   /// Initializes `self` by referencing the given dictionary container in the given encoder.
   fileprivate init(
-    referencing encoder: _PlistEncoder, at key: CodingKey, wrapping dictionary: NSMutableDictionary
+    referencing encoder: _PlistEncoder,
+    at key: CodingKey,
+    wrapping dictionary: NSMutableDictionary
   ) {
     self.encoder = encoder
     self.reference = .dictionary(dictionary, key.stringValue)
@@ -732,17 +785,25 @@ open class PropertyListDecoder {
   /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not a valid property list.
   /// - throws: An error if any value throws an error during decoding.
   open func decode<T: Decodable>(
-    _ type: T.Type, from data: Data, format: inout PropertyListSerialization.PropertyListFormat
+    _ type: T.Type,
+    from data: Data,
+    format: inout PropertyListSerialization.PropertyListFormat
   ) throws -> T {
     let topLevel: Any
     do {
       topLevel = try PropertyListSerialization.propertyList(
-        from: data, options: [], format: &format)
+        from: data,
+        options: [],
+        format: &format
+      )
     } catch {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
-          codingPath: [], debugDescription: "The given data was not a valid property list.",
-          underlyingError: error))
+          codingPath: [],
+          debugDescription: "The given data was not a valid property list.",
+          underlyingError: error
+        )
+      )
     }
 
     return try decode(type, fromTopLevel: topLevel)
@@ -761,7 +822,10 @@ open class PropertyListDecoder {
       throw DecodingError.valueNotFound(
         type,
         DecodingError.Context(
-          codingPath: [], debugDescription: "The given data did not contain a top-level value."))
+          codingPath: [],
+          debugDescription: "The given data did not contain a top-level value."
+        )
+      )
     }
 
     return value
@@ -791,7 +855,8 @@ private class _PlistDecoder: Decoder {
 
   /// Initializes `self` with the given top-level container and options.
   fileprivate init(
-    referencing container: Any, at codingPath: [CodingKey] = [],
+    referencing container: Any,
+    at codingPath: [CodingKey] = [],
     options: PropertyListDecoder._Options
   ) {
     self.storage = _PlistDecodingStorage()
@@ -808,12 +873,17 @@ private class _PlistDecoder: Decoder {
         KeyedDecodingContainer<Key>.self,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Cannot get keyed decoding container -- found null value instead."))
+          debugDescription: "Cannot get keyed decoding container -- found null value instead."
+        )
+      )
     }
 
     guard let topContainer = self.storage.topContainer as? [String: Any] else {
       throw DecodingError._typeMismatch(
-        at: self.codingPath, expectation: [String: Any].self, reality: self.storage.topContainer)
+        at: self.codingPath,
+        expectation: [String: Any].self,
+        reality: self.storage.topContainer
+      )
     }
 
     let container = _PlistKeyedDecodingContainer<Key>(referencing: self, wrapping: topContainer)
@@ -826,12 +896,17 @@ private class _PlistDecoder: Decoder {
         UnkeyedDecodingContainer.self,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Cannot get unkeyed decoding container -- found null value instead."))
+          debugDescription: "Cannot get unkeyed decoding container -- found null value instead."
+        )
+      )
     }
 
     guard let topContainer = self.storage.topContainer as? [Any] else {
       throw DecodingError._typeMismatch(
-        at: self.codingPath, expectation: [Any].self, reality: self.storage.topContainer)
+        at: self.codingPath,
+        expectation: [Any].self,
+        reality: self.storage.topContainer
+      )
     }
 
     return _PlistUnkeyedDecodingContainer(referencing: self, wrapping: topContainer)
@@ -918,7 +993,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     guard let value = entry as? String else {
@@ -934,7 +1011,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -945,7 +1024,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -957,7 +1038,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -968,7 +1051,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -980,7 +1065,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -991,7 +1078,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1003,7 +1092,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1014,7 +1105,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1026,7 +1119,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1037,7 +1132,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1049,7 +1146,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1060,7 +1159,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1072,7 +1173,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1083,7 +1186,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1095,7 +1200,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1106,7 +1213,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1118,7 +1227,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1129,7 +1240,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1141,7 +1254,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1152,7 +1267,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1164,7 +1281,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1175,7 +1294,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1187,7 +1308,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1197,7 +1320,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1209,7 +1334,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1220,7 +1347,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1232,7 +1361,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1243,7 +1374,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
@@ -1255,7 +1388,9 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         key,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."))
+          debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
+        )
+      )
     }
 
     self.decoder.codingPath.append(key)
@@ -1266,13 +1401,18 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath,
-          debugDescription: "Expected \(type) value but found null instead."))
+          debugDescription: "Expected \(type) value but found null instead."
+        )
+      )
     }
 
     return value
   }
 
-  public func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws
+  public func nestedContainer<NestedKey>(
+    keyedBy type: NestedKey.Type,
+    forKey key: Key
+  ) throws
     -> KeyedDecodingContainer<NestedKey>
   {
     self.decoder.codingPath.append(key)
@@ -1284,16 +1424,23 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         DecodingError.Context(
           codingPath: self.codingPath,
           debugDescription:
-            "Cannot get nested keyed container -- no value found for key \"\(key.stringValue)\""))
+            "Cannot get nested keyed container -- no value found for key \"\(key.stringValue)\""
+        )
+      )
     }
 
     guard let dictionary = value as? [String: Any] else {
       throw DecodingError._typeMismatch(
-        at: self.codingPath, expectation: [String: Any].self, reality: value)
+        at: self.codingPath,
+        expectation: [String: Any].self,
+        reality: value
+      )
     }
 
     let container = _PlistKeyedDecodingContainer<NestedKey>(
-      referencing: self.decoder, wrapping: dictionary)
+      referencing: self.decoder,
+      wrapping: dictionary
+    )
     return KeyedDecodingContainer(container)
   }
 
@@ -1307,12 +1454,17 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
         DecodingError.Context(
           codingPath: self.codingPath,
           debugDescription:
-            "Cannot get nested unkeyed container -- no value found for key \"\(key.stringValue)\""))
+            "Cannot get nested unkeyed container -- no value found for key \"\(key.stringValue)\""
+        )
+      )
     }
 
     guard let array = value as? [Any] else {
       throw DecodingError._typeMismatch(
-        at: self.codingPath, expectation: [Any].self, reality: value)
+        at: self.codingPath,
+        expectation: [Any].self,
+        reality: value
+      )
     }
 
     return _PlistUnkeyedDecodingContainer(referencing: self.decoder, wrapping: array)
@@ -1324,7 +1476,10 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
 
     let value: Any = self.container[key.stringValue] ?? NSNull()
     return _PlistDecoder(
-      referencing: value, at: self.decoder.codingPath, options: self.decoder.options)
+      referencing: value,
+      at: self.decoder.codingPath,
+      options: self.decoder.options
+    )
   }
 
   public func superDecoder() throws -> Decoder {
@@ -1377,7 +1532,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         Any?.self,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     if self.container[self.currentIndex] is NSNull {
@@ -1394,7 +1551,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1406,7 +1565,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1419,7 +1580,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1431,7 +1594,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1444,7 +1609,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1456,7 +1623,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1469,7 +1638,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1481,7 +1652,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1494,7 +1667,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1506,7 +1681,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1519,7 +1696,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1531,7 +1710,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1544,7 +1725,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1556,7 +1739,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1569,7 +1754,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1581,7 +1768,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1594,7 +1783,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1606,7 +1797,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1619,7 +1812,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1631,7 +1826,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1644,7 +1841,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1656,7 +1855,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1669,7 +1870,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1681,7 +1884,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1694,7 +1899,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1706,7 +1913,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1719,7 +1928,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1731,7 +1942,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
@@ -1744,7 +1957,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Unkeyed container is at end."))
+          debugDescription: "Unkeyed container is at end."
+        )
+      )
     }
 
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1755,14 +1970,18 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.decoder.codingPath + [_PlistKey(index: self.currentIndex)],
-          debugDescription: "Expected \(type) but found null instead."))
+          debugDescription: "Expected \(type) but found null instead."
+        )
+      )
     }
 
     self.currentIndex += 1
     return decoded
   }
 
-  public mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
+  public mutating func nestedContainer<NestedKey>(
+    keyedBy type: NestedKey.Type
+  ) throws
     -> KeyedDecodingContainer<NestedKey>
   {
     self.decoder.codingPath.append(_PlistKey(index: self.currentIndex))
@@ -1773,7 +1992,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         KeyedDecodingContainer<NestedKey>.self,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Cannot get nested keyed container -- unkeyed container is at end."))
+          debugDescription: "Cannot get nested keyed container -- unkeyed container is at end."
+        )
+      )
     }
 
     let value = self.container[self.currentIndex]
@@ -1782,17 +2003,24 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         KeyedDecodingContainer<NestedKey>.self,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Cannot get keyed decoding container -- found null value instead."))
+          debugDescription: "Cannot get keyed decoding container -- found null value instead."
+        )
+      )
     }
 
     guard let dictionary = value as? [String: Any] else {
       throw DecodingError._typeMismatch(
-        at: self.codingPath, expectation: [String: Any].self, reality: value)
+        at: self.codingPath,
+        expectation: [String: Any].self,
+        reality: value
+      )
     }
 
     self.currentIndex += 1
     let container = _PlistKeyedDecodingContainer<NestedKey>(
-      referencing: self.decoder, wrapping: dictionary)
+      referencing: self.decoder,
+      wrapping: dictionary
+    )
     return KeyedDecodingContainer(container)
   }
 
@@ -1805,7 +2033,9 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         UnkeyedDecodingContainer.self,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Cannot get nested unkeyed container -- unkeyed container is at end."))
+          debugDescription: "Cannot get nested unkeyed container -- unkeyed container is at end."
+        )
+      )
     }
 
     let value = self.container[self.currentIndex]
@@ -1814,12 +2044,17 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         UnkeyedDecodingContainer.self,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Cannot get keyed decoding container -- found null value instead."))
+          debugDescription: "Cannot get keyed decoding container -- found null value instead."
+        )
+      )
     }
 
     guard let array = value as? [Any] else {
       throw DecodingError._typeMismatch(
-        at: self.codingPath, expectation: [Any].self, reality: value)
+        at: self.codingPath,
+        expectation: [Any].self,
+        reality: value
+      )
     }
 
     self.currentIndex += 1
@@ -1835,13 +2070,18 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         Decoder.self,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Cannot get superDecoder() -- unkeyed container is at end."))
+          debugDescription: "Cannot get superDecoder() -- unkeyed container is at end."
+        )
+      )
     }
 
     let value = self.container[self.currentIndex]
     self.currentIndex += 1
     return _PlistDecoder(
-      referencing: value, at: self.decoder.codingPath, options: self.decoder.options)
+      referencing: value,
+      at: self.decoder.codingPath,
+      options: self.decoder.options
+    )
   }
 }
 
@@ -1854,7 +2094,9 @@ extension _PlistDecoder: SingleValueDecodingContainer {
         type,
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Expected \(type) but found null value instead."))
+          debugDescription: "Expected \(type) but found null value instead."
+        )
+      )
     }
   }
 
@@ -1980,7 +2222,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return int
@@ -1999,7 +2243,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return int8
@@ -2018,7 +2264,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return int16
@@ -2037,7 +2285,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return int32
@@ -2056,7 +2306,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return int64
@@ -2075,7 +2327,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return uint
@@ -2094,7 +2348,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return uint8
@@ -2113,7 +2369,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return uint16
@@ -2132,7 +2390,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return uint32
@@ -2151,7 +2411,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return uint64
@@ -2170,7 +2432,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return float
@@ -2189,7 +2453,9 @@ extension _PlistDecoder {
       throw DecodingError.dataCorrupted(
         DecodingError.Context(
           codingPath: self.codingPath,
-          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."))
+          debugDescription: "Parsed property list number <\(number)> does not fit in \(type)."
+        )
+      )
     }
 
     return double

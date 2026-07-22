@@ -171,7 +171,7 @@
 
   private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage {
     normalizedComponentDiff(old, new)
-    ?? blendModeDiff(old, new)
+      ?? blendModeDiff(old, new)
   }
 
   private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage {
@@ -233,7 +233,7 @@
     while index < pixelCount {
       defer { index += 1 }
       let pixelOffset = index * imageContextBytesPerPixel
-      let rDiff = abs(Int16(oldBytes[pixelOffset])     - Int16(newBytes[pixelOffset]))
+      let rDiff = abs(Int16(oldBytes[pixelOffset]) - Int16(newBytes[pixelOffset]))
       let gDiff = abs(Int16(oldBytes[pixelOffset + 1]) - Int16(newBytes[pixelOffset + 1]))
       let bDiff = abs(Int16(oldBytes[pixelOffset + 2]) - Int16(newBytes[pixelOffset + 2]))
       let aDiff = abs(Int16(oldBytes[pixelOffset + 3]) - Int16(newBytes[pixelOffset + 3]))

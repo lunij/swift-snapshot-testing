@@ -37,13 +37,15 @@
                  - "Hello"
               +  - "World"
                
-            """)
+            """
+          )
         }
       }
 
       @Test func inlineSnapshot_NamedTrailingClosure() {
         assertInlineSnapshot(
-          of: ["Hello", "World"], as: .dump,
+          of: ["Hello", "World"],
+          as: .dump,
           matches: {
             """
             ▿ 2 elements
@@ -51,7 +53,8 @@
               - "World"
 
             """
-          })
+          }
+        )
       }
 
       @Test func inlineSnapshot_Escaping() {

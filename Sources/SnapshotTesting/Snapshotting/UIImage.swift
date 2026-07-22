@@ -17,7 +17,9 @@
     ///   - scale: The scale used to decode the reference image from disk. Defaults to `1`.
     /// - Returns: A new diffing strategy.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1
+      precision: Float = 1,
+      perceptualPrecision: Float = 1,
+      scale: CGFloat = 1
     ) -> Diffing {
       .diff(
         toData: convertToData,
@@ -52,12 +54,17 @@
     ///     human eye.
     ///   - scale: The scale of the reference image stored on disk.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1
+      precision: Float = 1,
+      perceptualPrecision: Float = 1,
+      scale: CGFloat = 1
     ) -> Snapshotting {
       return .init(
         pathExtension: "png",
         diffing: .image(
-          precision: precision, perceptualPrecision: perceptualPrecision, scale: scale)
+          precision: precision,
+          perceptualPrecision: perceptualPrecision,
+          scale: scale
+        )
       )
     }
   }
@@ -165,7 +172,7 @@
 
   private func diffImage(_ old: UIImage, _ new: UIImage) -> UIImage {
     normalizedComponentDiff(old, new)
-    ?? blendModeDiff(old, new)
+      ?? blendModeDiff(old, new)
   }
 
   private func blendModeDiff(_ old: UIImage, _ new: UIImage) -> UIImage {
@@ -180,103 +187,103 @@
     return differenceImage
   }
 
-private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage? {
-  guard let oldCgImage = old.cgImage,
-        let newCgImage = new.cgImage,
-        oldCgImage.width == newCgImage.width,
-        oldCgImage.height == newCgImage.height,
-        oldCgImage.width > 0,
-        oldCgImage.height > 0
-  else {
-    return nil
-  }
-
-  guard let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
-        let outputFormat = vImage_CGImageFormat(
-          bitsPerComponent: imageContextBitsPerComponent,
-          bitsPerPixel: imageContextBitsPerComponent,
-          colorSpace: outputColorSpace,
-          bitmapInfo: .init()
-        )
-  else {
-    return nil
-  }
-
-  let width = oldCgImage.width
-  let height = oldCgImage.height
-  let pixelCount = width * height
-  let scale = old.scale
-
-  // Draw both images into contexts with an identical, known layout (RGBA8888,
-  // tightly packed rows). Reading the source images' raw backing bytes instead
-  // would depend on their pixel format and row padding, which ImageIO does not
-  // guarantee.
-  let byteCount = pixelCount * imageContextBytesPerPixel
-  var oldBytes = [UInt8](repeating: 0, count: byteCount)
-  var newBytes = [UInt8](repeating: 0, count: byteCount)
-  guard context(for: oldCgImage, data: &oldBytes) != nil,
-        context(for: newCgImage, data: &newBytes) != nil
-  else {
-    return nil
-  }
-  var diffBytes = [UInt8](repeating: 0, count: pixelCount)
-  
-  var index = 0
-  while index < pixelCount {
-    defer { index += 1 }
-    let pixelOffset = index * imageContextBytesPerPixel
-    
-    let rOld = Int16(oldBytes[pixelOffset])
-    let gOld = Int16(oldBytes[pixelOffset + 1])
-    let bOld = Int16(oldBytes[pixelOffset + 2])
-    let aOld = Int16(oldBytes[pixelOffset + 3])
-    
-    let rNew = Int16(newBytes[pixelOffset])
-    let gNew = Int16(newBytes[pixelOffset + 1])
-    let bNew = Int16(newBytes[pixelOffset + 2])
-    let aNew = Int16(newBytes[pixelOffset + 3])
-    
-    let rDiff = abs(rOld - rNew)
-    let gDiff = abs(gOld - gNew)
-    let bDiff = abs(bOld - bNew)
-    let aDiff = abs(aOld - aNew)
-    
-    let maxDiff = max(rDiff, gDiff, bDiff, aDiff)
-    diffBytes[index] = UInt8(maxDiff)
-  }
-  
-  let outputCgImage: CGImage? = diffBytes.withUnsafeMutableBytes { diffPtr in
-    var diffBuffer = vImage_Buffer(
-      data: diffPtr.baseAddress,
-      height: vImagePixelCount(height),
-      width: vImagePixelCount(width),
-      rowBytes: width
-    )
-    
-    do {
-      var normalizedBuffer = try vImage_Buffer(
-        width: width,
-        height: height,
-        bitsPerPixel: UInt32(imageContextBitsPerComponent)
-      )
-      defer { normalizedBuffer.free() }
-      
-      let error = vImageContrastStretch_Planar8(
-        &diffBuffer,
-        &normalizedBuffer,
-        vImage_Flags(kvImageNoFlags)
-      )
-      
-      let buffer = error == kvImageNoError ? normalizedBuffer : diffBuffer
-      
-      return try buffer.createCGImage(format: outputFormat)
-    } catch {
+  private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage? {
+    guard let oldCgImage = old.cgImage,
+      let newCgImage = new.cgImage,
+      oldCgImage.width == newCgImage.width,
+      oldCgImage.height == newCgImage.height,
+      oldCgImage.width > 0,
+      oldCgImage.height > 0
+    else {
       return nil
     }
+
+    guard let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
+      let outputFormat = vImage_CGImageFormat(
+        bitsPerComponent: imageContextBitsPerComponent,
+        bitsPerPixel: imageContextBitsPerComponent,
+        colorSpace: outputColorSpace,
+        bitmapInfo: .init()
+      )
+    else {
+      return nil
+    }
+
+    let width = oldCgImage.width
+    let height = oldCgImage.height
+    let pixelCount = width * height
+    let scale = old.scale
+
+    // Draw both images into contexts with an identical, known layout (RGBA8888,
+    // tightly packed rows). Reading the source images' raw backing bytes instead
+    // would depend on their pixel format and row padding, which ImageIO does not
+    // guarantee.
+    let byteCount = pixelCount * imageContextBytesPerPixel
+    var oldBytes = [UInt8](repeating: 0, count: byteCount)
+    var newBytes = [UInt8](repeating: 0, count: byteCount)
+    guard context(for: oldCgImage, data: &oldBytes) != nil,
+      context(for: newCgImage, data: &newBytes) != nil
+    else {
+      return nil
+    }
+    var diffBytes = [UInt8](repeating: 0, count: pixelCount)
+
+    var index = 0
+    while index < pixelCount {
+      defer { index += 1 }
+      let pixelOffset = index * imageContextBytesPerPixel
+
+      let rOld = Int16(oldBytes[pixelOffset])
+      let gOld = Int16(oldBytes[pixelOffset + 1])
+      let bOld = Int16(oldBytes[pixelOffset + 2])
+      let aOld = Int16(oldBytes[pixelOffset + 3])
+
+      let rNew = Int16(newBytes[pixelOffset])
+      let gNew = Int16(newBytes[pixelOffset + 1])
+      let bNew = Int16(newBytes[pixelOffset + 2])
+      let aNew = Int16(newBytes[pixelOffset + 3])
+
+      let rDiff = abs(rOld - rNew)
+      let gDiff = abs(gOld - gNew)
+      let bDiff = abs(bOld - bNew)
+      let aDiff = abs(aOld - aNew)
+
+      let maxDiff = max(rDiff, gDiff, bDiff, aDiff)
+      diffBytes[index] = UInt8(maxDiff)
+    }
+
+    let outputCgImage: CGImage? = diffBytes.withUnsafeMutableBytes { diffPtr in
+      var diffBuffer = vImage_Buffer(
+        data: diffPtr.baseAddress,
+        height: vImagePixelCount(height),
+        width: vImagePixelCount(width),
+        rowBytes: width
+      )
+
+      do {
+        var normalizedBuffer = try vImage_Buffer(
+          width: width,
+          height: height,
+          bitsPerPixel: UInt32(imageContextBitsPerComponent)
+        )
+        defer { normalizedBuffer.free() }
+
+        let error = vImageContrastStretch_Planar8(
+          &diffBuffer,
+          &normalizedBuffer,
+          vImage_Flags(kvImageNoFlags)
+        )
+
+        let buffer = error == kvImageNoError ? normalizedBuffer : diffBuffer
+
+        return try buffer.createCGImage(format: outputFormat)
+      } catch {
+        return nil
+      }
+    }
+
+    guard let outputCgImage else { return nil }
+
+    return UIImage(cgImage: outputCgImage, scale: scale, orientation: .up)
   }
-  
-  guard let outputCgImage else { return nil }
-  
-  return UIImage(cgImage: outputCgImage, scale: scale, orientation: .up)
-}
 #endif

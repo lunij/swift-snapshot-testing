@@ -32,7 +32,8 @@
       drawingMode: CGPathDrawingMode = .eoFill
     ) -> Snapshotting {
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision
+        precision: precision,
+        perceptualPrecision: perceptualPrecision
       ).pullback { path in
         let bounds = path.boundingBoxOfPath
         var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
@@ -85,11 +86,15 @@
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1,
+      precision: Float = 1,
+      perceptualPrecision: Float = 1,
+      scale: CGFloat = 1,
       drawingMode: CGPathDrawingMode = .eoFill
     ) -> Snapshotting {
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+        precision: precision,
+        perceptualPrecision: perceptualPrecision,
+        scale: scale
       ).pullback { path in
         let bounds = path.boundingBoxOfPath
         let format: UIGraphicsImageRendererFormat
@@ -126,7 +131,7 @@
         .addLineToPoint: "LineTo",
         .addQuadCurveToPoint: "QuadCurveTo",
         .addCurveToPoint: "CurveTo",
-        .closeSubpath: "Close",
+        .closeSubpath: "Close"
       ]
 
       let numberOfPointsByType: [CGPathElementType: Int] = [
@@ -134,7 +139,7 @@
         .addLineToPoint: 1,
         .addQuadCurveToPoint: 2,
         .addCurveToPoint: 3,
-        .closeSubpath: 0,
+        .closeSubpath: 0
       ]
 
       return SimplySnapshotting.lines.pullback { path in

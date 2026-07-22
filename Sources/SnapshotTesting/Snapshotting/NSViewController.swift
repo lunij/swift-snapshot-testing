@@ -18,10 +18,14 @@
     ///     human eye.
     ///   - size: A view size override.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize? = nil
+      precision: Float = 1,
+      perceptualPrecision: Float = 1,
+      size: CGSize? = nil
     ) -> Snapshotting {
       return Snapshotting<NSView, NSImage>.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, size: size
+        precision: precision,
+        perceptualPrecision: perceptualPrecision,
+        size: size
       ).pullback { $0.view }
     }
   }

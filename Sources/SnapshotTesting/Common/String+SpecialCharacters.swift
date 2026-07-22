@@ -31,11 +31,16 @@ extension String {
       try? NSRegularExpression(pattern: #"\""#, options: .ignoreMetacharacters),
       try? NSRegularExpression(pattern: #"\'"#, options: .ignoreMetacharacters),
       try? NSRegularExpression(
-        pattern: multilineLiteralAndNumberSign, options: .ignoreMetacharacters),
+        pattern: multilineLiteralAndNumberSign,
+        options: .ignoreMetacharacters
+      )
     ]
     let matches = patterns.compactMap {
       $0?.firstMatch(
-        in: self, options: .init(), range: NSRange.init(location: 0, length: self.count))
+        in: self,
+        options: .init(),
+        range: NSRange.init(location: 0, length: self.count)
+      )
     }
     return matches.count > 0
   }
@@ -51,7 +56,10 @@ extension String {
     let pattern = try! NSRegularExpression(pattern: ##""#{1,}"##, options: .init())
 
     let matches = pattern.matches(
-      in: self, options: .init(), range: NSRange.init(location: 0, length: self.count))
+      in: self,
+      options: .init(),
+      range: NSRange.init(location: 0, length: self.count)
+    )
 
     // If we have "## then the length of the match is 3,
     // which is also the number of "number signs (#)" we need to add

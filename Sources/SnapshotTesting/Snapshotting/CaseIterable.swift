@@ -33,7 +33,9 @@ extension Snapshotting where Value: CaseIterable, Format == String {
   /// "left","down"
   /// "right","up"
   /// ```
-  public static func `func`<A>(into witness: Snapshotting<A, Format>) -> Snapshotting<
+  public static func `func`<A>(
+    into witness: Snapshotting<A, Format>
+  ) -> Snapshotting<
     (Value) -> A, Format
   > {
     var snapshotting = Snapshotting<String, String>.lines.asyncPullback { (f: (Value) -> A) in

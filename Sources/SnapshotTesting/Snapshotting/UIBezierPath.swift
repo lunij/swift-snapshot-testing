@@ -17,10 +17,14 @@
     ///     human eye.
     ///   - scale: The scale to use when loading the reference image from disk.
     public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1
+      precision: Float = 1,
+      perceptualPrecision: Float = 1,
+      scale: CGFloat = 1
     ) -> Snapshotting {
       return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+        precision: precision,
+        perceptualPrecision: perceptualPrecision,
+        scale: scale
       ).pullback { path in
         let bounds = path.bounds
         let format: UIGraphicsImageRendererFormat

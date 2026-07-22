@@ -59,19 +59,19 @@ public enum DiffAttachment {
 }
 
 #if os(iOS) || os(macOS) || os(tvOS) || os(visionOS)
-extension Diffing where Value == XImage {
-  static func attachments(
-    _ old: Value,
-    _ new: Value,
-    _ toDiffImage: @escaping (Value, Value) -> Value,
-    _ toData: (Value) throws -> Data
-  ) throws -> [DiffAttachment] {
-    let diff = toDiffImage(old, new)
-    return [
-      DiffAttachment.data(try toData(old), name: "old"),
-      DiffAttachment.data(try toData(new), name: "new"),
-      DiffAttachment.data(try toData(diff), name: "diff")
-    ]
+  extension Diffing where Value == XImage {
+    static func attachments(
+      _ old: Value,
+      _ new: Value,
+      _ toDiffImage: @escaping (Value, Value) -> Value,
+      _ toData: (Value) throws -> Data
+    ) throws -> [DiffAttachment] {
+      let diff = toDiffImage(old, new)
+      return [
+        DiffAttachment.data(try toData(old), name: "old"),
+        DiffAttachment.data(try toData(new), name: "new"),
+        DiffAttachment.data(try toData(diff), name: "diff")
+      ]
+    }
   }
-}
 #endif

@@ -1,114 +1,114 @@
 import Foundation
 import XCTest
 
+@testable import SnapshotTesting
+
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+  import FoundationNetworking
 #endif
 
 #if canImport(WebKit)
-import WebKit
+  import WebKit
 #endif
 
 #if canImport(UIKit)
-import UIKit.UIView
+  import UIKit.UIView
 #endif
-
-@testable import SnapshotTesting
 
 final class WKWebViewTests: XCTestCase {
-#if os(iOS) || os(macOS)
-  func testWebView() throws {
-    let webView = WKWebView()
-    webView.load(.init(url: .htmlFixture))
-    assertSnapshot(
-      of: webView,
-      as: .image(
-        precision: 0.98,
-        perceptualPrecision: 0.95,
-        scale: 1,
-        size: .init(width: 800, height: 600)
-      ),
-      named: platform,
-      timeout: 30
-    )
-  }
-
-  func testWebViewWithManipulatingNavigationDelegate() throws {
-    final class ManipulatingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
-      func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // The fixture's `#banner` CSS makes the injected element stand out in the snapshot.
-        webView.evaluateJavaScript(
-          """
-          const banner = document.createElement("div");
-          banner.id = "banner";
-          banner.textContent = "The navigation delegate has manipulated the DOM after the page finished loading.";
-          document.body.appendChild(banner);
-          """
-        )
-      }
+  #if os(iOS) || os(macOS)
+    func testWebView() throws {
+      let webView = WKWebView()
+      webView.load(.init(url: .htmlFixture))
+      assertSnapshot(
+        of: webView,
+        as: .image(
+          precision: 0.98,
+          perceptualPrecision: 0.95,
+          scale: 1,
+          size: .init(width: 800, height: 600)
+        ),
+        named: platform,
+        timeout: 30
+      )
     }
-    let manipulatingWKWebViewNavigationDelegate = ManipulatingWKWebViewNavigationDelegate()
-    let webView = WKWebView()
-    webView.navigationDelegate = manipulatingWKWebViewNavigationDelegate
-    webView.load(.init(url: .htmlFixture))
-    assertSnapshot(
-      of: webView,
-      as: .image(
-        precision: 0.98,
-        perceptualPrecision: 0.95,
-        scale: 1,
-        size: .init(width: 800, height: 600)
-      ),
-      named: platform,
-      timeout: 30
-    )
-    _ = manipulatingWKWebViewNavigationDelegate
-  }
 
-  func testWebViewWithCancellingNavigationDelegate() throws {
-    final class CancellingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
-      func webView(
-        _ webView: WKWebView,
-        decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
-      ) {
-        decisionHandler(.cancel)
+    func testWebViewWithManipulatingNavigationDelegate() throws {
+      final class ManipulatingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+          // The fixture's `#banner` CSS makes the injected element stand out in the snapshot.
+          webView.evaluateJavaScript(
+            """
+            const banner = document.createElement("div");
+            banner.id = "banner";
+            banner.textContent = "The navigation delegate has manipulated the DOM after the page finished loading.";
+            document.body.appendChild(banner);
+            """
+          )
+        }
       }
+      let manipulatingWKWebViewNavigationDelegate = ManipulatingWKWebViewNavigationDelegate()
+      let webView = WKWebView()
+      webView.navigationDelegate = manipulatingWKWebViewNavigationDelegate
+      webView.load(.init(url: .htmlFixture))
+      assertSnapshot(
+        of: webView,
+        as: .image(
+          precision: 0.98,
+          perceptualPrecision: 0.95,
+          scale: 1,
+          size: .init(width: 800, height: 600)
+        ),
+        named: platform,
+        timeout: 30
+      )
+      _ = manipulatingWKWebViewNavigationDelegate
     }
-    let cancellingWKWebViewNavigationDelegate = CancellingWKWebViewNavigationDelegate()
-    let webView = WKWebView()
-    webView.navigationDelegate = cancellingWKWebViewNavigationDelegate
-    webView.load(.init(url: .htmlFixture))
-    assertSnapshot(
-      of: webView,
-      as: .image(size: .init(width: 800, height: 600)),
-      named: platform,
-      timeout: 30
-    )
-    _ = cancellingWKWebViewNavigationDelegate
-  }
-#endif
 
-#if os(iOS)
-  func testEmbeddedWebView() throws {
-    let label = UILabel()
-    label.text = "Hello, Blob!"
+    func testWebViewWithCancellingNavigationDelegate() throws {
+      final class CancellingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
+        func webView(
+          _ webView: WKWebView,
+          decidePolicyFor navigationAction: WKNavigationAction,
+          decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+          decisionHandler(.cancel)
+        }
+      }
+      let cancellingWKWebViewNavigationDelegate = CancellingWKWebViewNavigationDelegate()
+      let webView = WKWebView()
+      webView.navigationDelegate = cancellingWKWebViewNavigationDelegate
+      webView.load(.init(url: .htmlFixture))
+      assertSnapshot(
+        of: webView,
+        as: .image(size: .init(width: 800, height: 600)),
+        named: platform,
+        timeout: 30
+      )
+      _ = cancellingWKWebViewNavigationDelegate
+    }
+  #endif
 
-    let webView = WKWebView()
-    webView.load(.init(url: .htmlFixture))
-    webView.isHidden = true
+  #if os(iOS)
+    func testEmbeddedWebView() throws {
+      let label = UILabel()
+      label.text = "Hello, Blob!"
 
-    let stackView = UIStackView(arrangedSubviews: [label, webView])
-    stackView.axis = .vertical
+      let webView = WKWebView()
+      webView.load(.init(url: .htmlFixture))
+      webView.isHidden = true
 
-    assertSnapshot(
-      of: stackView,
-      as: .image(precision: 0.99, perceptualPrecision: 0.99, size: .init(width: 800, height: 600)),
-      named: platform,
-      timeout: 30
-    )
-  }
-#endif
+      let stackView = UIStackView(arrangedSubviews: [label, webView])
+      stackView.axis = .vertical
+
+      assertSnapshot(
+        of: stackView,
+        as: .image(precision: 0.99, perceptualPrecision: 0.99, size: .init(width: 800, height: 600)),
+        named: platform,
+        timeout: 30
+      )
+    }
+  #endif
 }
 
 private extension URL {
