@@ -1,4 +1,5 @@
 #if os(macOS)
+  import Accelerate.vImage
   import Cocoa
   import XCTest
 
@@ -81,7 +82,12 @@
     return data
   }
 
-  private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptualPrecision: Float) -> ImageComparisonResult {
+  private func compare(
+    _ old: NSImage,
+    _ new: NSImage,
+    precision: Float,
+    perceptualPrecision: Float
+  ) -> ImageComparisonResult {
     guard let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
       return .cgImageConversionFailed
     }
@@ -159,12 +165,16 @@
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
       )
     else { return nil }
-
     context.draw(cgImage, in: CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
     return context
   }
 
   private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage {
+    normalizedComponentDiff(old, new)
+    ?? blendModeDiff(old, new)
+  }
+
+  private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage {
     let oldCiImage = CIImage(cgImage: old.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
     let newCiImage = CIImage(cgImage: new.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
     let differenceFilter = CIFilter(name: "CIDifferenceBlendMode")!
@@ -178,5 +188,85 @@
     let difference = NSImage(size: maxSize)
     difference.addRepresentation(rep)
     return difference
+  }
+
+  private func normalizedComponentDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
+    guard
+      let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil),
+      let newCgImage = new.cgImage(forProposedRect: nil, context: nil, hints: nil),
+      oldCgImage.width == newCgImage.width,
+      oldCgImage.height == newCgImage.height,
+      oldCgImage.width > 0,
+      oldCgImage.height > 0
+    else {
+      return nil
+    }
+
+    guard
+      let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
+      let outputFormat = vImage_CGImageFormat(
+        bitsPerComponent: imageContextBitsPerComponent,
+        bitsPerPixel: imageContextBitsPerComponent,
+        colorSpace: outputColorSpace,
+        bitmapInfo: .init()
+      )
+    else {
+      return nil
+    }
+
+    let width = oldCgImage.width
+    let height = oldCgImage.height
+    let pixelCount = width * height
+
+    let byteCount = pixelCount * imageContextBytesPerPixel
+    var oldBytes = [UInt8](repeating: 0, count: byteCount)
+    var newBytes = [UInt8](repeating: 0, count: byteCount)
+    guard
+      context(for: oldCgImage, data: &oldBytes) != nil,
+      context(for: newCgImage, data: &newBytes) != nil
+    else {
+      return nil
+    }
+
+    var diffBytes = [UInt8](repeating: 0, count: pixelCount)
+    var index = 0
+    while index < pixelCount {
+      defer { index += 1 }
+      let pixelOffset = index * imageContextBytesPerPixel
+      let rDiff = abs(Int16(oldBytes[pixelOffset])     - Int16(newBytes[pixelOffset]))
+      let gDiff = abs(Int16(oldBytes[pixelOffset + 1]) - Int16(newBytes[pixelOffset + 1]))
+      let bDiff = abs(Int16(oldBytes[pixelOffset + 2]) - Int16(newBytes[pixelOffset + 2]))
+      let aDiff = abs(Int16(oldBytes[pixelOffset + 3]) - Int16(newBytes[pixelOffset + 3]))
+      diffBytes[index] = UInt8(max(rDiff, gDiff, bDiff, aDiff))
+    }
+
+    let outputCgImage: CGImage? = diffBytes.withUnsafeMutableBytes { diffPtr in
+      var diffBuffer = vImage_Buffer(
+        data: diffPtr.baseAddress,
+        height: vImagePixelCount(height),
+        width: vImagePixelCount(width),
+        rowBytes: width
+      )
+      do {
+        var normalizedBuffer = try vImage_Buffer(
+          width: width,
+          height: height,
+          bitsPerPixel: UInt32(imageContextBitsPerComponent)
+        )
+        defer { normalizedBuffer.free() }
+        let error = vImageContrastStretch_Planar8(
+          &diffBuffer,
+          &normalizedBuffer,
+          vImage_Flags(kvImageNoFlags)
+        )
+        let buffer = error == kvImageNoError ? normalizedBuffer : diffBuffer
+        return try buffer.createCGImage(format: outputFormat)
+      } catch {
+        return nil
+      }
+    }
+
+    guard let outputCgImage else { return nil }
+    return NSImage(cgImage: outputCgImage, size: old.size)
   }
 #endif
