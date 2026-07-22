@@ -55,6 +55,11 @@
     }
   }
 
+  // Remap snapshot & reference to the same colorspace and layout, matching the UIImage strategy.
+  private let imageContextColorSpace = CGColorSpace(name: CGColorSpace.sRGB)
+  private let imageContextBitsPerComponent = 8
+  private let imageContextBytesPerPixel = 4
+
   private func convertToData(_ image: NSImage) throws -> Data {
     if image.size == .zero {
       throw ImageConversionError.zeroSize
@@ -86,21 +91,22 @@
     guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
       return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
     }
-    guard let oldContext = context(for: oldCgImage), let oldData = oldContext.data else {
+    let pixelCount = oldCgImage.width * oldCgImage.height
+    let byteCount = imageContextBytesPerPixel * pixelCount
+    var oldBytes = [UInt8](repeating: 0, count: byteCount)
+    guard let oldData = context(for: oldCgImage, data: &oldBytes)?.data else {
       return .cgContextDataConversionFailed
     }
-    guard let newContext = context(for: newCgImage), let newData = newContext.data else {
-      return .cgContextDataConversionFailed
+    if let newContext = context(for: newCgImage), let newData = newContext.data {
+      if memcmp(oldData, newData, byteCount) == 0 {
+        return .isMatching
+      }
     }
-    let byteCount = oldContext.height * oldContext.bytesPerRow
-    if memcmp(oldData, newData, byteCount) == 0 {
-      return .isMatching
-    }
+    var newerBytes = [UInt8](repeating: 0, count: byteCount)
     guard
       let data = try? convertToData(new),
       let newerCgImage = NSImage(data: data)?.cgImage(forProposedRect: nil, context: nil, hints: nil),
-      let newerContext = context(for: newerCgImage),
-      let newerData = newerContext.data
+      let newerData = context(for: newerCgImage, data: &newerBytes)?.data
     else {
       return .cgContextDataConversionFailed
     }
@@ -118,8 +124,6 @@
         perceptualPrecision: perceptualPrecision
       )
     } else {
-      let oldRep = NSBitmapImageRep(cgImage: oldCgImage).bitmapData!
-      let newRep = NSBitmapImageRep(cgImage: newerCgImage).bitmapData!
       let byteCountThreshold = Int((1 - precision) * Float(byteCount))
       var differentByteCount = 0
       // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
@@ -129,7 +133,7 @@
       var index = 0
       while index < byteCount {
         defer { index += 1 }
-        if oldRep[index] != newRep[index] {
+        if oldBytes[index] != newerBytes[index] {
           differentByteCount += 1
         }
       }
@@ -141,16 +145,17 @@
     return .isMatching
   }
 
-  private func context(for cgImage: CGImage) -> CGContext? {
+  private func context(for cgImage: CGImage, data: UnsafeMutableRawPointer? = nil) -> CGContext? {
+    let bytesPerRow = cgImage.width * imageContextBytesPerPixel
     guard
-      let space = cgImage.colorSpace,
+      let colorSpace = imageContextColorSpace,
       let context = CGContext(
-        data: nil,
+        data: data,
         width: cgImage.width,
         height: cgImage.height,
-        bitsPerComponent: cgImage.bitsPerComponent,
-        bytesPerRow: cgImage.bytesPerRow,
-        space: space,
+        bitsPerComponent: imageContextBitsPerComponent,
+        bytesPerRow: bytesPerRow,
+        space: colorSpace,
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
       )
     else { return nil }
