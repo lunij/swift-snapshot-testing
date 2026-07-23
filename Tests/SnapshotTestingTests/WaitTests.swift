@@ -2,10 +2,12 @@ import XCTest
 
 @testable import SnapshotTesting
 
+@MainActor
 class WaitTests: BaseTestCase {
-  func testWait() {
+  func testWait() async {
     var value = "Hello"
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+    Task { @MainActor in
+      try? await Task.sleep(for: .seconds(1))
       value = "Goodbye"
     }
 
@@ -13,6 +15,6 @@ class WaitTests: BaseTestCase {
       value
     }
 
-    assertSnapshot(of: (), as: .wait(for: 1.5, on: strategy))
+    await assertSnapshot(of: (), as: .wait(for: 1.5, on: strategy))
   }
 }

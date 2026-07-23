@@ -11,63 +11,65 @@ import UIKit
 import WebKit
 #endif
 
-func addImagesForRenderedViews(_ view: XView) -> [Async<XView>] {
-  return view.snapshot
-    .map { async in
-      [
-        Async { callback in
-          async.run { image in
-            let imageView = XImageView()
-            imageView.image = image
-            imageView.frame = view.frame
-            #if os(macOS)
-            view.superview?.addSubview(imageView, positioned: .above, relativeTo: view)
-            #elseif os(iOS) || os(tvOS)
-            view.superview?.insertSubview(imageView, aboveSubview: view)
-            #endif
-            callback(imageView)
-          }
-        }
-      ]
-    }
-    ?? view.subviews.flatMap(addImagesForRenderedViews)
+@MainActor
+func addImagesForRenderedViews(_ view: XView) async -> [XView] {
+  if let image = await view.snapshot {
+    let imageView = XImageView()
+    imageView.image = image
+    imageView.frame = view.frame
+    #if os(macOS)
+    view.superview?.addSubview(imageView, positioned: .above, relativeTo: view)
+    #elseif os(iOS) || os(tvOS)
+    view.superview?.insertSubview(imageView, aboveSubview: view)
+    #endif
+    return [imageView]
+  }
+  var result: [XView] = []
+  for subview in view.subviews {
+    result += await addImagesForRenderedViews(subview)
+  }
+  return result
 }
 
 extension XView {
-  var snapshot: Async<XImage>? {
-    func inWindow<T>(_ perform: () -> T) -> T {
-      #if os(macOS)
-      let superview = self.superview
-      defer { superview?.addSubview(self) }
-      let window = ScaledWindow()
-      window.contentView = NSView()
-      window.contentView?.addSubview(self)
-      window.makeKey()
-      #endif
-      return perform()
-    }
-    if let scnView = self as? SCNView {
-      return Async(value: inWindow { scnView.snapshot() })
-    } else if let skView = self as? SKView {
-      if #available(macOS 10.11, *) {
-        let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
+  @MainActor var snapshot: XImage? {
+    get async {
+      func inWindow<T>(_ perform: () -> T) -> T {
         #if os(macOS)
-        let image = XImage(cgImage: cgImage, size: skView.bounds.size)
-        #elseif os(iOS) || os(tvOS)
-        let image = XImage(cgImage: cgImage)
+        let superview = self.superview
+        defer { superview?.addSubview(self) }
+        let window = ScaledWindow()
+        window.contentView = NSView()
+        window.contentView?.addSubview(self)
+        window.makeKey()
         #endif
-        return Async(value: image)
-      } else {
-        fatalError("Taking SKView snapshots requires macOS 10.11 or greater")
+        return perform()
       }
-    }
-    #if os(iOS) || os(macOS)
-    if let wkWebView = self as? WKWebView {
-      return Async<XImage> { callback in
-        let work = {
+      if let scnView = self as? SCNView {
+        return inWindow { scnView.snapshot() }
+      } else if let skView = self as? SKView {
+        if #available(macOS 10.11, *) {
+          let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
           #if os(macOS)
-          // The window must stay alive until `takeSnapshot` completes;
-          // tearing it down earlier yields blank or failed captures.
+          return XImage(cgImage: cgImage, size: skView.bounds.size)
+          #elseif os(iOS) || os(tvOS)
+          return XImage(cgImage: cgImage)
+          #endif
+        } else {
+          fatalError("Taking SKView snapshots requires macOS 10.11 or greater")
+        }
+      }
+      #if os(iOS) || os(macOS)
+      if let wkWebView = self as? WKWebView {
+        // Loading can finish inside the same runloop callout that invokes
+        // navigation delegates; resuming from `Task.sleep` is a fresh
+        // main-queue job, so any JavaScript they enqueue is submitted
+        // before the snapshot's.
+        while wkWebView.isLoading {
+          try? await Task.sleep(for: .milliseconds(10))
+        }
+        return await withCheckedContinuation { continuation in
+          #if os(macOS)
           let superview = wkWebView.superview
           let window = ScaledWindow()
           window.contentView = NSView()
@@ -80,52 +82,25 @@ extension XView {
           wkWebView.evaluateJavaScript("void 0") { _, _ in
             wkWebView.takeSnapshot(with: nil) { image, error in
               #if os(macOS)
-              _ = window
+              _ = window  // keep alive until takeSnapshot completes
               superview?.addSubview(wkWebView)
               #endif
               guard let image else {
                 debugPrint("No image taken. Error: \(error.description)")
-                callback(XImage())
+                continuation.resume(returning: XImage())
                 return
               }
-              callback(image)
+              continuation.resume(returning: image)
             }
           }
-        }
-
-        if wkWebView.isLoading {
-          var subscription: NSKeyValueObservation?
-          var didWork = false
-          let workOnce = {
-            guard !didWork else { return }
-            didWork = true
-            subscription?.invalidate()
-            subscription = nil
-            // Loading can finish inside the same runloop callout that
-            // invokes navigation delegates; hop the main queue so any
-            // JavaScript they enqueue is submitted before the snapshot's.
-            DispatchQueue.main.async(execute: work)
-          }
-          subscription = wkWebView.observe(\.isLoading, options: [.new]) { _, change in
-            if change.newValue == false {
-              workOnce()
-            }
-          }
-          // The load may have finished between the `isLoading` check
-          // above and installing the observer.
-          if !wkWebView.isLoading {
-            workOnce()
-          }
-        } else {
-          work()
         }
       }
+      #endif
+      return nil
     }
-    #endif
-    return nil
   }
   #if os(iOS) || os(tvOS)
-  func asImage() -> XImage {
+  @MainActor func asImage() -> XImage {
     let renderer = UIGraphicsImageRenderer(bounds: bounds)
     return renderer.image { rendererContext in
       layer.render(in: rendererContext.cgContext)
@@ -134,7 +109,7 @@ extension XView {
   #endif
 
   #if os(macOS)
-  func convertToImage(scale: CGFloat) -> XImage {
+  @MainActor func convertToImage(scale: CGFloat) -> XImage {
     let originalSize = bounds.size
     let scaledSize = NSSize(width: originalSize.width * scale, height: originalSize.height * scale)
 
@@ -167,7 +142,7 @@ extension XView {
     return image
   }
   #elseif os(iOS) || os(tvOS)
-  func convertToImage(scale: CGFloat, traits: @escaping TraitMutations, drawHierarchyInKeyWindow: Bool) -> XImage {
+  @MainActor func convertToImage(scale: CGFloat, traits: @escaping TraitMutations, drawHierarchyInKeyWindow: Bool) -> XImage {
     renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
       if drawHierarchyInKeyWindow {
         drawHierarchy(in: bounds, afterScreenUpdates: true)
@@ -181,7 +156,7 @@ extension XView {
 
 #if os(iOS) || os(tvOS)
 extension UIApplication {
-  static var sharedIfAvailable: UIApplication? {
+  @MainActor static var sharedIfAvailable: UIApplication? {
     let sharedSelector = NSSelectorFromString("sharedApplication")
     guard UIApplication.responds(to: sharedSelector) else {
       return nil
@@ -192,6 +167,7 @@ extension UIApplication {
   }
 }
 
+@MainActor
 func prepareView(
   config: ViewImageConfig,
   drawHierarchyInKeyWindow: Bool,
@@ -237,15 +213,14 @@ func prepareView(
   return dispose
 }
 
+@MainActor
 func snapshotView(
   config: ViewImageConfig,
   drawHierarchyInKeyWindow: Bool,
   traits: @escaping TraitMutations,
   view: UIView,
   viewController: UIViewController
-)
-  -> Async<UIImage>
-{
+) async -> UIImage {
   let initialFrame = view.frame
   let dispose = prepareView(
     config: config,
@@ -254,27 +229,26 @@ func snapshotView(
     view: view,
     viewController: viewController
   )
-  let teardown = SnapshotTeardown(dispose)
-  PendingSnapshotTeardowns.register(teardown)
-  return Async { callback in
-    addImagesForRenderedViews(view).sequence().run { views in
-      callback(view.convertToImage(scale: config.scale, traits: traits, drawHierarchyInKeyWindow: drawHierarchyInKeyWindow))
-      views.forEach { $0.removeFromSuperview() }
-      view.frame = initialFrame
-    }
-  }.map {
-    PendingSnapshotTeardowns.unregister(teardown)
-    teardown.run()
-    return $0
-  }
+  let views = await addImagesForRenderedViews(view)
+  let image = view.convertToImage(
+    scale: config.scale,
+    traits: traits,
+    drawHierarchyInKeyWindow: drawHierarchyInKeyWindow
+  )
+  views.forEach { $0.removeFromSuperview() }
+  view.frame = initialFrame
+  dispose()
+  return image
 }
 
+@MainActor
 func renderer(bounds: CGRect, scale: CGFloat, traits: @escaping TraitMutations) -> UIGraphicsImageRenderer {
   let format = UIGraphicsImageRendererFormat(for: UITraitCollection(mutations: traits))
   format.scale = scale
   return UIGraphicsImageRenderer(bounds: bounds, format: format)
 }
 
+@MainActor
 private func add(
   traits: @escaping TraitMutations,
   viewController: UIViewController,
@@ -342,6 +316,7 @@ private func add(
   }
 }
 
+@MainActor
 private func getKeyWindow() -> UIWindow? {
   UIApplication.sharedIfAvailable?.connectedScenes
     .compactMap { ($0 as? UIWindowScene)?.keyWindow }
@@ -399,26 +374,6 @@ private final class ScaledWindow: NSWindow {
 }
 #endif
 #endif
-
-extension Array {
-  func sequence<A>() -> Async<[A]> where Element == Async<A> {
-    guard !self.isEmpty else { return Async(value: []) }
-    return Async<[A]> { callback in
-      var result = [A?](repeating: nil, count: self.count)
-      result.reserveCapacity(self.count)
-      var count = 0
-      zip(self.indices, self).forEach { idx, async in
-        async.run {
-          result[idx] = $0
-          count += 1
-          if count == self.count {
-            callback(result as! [A])
-          }
-        }
-      }
-    }
-  }
-}
 
 extension Optional {
   var description: String {

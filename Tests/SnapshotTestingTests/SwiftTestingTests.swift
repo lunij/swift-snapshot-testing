@@ -17,10 +17,10 @@ extension BaseSuite {
     // Verifies that a snapshot mismatch inside a Swift Testing test surfaces as a recorded
     // 'Issue' (and not a silently dropped 'XCTFail'). 'withKnownIssue' is the only way to
     // intercept that issue in-framework, so this is the one test that uses it.
-    @Test func testSnapshot() {
-      assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
-      withKnownIssue {
-        assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
+    @Test func testSnapshot() async {
+      await assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
+      await withKnownIssue {
+        await assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
       } matching: { issue in
         // The library's diff output prefixes context lines with U+2007 figure spaces, written
         // as explicit escapes here because they are indistinguishable from regular spaces.
@@ -37,7 +37,7 @@ extension BaseSuite {
     }
 
     #if canImport(UIKit)
-    @Test func testUIImage() throws {
+    @Test func testUIImage() async throws {
       let redPixel = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image {
         context in
         UIColor.red.setFill()
@@ -48,12 +48,12 @@ extension BaseSuite {
         UIColor.blue.setFill()
         context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
       }
-      try verifyImageSnapshotting(reference: redPixel, mismatching: bluePixel)
+      try await verifyImageSnapshotting(reference: redPixel, mismatching: bluePixel)
     }
     #endif
 
     #if canImport(AppKit)
-    @Test func testNSImage() throws {
+    @Test func testNSImage() async throws {
       let redPixel = NSImage(size: NSSize(width: 1, height: 1), flipped: false) { rect in
         NSColor.red.setFill()
         rect.fill()
@@ -64,20 +64,20 @@ extension BaseSuite {
         rect.fill()
         return true
       }
-      try verifyImageSnapshotting(reference: redPixel, mismatching: bluePixel)
+      try await verifyImageSnapshotting(reference: redPixel, mismatching: bluePixel)
     }
     #endif
 
     #if canImport(UIKit) || canImport(AppKit)
     // A reference file that can't be decoded as an image must produce a test failure with a
     // readable message, not crash the test process.
-    @Test func testCorruptImageReference() throws {
+    @Test func testCorruptImageReference() async throws {
       let snapshotDirectory = FileManager.default.temporaryDirectory
         .appendingPathComponent("SwiftTestingTests-\(UUID().uuidString)", isDirectory: true)
       defer { try? FileManager.default.removeItem(at: snapshotDirectory) }
 
-      func verify() -> String? {
-        verifySnapshot(
+      func verify() async -> String? {
+        await verifySnapshot(
           of: redPixelImage(),
           as: .image,
           named: "pixel",
@@ -86,9 +86,9 @@ extension BaseSuite {
         )
       }
 
-      let recordMessage = try #require(verify())
+      let recordMessage = try #require(await verify())
       #expect(recordMessage.hasPrefix("No reference was found on disk."))
-      #expect(verify() == nil)
+      #expect(await verify() == nil)
 
       let referenceURL = try #require(
         try FileManager.default
@@ -97,7 +97,7 @@ extension BaseSuite {
       )
       try Data("not a png".utf8).write(to: referenceURL)
 
-      let failure = try #require(verify())
+      let failure = try #require(await verify())
       #expect(failure.hasPrefix("Couldn't load reference snapshot:"))
     }
     #endif
@@ -137,13 +137,13 @@ private func verifyImageSnapshotting(
   testName: String = #function,
   line: UInt = #line,
   column: UInt = #column
-) throws {
+) async throws {
   let snapshotDirectory = FileManager.default.temporaryDirectory
     .appendingPathComponent("SwiftTestingTests-\(UUID().uuidString)", isDirectory: true)
   defer { try? FileManager.default.removeItem(at: snapshotDirectory) }
 
-  func verify(_ image: Image) -> String? {
-    verifySnapshot(
+  func verify(_ image: Image) async -> String? {
+    await verifySnapshot(
       of: image,
       as: .image,
       named: "pixel",
@@ -157,11 +157,11 @@ private func verifyImageSnapshotting(
     )
   }
 
-  let recordMessage = try #require(verify(reference))
+  let recordMessage = try #require(await verify(reference))
   #expect(recordMessage.hasPrefix("No reference was found on disk. Automatically recorded snapshot"))
-  #expect(verify(reference) == nil)
+  #expect(await verify(reference) == nil)
 
-  let mismatchMessage = try #require(verify(mismatching))
+  let mismatchMessage = try #require(await verify(mismatching))
   #expect(mismatchMessage.split(whereSeparator: \.isNewline).first == "[pixel] Image does not match reference.")
 }
 #endif

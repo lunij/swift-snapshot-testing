@@ -41,7 +41,6 @@
 ### Defining a strategy
 
 - ``init(pathExtension:diffing:snapshot:)``
-- ``init(pathExtension:diffing:asyncSnapshot:)``
 - ``init(pathExtension:diffing:)``
 
 ### Transforming strategies

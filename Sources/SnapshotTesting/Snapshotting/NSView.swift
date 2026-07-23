@@ -29,17 +29,17 @@ extension Snapshotting where Value == NSView, Format == NSImage {
     return SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).asyncPullback { view in
+    ).asyncPullback { @MainActor (view: NSView) async -> NSImage in
       let initialSize = view.frame.size
       if let size = size { view.frame.size = size }
-      return view.snapshot
-        ?? Async { callback in
-          addImagesForRenderedViews(view).sequence().run { views in
-            callback(view.convertToImage(scale: scale))
-            views.forEach { $0.removeFromSuperview() }
-            view.frame.size = initialSize
-          }
-        }
+      if let snapshot = await view.snapshot {
+        return snapshot
+      }
+      let views = await addImagesForRenderedViews(view)
+      let image = view.convertToImage(scale: scale)
+      views.forEach { $0.removeFromSuperview() }
+      view.frame.size = initialSize
+      return image
     }
   }
 }

@@ -11,24 +11,10 @@ public struct Snapshotting<Value, Format> {
   public var diffing: Diffing<Format>
 
   /// How a value is transformed into a diffable snapshot format.
-  public var snapshot: (Value) -> Async<Format>
-
-  /// Creates a snapshot strategy.
   ///
-  /// - Parameters:
-  ///   - pathExtension: The path extension applied to references saved to disk.
-  ///   - diffing: How to diff and convert the snapshot format to and from data.
-  ///   - asyncSnapshot: An asynchronous transform function from a value into a diffable snapshot
-  ///     format.
-  public init(
-    pathExtension: String?,
-    diffing: Diffing<Format>,
-    asyncSnapshot: @escaping (_ value: Value) -> Async<Format>
-  ) {
-    self.pathExtension = pathExtension
-    self.diffing = diffing
-    self.snapshot = asyncSnapshot
-  }
+  /// The closure is `nonisolated(nonsending)`: it runs on the caller's actor, so non-Sendable
+  /// values never cross an isolation boundary on their way into a snapshot strategy.
+  public var snapshot: nonisolated(nonsending) (Value) async -> Format
 
   /// Creates a snapshot strategy.
   ///
@@ -36,14 +22,15 @@ public struct Snapshotting<Value, Format> {
   ///   - pathExtension: The path extension applied to references saved to disk.
   ///   - diffing: How to diff and convert the snapshot format to and from data.
   ///   - snapshot: A transform function from a value into a diffable snapshot format.
+  ///     Synchronous closures are accepted because non-async is a subtype of async in Swift.
   public init(
     pathExtension: String?,
     diffing: Diffing<Format>,
-    snapshot: @escaping (_ value: Value) -> Format
+    snapshot: nonisolated(nonsending) @escaping (_ value: Value) async -> Format
   ) {
-    self.init(pathExtension: pathExtension, diffing: diffing) {
-      Async(value: snapshot($0))
-    }
+    self.pathExtension = pathExtension
+    self.diffing = diffing
+    self.snapshot = snapshot
   }
 
   /// Transforms a strategy on `Value`s into a strategy on `NewValue`s through a function
@@ -76,36 +63,33 @@ public struct Snapshotting<Value, Format> {
   ///   - transform: A transform function from `NewValue` into `Value`.
   public func pullback<NewValue>(
     _ transform: @escaping (_ otherValue: NewValue) -> Value
-  )
-    -> Snapshotting<NewValue, Format>
-  {
-    self.asyncPullback { newValue in Async(value: transform(newValue)) }
-  }
-
-  /// Transforms a strategy on `Value`s into a strategy on `NewValue`s through a function
-  /// `(NewValue) -> Async<Value>`.
-  ///
-  /// See the documentation of `pullback` for a full description of how pullbacks works. This
-  /// operation differs from `pullback` in that it allows you to use a transformation
-  /// `(NewValue) -> Async<Value>`, which is necessary when your transformation needs to perform
-  /// some asynchronous work.
-  ///
-  /// - Parameters:
-  ///   - transform: A transform function from `NewValue` into `Async<Value>`.
-  public func asyncPullback<NewValue>(
-    _ transform: @escaping (_ otherValue: NewValue) -> Async<Value>
   ) -> Snapshotting<NewValue, Format> {
     Snapshotting<NewValue, Format>(
-      pathExtension: self.pathExtension,
-      diffing: self.diffing
+      pathExtension: pathExtension,
+      diffing: diffing
     ) { newValue in
-      .init { callback in
-        transform(newValue).run { value in
-          self.snapshot(value).run { snapshot in
-            callback(snapshot)
-          }
-        }
-      }
+      await self.snapshot(transform(newValue))
+    }
+  }
+
+  /// Transforms a strategy on `Value`s into a strategy on `NewValue`s through an async function
+  /// `(NewValue) async -> Value`.
+  ///
+  /// See the documentation of `pullback` for a full description of how pullbacks work. This
+  /// operation differs from `pullback` in that it allows you to use an async transformation
+  /// `(NewValue) async -> Value`, which is necessary when your transformation needs to perform
+  /// some asynchronous work such as accessing `@MainActor`-isolated properties.
+  ///
+  /// - Parameters:
+  ///   - transform: An async transform function from `NewValue` into `Value`.
+  public func asyncPullback<NewValue>(
+    _ transform: nonisolated(nonsending) @escaping (_ otherValue: NewValue) async -> Value
+  ) -> Snapshotting<NewValue, Format> {
+    Snapshotting<NewValue, Format>(
+      pathExtension: pathExtension,
+      diffing: diffing
+    ) { newValue in
+      await self.snapshot(await transform(newValue))
     }
   }
 }

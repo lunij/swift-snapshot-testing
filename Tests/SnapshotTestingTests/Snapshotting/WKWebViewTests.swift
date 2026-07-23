@@ -15,12 +15,13 @@ import WebKit
 import UIKit.UIView
 #endif
 
+@MainActor
 final class WKWebViewTests: XCTestCase {
   #if os(iOS) || os(macOS)
-  func testWebView() throws {
+  func testWebView() async throws {
     let webView = WKWebView()
     webView.load(.init(url: .htmlFixture))
-    assertSnapshot(
+    await assertSnapshot(
       of: webView,
       as: .image(
         precision: 0.98,
@@ -28,12 +29,11 @@ final class WKWebViewTests: XCTestCase {
         scale: 1,
         size: .init(width: 800, height: 600)
       ),
-      named: platform,
-      timeout: 30
+      named: platform
     )
   }
 
-  func testWebViewWithManipulatingNavigationDelegate() throws {
+  func testWebViewWithManipulatingNavigationDelegate() async throws {
     final class ManipulatingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
       func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // The fixture's `#banner` CSS makes the injected element stand out in the snapshot.
@@ -51,7 +51,7 @@ final class WKWebViewTests: XCTestCase {
     let webView = WKWebView()
     webView.navigationDelegate = manipulatingWKWebViewNavigationDelegate
     webView.load(.init(url: .htmlFixture))
-    assertSnapshot(
+    await assertSnapshot(
       of: webView,
       as: .image(
         precision: 0.98,
@@ -59,18 +59,17 @@ final class WKWebViewTests: XCTestCase {
         scale: 1,
         size: .init(width: 800, height: 600)
       ),
-      named: platform,
-      timeout: 30
+      named: platform
     )
     _ = manipulatingWKWebViewNavigationDelegate
   }
 
-  func testWebViewWithCancellingNavigationDelegate() throws {
+  func testWebViewWithCancellingNavigationDelegate() async throws {
     final class CancellingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
       func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
       ) {
         decisionHandler(.cancel)
       }
@@ -79,18 +78,17 @@ final class WKWebViewTests: XCTestCase {
     let webView = WKWebView()
     webView.navigationDelegate = cancellingWKWebViewNavigationDelegate
     webView.load(.init(url: .htmlFixture))
-    assertSnapshot(
+    await assertSnapshot(
       of: webView,
       as: .image(size: .init(width: 800, height: 600)),
-      named: platform,
-      timeout: 30
+      named: platform
     )
     _ = cancellingWKWebViewNavigationDelegate
   }
   #endif
 
   #if os(iOS)
-  func testEmbeddedWebView() throws {
+  func testEmbeddedWebView() async throws {
     let label = UILabel()
     label.text = "Hello, Blob!"
 
@@ -101,11 +99,10 @@ final class WKWebViewTests: XCTestCase {
     let stackView = UIStackView(arrangedSubviews: [label, webView])
     stackView.axis = .vertical
 
-    assertSnapshot(
+    await assertSnapshot(
       of: stackView,
       as: .image(precision: 0.99, perceptualPrecision: 0.99, size: .init(width: 800, height: 600)),
-      named: platform,
-      timeout: 30
+      named: platform
     )
   }
   #endif
@@ -113,7 +110,7 @@ final class WKWebViewTests: XCTestCase {
 
 private extension URL {
   static var htmlFixture: URL {
-    URL(fileURLWithPath: String(#file), isDirectory: false)
+    URL(fileURLWithPath: #filePath, isDirectory: false)
       .deletingLastPathComponent()
       .deletingLastPathComponent()
       .appendingPathComponent("__Fixtures__/fixture.html")

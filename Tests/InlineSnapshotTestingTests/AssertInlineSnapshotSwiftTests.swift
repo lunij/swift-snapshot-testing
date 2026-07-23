@@ -7,8 +7,8 @@ import SnapshotTesting
 extension BaseSuite {
   @Suite
   struct AssertInlineSnapshotTests {
-    @Test func inlineSnapshot() {
-      assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
+    @Test func inlineSnapshot() async {
+      await assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
         """
         ▿ 2 elements
           - "Hello"
@@ -18,9 +18,9 @@ extension BaseSuite {
       }
     }
 
-    @Test(.snapshots(record: .missing)) func inlineSnapshotFailure() {
-      withKnownIssue {
-        assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
+    @Test(.snapshots(record: .missing)) func inlineSnapshotFailure() async {
+      await withKnownIssue {
+        await assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
           """
           ▿ 2 elements
             - "Hello"
@@ -42,8 +42,8 @@ extension BaseSuite {
       }
     }
 
-    @Test func inlineSnapshot_NamedTrailingClosure() {
-      assertInlineSnapshot(
+    @Test func inlineSnapshot_NamedTrailingClosure() async {
+      await assertInlineSnapshot(
         of: ["Hello", "World"],
         as: .dump,
         matches: {
@@ -57,16 +57,16 @@ extension BaseSuite {
       )
     }
 
-    @Test func inlineSnapshot_Escaping() {
-      assertInlineSnapshot(of: "Hello\"\"\"#, world", as: .lines) {
+    @Test func inlineSnapshot_Escaping() async {
+      await assertInlineSnapshot(of: "Hello\"\"\"#, world", as: .lines) {
         ##"""
         Hello"""#, world
         """##
       }
     }
 
-    @Test func customInlineSnapshot() {
-      assertCustomInlineSnapshot {
+    @Test func customInlineSnapshot() async {
+      await assertCustomInlineSnapshot {
         "Hello"
       } is: {
         """
@@ -76,8 +76,8 @@ extension BaseSuite {
       }
     }
 
-    @Test func customInlineSnapshot_Multiline() {
-      assertCustomInlineSnapshot {
+    @Test func customInlineSnapshot_Multiline() async {
+      await assertCustomInlineSnapshot {
         """
         "Hello"
         "World"
@@ -90,8 +90,8 @@ extension BaseSuite {
       }
     }
 
-    @Test func customInlineSnapshot_SingleTrailingClosure() {
-      assertCustomInlineSnapshot(of: { "Hello" }) {
+    @Test func customInlineSnapshot_SingleTrailingClosure() async {
+      await assertCustomInlineSnapshot(of: { "Hello" }) {
         """
         - "Hello"
 
@@ -99,8 +99,8 @@ extension BaseSuite {
       }
     }
 
-    @Test func customInlineSnapshot_MultilineSingleTrailingClosure() {
-      assertCustomInlineSnapshot(
+    @Test func customInlineSnapshot_MultilineSingleTrailingClosure() async {
+      await assertCustomInlineSnapshot(
         of: { "Hello" }
       ) {
         """
@@ -110,8 +110,8 @@ extension BaseSuite {
       }
     }
 
-    @Test func customInlineSnapshot_NoTrailingClosure() {
-      assertCustomInlineSnapshot(
+    @Test func customInlineSnapshot_NoTrailingClosure() async {
+      await assertCustomInlineSnapshot(
         of: { "Hello" },
         is: {
           """
@@ -122,7 +122,7 @@ extension BaseSuite {
       )
     }
 
-    @Test func argumentlessInlineSnapshot() {
+    @Test func argumentlessInlineSnapshot() async {
       func assertArgumentlessInlineSnapshot(
         expected: (() -> String)? = nil,
         fileID: StaticString = #fileID,
@@ -130,8 +130,8 @@ extension BaseSuite {
         function: StaticString = #function,
         line: UInt = #line,
         column: UInt = #column
-      ) {
-        assertInlineSnapshot(
+      ) async {
+        await assertInlineSnapshot(
           of: "Hello",
           as: .dump,
           syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
@@ -147,7 +147,7 @@ extension BaseSuite {
         )
       }
 
-      assertArgumentlessInlineSnapshot {
+      await assertArgumentlessInlineSnapshot {
         """
         - "Hello"
 
@@ -155,7 +155,7 @@ extension BaseSuite {
       }
     }
 
-    @Test func multipleInlineSnapshots() {
+    @Test func multipleInlineSnapshots() async {
       func assertResponse(
         of url: () -> String,
         head: (() -> String)? = nil,
@@ -165,8 +165,8 @@ extension BaseSuite {
         function: StaticString = #function,
         line: UInt = #line,
         column: UInt = #column
-      ) {
-        assertInlineSnapshot(
+      ) async {
+        await assertInlineSnapshot(
           of: """
             HTTP/1.1 200 OK
             Content-Type: text/html; charset=utf-8
@@ -184,7 +184,7 @@ extension BaseSuite {
           line: line,
           column: column
         )
-        assertInlineSnapshot(
+        await assertInlineSnapshot(
           of: """
             <!doctype html>
             <html lang="en">
@@ -213,7 +213,7 @@ extension BaseSuite {
         )
       }
 
-      assertResponse {
+      await assertResponse {
         """
         https://www.pointfree.co/
         """
@@ -249,7 +249,7 @@ extension BaseSuite {
         line: UInt = #line,
         column: UInt = #column
       ) async throws {
-        assertInlineSnapshot(
+        await assertInlineSnapshot(
           of: value(),
           as: .dump,
           syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
@@ -275,13 +275,13 @@ extension BaseSuite {
       }
     }
 
-    @Test func nestedInClosureFunction() {
-      func withDependencies(operation: () -> Void) {
-        operation()
+    @Test func nestedInClosureFunction() async {
+      func withDependencies(operation: () async -> Void) async {
+        await operation()
       }
 
-      withDependencies {
-        assertInlineSnapshot(of: "Hello", as: .dump) {
+      await withDependencies {
+        await assertInlineSnapshot(of: "Hello", as: .dump) {
           """
           - "Hello"
 
@@ -290,8 +290,8 @@ extension BaseSuite {
       }
     }
 
-    @Test func carriageReturnInlineSnapshot() {
-      assertInlineSnapshot(of: "This is a line\r\nAnd this is a line\r\n", as: .lines) {
+    @Test func carriageReturnInlineSnapshot() async {
+      await assertInlineSnapshot(of: "This is a line\r\nAnd this is a line\r\n", as: .lines) {
         """
         This is a line\r
         And this is a line\r
@@ -300,8 +300,8 @@ extension BaseSuite {
       }
     }
 
-    @Test func carriageReturnRawInlineSnapshot() {
-      assertInlineSnapshot(of: "\"\"\"#This is a line\r\nAnd this is a line\r\n", as: .lines) {
+    @Test func carriageReturnRawInlineSnapshot() async {
+      await assertInlineSnapshot(of: "\"\"\"#This is a line\r\nAnd this is a line\r\n", as: .lines) {
         ##"""
         """#This is a line\##r
         And this is a line\##r
@@ -320,8 +320,8 @@ private func assertCustomInlineSnapshot(
   function: StaticString = #function,
   line: UInt = #line,
   column: UInt = #column
-) {
-  assertInlineSnapshot(
+) async {
+  await assertInlineSnapshot(
     of: value(),
     as: .dump,
     syntaxDescriptor: InlineSnapshotSyntaxDescriptor(

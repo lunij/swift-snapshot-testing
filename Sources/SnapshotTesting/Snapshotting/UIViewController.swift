@@ -35,13 +35,12 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
   )
     -> Snapshotting
   {
-
     return SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: config.scale
-    ).asyncPullback { viewController in
-      snapshotView(
+    ).asyncPullback { @MainActor (viewController: UIViewController) async -> UIImage in
+      await snapshotView(
         config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
           ?? config,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
@@ -78,13 +77,12 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
   )
     -> Snapshotting
   {
-
     return SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).asyncPullback { viewController in
-      snapshotView(
+    ).asyncPullback { @MainActor (viewController: UIViewController) async -> UIImage in
+      await snapshotView(
         config: .init(safeArea: .zero, size: size, traits: traits),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         traits: traits,
@@ -120,7 +118,7 @@ extension Snapshotting where Value == UIViewController, Format == String {
   ///    |    | <UIViewController>, state: disappeared, view: (view not loaded)
   /// ```
   public static var hierarchy: Snapshotting {
-    return Snapshotting<String, String>.lines.pullback { viewController in
+    return Snapshotting<String, String>.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         config: .init(),
         drawHierarchyInKeyWindow: false,
@@ -136,13 +134,13 @@ extension Snapshotting where Value == UIViewController, Format == String {
     }
   }
 
-  /// A snapshot strategy for comparing view controller views based on a recursive description of
+  /// A snapshot strategy for comparing view controllers based on a recursive description of
   /// their properties and hierarchies.
   public static var recursiveDescription: Snapshotting {
     return Snapshotting.recursiveDescription()
   }
 
-  /// A snapshot strategy for comparing view controller views based on a recursive description of
+  /// A snapshot strategy for comparing view controllers based on a recursive description of
   /// their properties and hierarchies.
   ///
   /// - Parameters:
@@ -156,7 +154,7 @@ extension Snapshotting where Value == UIViewController, Format == String {
   )
     -> Snapshotting<UIViewController, String>
   {
-    return SimplySnapshotting.lines.pullback { viewController in
+    return SimplySnapshotting.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         config: .init(
           safeArea: config.safeArea,

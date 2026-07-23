@@ -61,7 +61,7 @@ extension Snapshotting where Value == SKScene, Format == XImage {
     return Snapshotting<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).pullback { scene in
+    ).asyncPullback { @MainActor (scene: SKScene) async -> SKView in
       let view = SKView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
       view.presentScene(scene)
       return view

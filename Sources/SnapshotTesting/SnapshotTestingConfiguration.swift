@@ -45,16 +45,19 @@ public func withSnapshotTesting<R>(
 public func withSnapshotTesting<R>(
   record: SnapshotTestingConfiguration.Record? = nil,
   diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+  isolation: isolated (any Actor)? = #isolation,
   operation: () async throws -> R
 ) async rethrows -> R {
   try await SnapshotTestingConfiguration.$current.withValue(
     SnapshotTestingConfiguration(
       record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
       diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool
-    )
-  ) {
-    try await operation()
-  }
+    ),
+    operation: {
+      try await operation()
+    },
+    isolation: isolation
+  )
 }
 
 /// The configuration for a snapshot test.

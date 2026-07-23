@@ -36,18 +36,13 @@ extension Snapshotting where Value == UIView, Format == UIImage {
   )
     -> Snapshotting
   {
-
     return SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).asyncPullback { view in
-      snapshotView(
-        config: .init(
-          safeArea: .zero,
-          scale: scale,
-          size: size ?? view.frame.size
-        ),
+    ).asyncPullback { @MainActor (view: UIView) async -> UIImage in
+      await snapshotView(
+        config: .init(safeArea: .zero, scale: scale, size: size ?? view.frame.size),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         traits: traits,
         view: view,
@@ -90,7 +85,7 @@ extension Snapshotting where Value == UIView, Format == String {
   )
     -> Snapshotting<UIView, String>
   {
-    return SimplySnapshotting.lines.pullback { view in
+    return SimplySnapshotting.lines.asyncPullback { @MainActor (view: UIView) async -> String in
       let dispose = prepareView(
         config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
         drawHierarchyInKeyWindow: false,

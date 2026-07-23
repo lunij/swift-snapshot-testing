@@ -20,7 +20,9 @@ extension Snapshotting where Value == URLRequest, Format == String {
   ///
   /// email=blob%40pointfree.co&name=Blob
   /// ```
-  public static let raw = Snapshotting.raw(pretty: false)
+  public static var raw: Snapshotting {
+    Snapshotting.raw(pretty: false)
+  }
 
   /// A snapshot strategy for comparing requests based on raw equality.
   ///
@@ -77,46 +79,48 @@ extension Snapshotting where Value == URLRequest, Format == String {
   //   --data 'pricing[billing]=monthly&pricing[lane]=individual' \
   //   "https://www.pointfree.co/subscribe"
   // ```
-  public static let curl = SimplySnapshotting.lines.pullback { (request: URLRequest) in
+  public static var curl: Snapshotting {
+    SimplySnapshotting.lines.pullback { (request: URLRequest) in
 
-    var components = ["curl"]
+      var components = ["curl"]
 
-    // HTTP Method
-    let httpMethod = request.httpMethod!
-    switch httpMethod {
-    case "GET": break
-    case "HEAD": components.append("--head")
-    default: components.append("--request \(httpMethod)")
-    }
-
-    // Headers
-    if let headers = request.allHTTPHeaderFields {
-      for field in headers.keys.sorted() where field != "Cookie" {
-        let escapedValue = headers[field]!.replacingOccurrences(of: "\"", with: "\\\"")
-        components.append("--header \"\(field): \(escapedValue)\"")
+      // HTTP Method
+      let httpMethod = request.httpMethod!
+      switch httpMethod {
+      case "GET": break
+      case "HEAD": components.append("--head")
+      default: components.append("--request \(httpMethod)")
       }
+
+      // Headers
+      if let headers = request.allHTTPHeaderFields {
+        for field in headers.keys.sorted() where field != "Cookie" {
+          let escapedValue = headers[field]!.replacingOccurrences(of: "\"", with: "\\\"")
+          components.append("--header \"\(field): \(escapedValue)\"")
+        }
+      }
+
+      // Body
+      if let httpBodyData = request.httpBody,
+        let httpBody = String(data: httpBodyData, encoding: .utf8)
+      {
+        var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
+        escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
+
+        components.append("--data \"\(escapedBody)\"")
+      }
+
+      // Cookies
+      if let cookie = request.allHTTPHeaderFields?["Cookie"] {
+        let escapedValue = cookie.replacingOccurrences(of: "\"", with: "\\\"")
+        components.append("--cookie \"\(escapedValue)\"")
+      }
+
+      // URL
+      components.append("\"\(request.url!.sortingQueryItems()!.absoluteString)\"")
+
+      return components.joined(separator: " \\\n\t")
     }
-
-    // Body
-    if let httpBodyData = request.httpBody,
-      let httpBody = String(data: httpBodyData, encoding: .utf8)
-    {
-      var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
-      escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
-
-      components.append("--data \"\(escapedBody)\"")
-    }
-
-    // Cookies
-    if let cookie = request.allHTTPHeaderFields?["Cookie"] {
-      let escapedValue = cookie.replacingOccurrences(of: "\"", with: "\\\"")
-      components.append("--cookie \"\(escapedValue)\"")
-    }
-
-    // URL
-    components.append("\"\(request.url!.sortingQueryItems()!.absoluteString)\"")
-
-    return components.joined(separator: " \\\n\t")
   }
 }
 

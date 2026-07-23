@@ -1,8 +1,9 @@
 import SnapshotTesting
 import XCTest
 
+@MainActor
 class RecordTests: BaseTestCase {
-  var snapshotURL: URL!
+  nonisolated(unsafe) var snapshotURL: URL!
 
   override func setUp() {
     super.setUp()
@@ -14,7 +15,7 @@ class RecordTests: BaseTestCase {
         .last!
     )
     .prefix(while: { $0 != "]" })
-    let fileURL = URL(fileURLWithPath: #file, isDirectory: false)
+    let fileURL = URL(fileURLWithPath: #filePath, isDirectory: false)
     let testClassName = fileURL.deletingPathExtension().lastPathComponent
     let testDirectory =
       fileURL
@@ -37,15 +38,14 @@ class RecordTests: BaseTestCase {
   }
 
   #if canImport(Darwin)
-  func testRecordNever() {
-    XCTExpectFailure {
-      withSnapshotTesting(record: .never) {
-        assertSnapshot(of: 42, as: .json)
-      }
-    } issueMatcher: {
+  func testRecordNever() async {
+    XCTExpectFailure(issueMatcher: {
       $0.compactDescription == """
         failed - No reference was found on disk. New snapshot was not recorded because recording is disabled
         """
+    })
+    await withSnapshotTesting(record: .never) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     XCTAssertEqual(
@@ -56,17 +56,16 @@ class RecordTests: BaseTestCase {
   #endif
 
   #if canImport(Darwin)
-  func testRecordMissing() {
-    XCTExpectFailure {
-      withSnapshotTesting(record: .missing) {
-        assertSnapshot(of: 42, as: .json)
-      }
-    } issueMatcher: {
+  func testRecordMissing() async {
+    XCTExpectFailure(issueMatcher: {
       $0.compactDescription.hasPrefix(
         """
         failed - No reference was found on disk. Automatically recorded snapshot: …
         """
       )
+    })
+    await withSnapshotTesting(record: .missing) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     try XCTAssertEqual(
@@ -77,19 +76,18 @@ class RecordTests: BaseTestCase {
   #endif
 
   #if canImport(Darwin)
-  func testRecordMissing_ExistingFile() throws {
+  func testRecordMissing_ExistingFile() async throws {
     try Data("999".utf8).write(to: snapshotURL)
 
-    XCTExpectFailure {
-      withSnapshotTesting(record: .missing) {
-        assertSnapshot(of: 42, as: .json)
-      }
-    } issueMatcher: {
+    XCTExpectFailure(issueMatcher: {
       $0.compactDescription.hasPrefix(
         """
         failed - Text does not match reference (+1 −1 lines).
         """
       )
+    })
+    await withSnapshotTesting(record: .missing) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     try XCTAssertEqual(
@@ -100,17 +98,16 @@ class RecordTests: BaseTestCase {
   #endif
 
   #if canImport(Darwin)
-  func testRecordAll_Fresh() throws {
-    XCTExpectFailure {
-      withSnapshotTesting(record: .all) {
-        assertSnapshot(of: 42, as: .json)
-      }
-    } issueMatcher: {
+  func testRecordAll_Fresh() async throws {
+    XCTExpectFailure(issueMatcher: {
       $0.compactDescription.hasPrefix(
         """
         failed - Record mode is on. Automatically recorded snapshot: …
         """
       )
+    })
+    await withSnapshotTesting(record: .all) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     try XCTAssertEqual(
@@ -121,19 +118,18 @@ class RecordTests: BaseTestCase {
   #endif
 
   #if canImport(Darwin)
-  func testRecordAll_Overwrite() throws {
+  func testRecordAll_Overwrite() async throws {
     try Data("999".utf8).write(to: snapshotURL)
 
-    XCTExpectFailure {
-      withSnapshotTesting(record: .all) {
-        assertSnapshot(of: 42, as: .json)
-      }
-    } issueMatcher: {
+    XCTExpectFailure(issueMatcher: {
       $0.compactDescription.hasPrefix(
         """
         failed - Record mode is on. Automatically recorded snapshot: …
         """
       )
+    })
+    await withSnapshotTesting(record: .all) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     try XCTAssertEqual(
@@ -144,19 +140,18 @@ class RecordTests: BaseTestCase {
   #endif
 
   #if canImport(Darwin)
-  func testRecordFailed_WhenFailure() throws {
+  func testRecordFailed_WhenFailure() async throws {
     try Data("999".utf8).write(to: snapshotURL)
 
-    XCTExpectFailure {
-      withSnapshotTesting(record: .failed) {
-        assertSnapshot(of: 42, as: .json)
-      }
-    } issueMatcher: {
+    XCTExpectFailure(issueMatcher: {
       $0.compactDescription.hasPrefix(
         """
         failed - Text does not match reference (+1 −1 lines). A new snapshot was automatically recorded.
         """
       )
+    })
+    await withSnapshotTesting(record: .failed) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     try XCTAssertEqual(
@@ -166,7 +161,7 @@ class RecordTests: BaseTestCase {
   }
   #endif
 
-  func testRecordFailed_NoFailure() throws {
+  func testRecordFailed_NoFailure() async throws {
     #if os(Android)
     throw XCTSkip("cannot save next to file on Android")
     #endif
@@ -175,8 +170,8 @@ class RecordTests: BaseTestCase {
       try FileManager.default
       .attributesOfItem(atPath: snapshotURL.path)[FileAttributeKey.modificationDate] as! Date
 
-    withSnapshotTesting(record: .failed) {
-      assertSnapshot(of: 42, as: .json)
+    await withSnapshotTesting(record: .failed) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     try XCTAssertEqual(
@@ -191,17 +186,16 @@ class RecordTests: BaseTestCase {
   }
 
   #if canImport(Darwin)
-  func testRecordFailed_MissingFile() throws {
-    XCTExpectFailure {
-      withSnapshotTesting(record: .failed) {
-        assertSnapshot(of: 42, as: .json)
-      }
-    } issueMatcher: {
+  func testRecordFailed_MissingFile() async throws {
+    XCTExpectFailure(issueMatcher: {
       $0.compactDescription.hasPrefix(
         """
         failed - No reference was found on disk. Automatically recorded snapshot: …
         """
       )
+    })
+    await withSnapshotTesting(record: .failed) {
+      await assertSnapshot(of: 42, as: .json)
     }
 
     try XCTAssertEqual(

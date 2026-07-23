@@ -4,7 +4,9 @@ import UIKit
 
 extension Diffing where Value == UIImage {
   /// A pixel-diffing strategy for UIImage's which requires a 100% match.
-  public static let image = Diffing.image()
+  public static var image: Diffing {
+    Diffing.image()
+  }
 
   /// A pixel-diffing strategy for UIImage that allows customizing how precise the matching must be.
   ///

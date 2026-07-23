@@ -54,7 +54,7 @@ public struct Diffing<Value> {
   }
 }
 
-public enum DiffAttachment {
+public enum DiffAttachment: Sendable {
   case data(Data, name: String)
 }
 

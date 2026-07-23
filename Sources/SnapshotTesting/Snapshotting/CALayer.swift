@@ -77,7 +77,7 @@ extension Snapshotting where Value == CALayer, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).pullback { layer in
+    ).asyncPullback { @MainActor (layer: CALayer) async -> UIImage in
       renderer(bounds: layer.bounds, scale: scale, traits: traits).image { ctx in
         layer.setNeedsLayout()
         layer.layoutIfNeeded()

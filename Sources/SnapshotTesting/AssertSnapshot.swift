@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import XCTest
 
 #if canImport(UIKit)
@@ -23,15 +24,14 @@ public var _diffTool: SnapshotTestingConfiguration.DiffTool {
       }
     }
     #endif
-    return __diffTool
+    return __diffTool.withLock { $0 }
   }
   set {
-    __diffTool = newValue
+    __diffTool.withLock { $0 = newValue }
   }
 }
 
-@_spi(Internals)
-public var __diffTool: SnapshotTestingConfiguration.DiffTool = .default
+private let __diffTool = Mutex<SnapshotTestingConfiguration.DiffTool>(.default)
 
 @_spi(Internals)
 public var _record: SnapshotTestingConfiguration.Record {
@@ -45,22 +45,23 @@ public var _record: SnapshotTestingConfiguration.Record {
       }
     }
     #endif
-    return __record
+    return __record.withLock { $0 }
   }
   set {
-    __record = newValue
+    __record.withLock { $0 = newValue }
   }
 }
 
-@_spi(Internals)
-public var __record: SnapshotTestingConfiguration.Record = {
-  if let value = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"],
-    let record = SnapshotTestingConfiguration.Record(rawValue: value)
+private let __record = Mutex<SnapshotTestingConfiguration.Record>(
   {
-    return record
-  }
-  return .missing
-}()
+    if let value = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"],
+      let record = SnapshotTestingConfiguration.Record(rawValue: value)
+    {
+      return record
+    }
+    return .missing
+  }()
+)
 
 /// Asserts that a given value matches a reference on disk.
 ///
@@ -69,7 +70,6 @@ public var __record: SnapshotTestingConfiguration.Record = {
 ///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
 ///   - record: The record mode to use while asserting snapshots.
-///   - timeout: The amount of time a snapshot must be generated in.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
 ///   - file: The file in which failure occurred. Defaults to the file path of the test case in
@@ -85,19 +85,19 @@ public func assertSnapshot<Value, Format>(
   as snapshotting: Snapshotting<Value, Format>,
   named name: String? = nil,
   record: SnapshotTestingConfiguration.Record? = nil,
-  timeout: TimeInterval = 5,
+  isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
   file filePath: StaticString = #filePath,
   testName: String = #function,
   line: UInt = #line,
   column: UInt = #column
-) {
-  let failure = verifySnapshot(
+) async {
+  let failure = await verifySnapshot(
     of: try value(),
     as: snapshotting,
     named: name,
     record: record,
-    timeout: timeout,
+    isolation: isolation,
     fileID: fileID,
     file: filePath,
     testName: testName,
@@ -121,7 +121,6 @@ public func assertSnapshot<Value, Format>(
 ///   - strategies: A dictionary of names and strategies for serializing, deserializing, and
 ///     comparing values.
 ///   - recording: The record mode to use while asserting snapshots.
-///   - timeout: The amount of time a snapshot must be generated in.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
 ///   - file: The file in which failure occurred. Defaults to the file path of the test case in
@@ -136,20 +135,20 @@ public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategies: [String: Snapshotting<Value, Format>],
   record: SnapshotTestingConfiguration.Record? = nil,
-  timeout: TimeInterval = 5,
+  isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
   file filePath: StaticString = #filePath,
   testName: String = #function,
   line: UInt = #line,
   column: UInt = #column
-) {
+) async {
   for (name, strategy) in strategies {
-    assertSnapshot(
+    await assertSnapshot(
       of: try value(),
       as: strategy,
       named: name,
       record: record,
-      timeout: timeout,
+      isolation: isolation,
       fileID: fileID,
       file: filePath,
       testName: testName,
@@ -165,7 +164,6 @@ public func assertSnapshots<Value, Format>(
 ///   - value: A value to compare against a reference.
 ///   - strategies: An array of strategies for serializing, deserializing, and comparing values.
 ///   - record: The record mode to use while asserting snapshots.
-///   - timeout: The amount of time a snapshot must be generated in.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
 ///   - file: The file in which failure occurred. Defaults to the file path of the test case in
@@ -180,19 +178,19 @@ public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategies: [Snapshotting<Value, Format>],
   record: SnapshotTestingConfiguration.Record? = nil,
-  timeout: TimeInterval = 5,
+  isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
   file filePath: StaticString = #filePath,
   testName: String = #function,
   line: UInt = #line,
   column: UInt = #column
-) {
+) async {
   for strategy in strategies {
-    assertSnapshot(
+    await assertSnapshot(
       of: try value(),
       as: strategy,
       record: record,
-      timeout: timeout,
+      isolation: isolation,
       fileID: fileID,
       file: filePath,
       testName: testName,
@@ -215,20 +213,18 @@ public func assertSnapshots<Value, Format>(
 ///   as snapshotting: Snapshotting<Value, Format>,
 ///   named name: String? = nil,
 ///   record: SnapshotTestingConfiguration.Record? = nil,
-///   timeout: TimeInterval = 5,
 ///   file: StaticString = #file,
 ///   testName: String = #function,
 ///   line: UInt = #line
-///   ) {
+///   ) async {
 ///
 ///     let snapshotDirectory = ProcessInfo.processInfo.environment["SNAPSHOT_REFERENCE_DIR"]! + "/" + #file
-///     let failure = verifySnapshot(
+///     let failure = await verifySnapshot(
 ///       of: try value(),
 ///       as: snapshotting,
 ///       named: name,
 ///       record: record,
 ///       snapshotDirectory: snapshotDirectory,
-///       timeout: timeout,
 ///       file: file,
 ///       testName: testName
 ///     )
@@ -245,7 +241,6 @@ public func assertSnapshots<Value, Format>(
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
 ///     in a directory with the same name as the test file, and that directory will sit inside a
 ///     directory `__Snapshots__` that sits next to your test file.
-///   - timeout: The amount of time a snapshot must be generated in.
 ///   - file: The file in which failure occurred. Defaults to the file name of the test case in
 ///     which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of
@@ -259,23 +254,23 @@ public func verifySnapshot<Value, Format>(
   named name: String? = nil,
   record: SnapshotTestingConfiguration.Record? = nil,
   snapshotDirectory: String? = nil,
-  timeout: TimeInterval = 5,
+  isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
-  file filePath: StaticString = #file,
+  file filePath: StaticString = #filePath,
   testName: String = #function,
   line: UInt = #line,
   column: UInt = #column
-) -> String? {
+) async -> String? {
   #if canImport(Testing)
   if Test.current == nil {
-    CleanCounterBetweenTestCases.registerIfNeeded()
+    await CleanCounterBetweenTestCases.registerIfNeeded()
   }
   #else
-  CleanCounterBetweenTestCases.registerIfNeeded()
+  await CleanCounterBetweenTestCases.registerIfNeeded()
   #endif
 
   let record = record ?? SnapshotTestingConfiguration.current?.record ?? _record
-  return withSnapshotTesting(record: record) { () -> String? in
+  return await withSnapshotTesting(record: record, isolation: isolation) { () async -> String? in
     do {
       let fileUrl = URL(fileURLWithPath: "\(filePath)", isDirectory: false)
       let fileName = fileUrl.deletingPathExtension().lastPathComponent
@@ -313,37 +308,10 @@ public func verifySnapshot<Value, Format>(
       let fileManager = FileManager.default
       try fileManager.createDirectory(at: snapshotDirectoryUrl, withIntermediateDirectories: true)
 
-      let tookSnapshot = XCTestExpectation(description: "Took snapshot")
-      var optionalDiffable: Format?
-      snapshotting.snapshot(try value()).run { b in
-        optionalDiffable = b
-        tookSnapshot.fulfill()
-      }
-      let result = XCTWaiter.wait(for: [tookSnapshot], timeout: timeout)
-      switch result {
-      case .completed:
-        break
-      case .timedOut:
-        PendingSnapshotTeardowns.drain()
-        return """
-          Exceeded timeout of \(timeout) seconds waiting for snapshot.
+      let snapshotValue = try value()
+      let diffable = await snapshotting.snapshot(snapshotValue)
 
-          This can happen when an asynchronously rendered view (like a web view) has not loaded. \
-          Ensure that every subview of the view hierarchy has loaded to avoid timeouts, or, if a \
-          timeout is unavoidable, consider setting the "timeout" parameter of "assertSnapshot" to \
-          a higher value.
-          """
-      case .incorrectOrder, .invertedFulfillment, .interrupted:
-        return "Couldn't snapshot value"
-      @unknown default:
-        return "Couldn't snapshot value"
-      }
-
-      guard let diffable = optionalDiffable else {
-        return "Couldn't snapshot value"
-      }
-
-      func recordSnapshot(writeToDisk: Bool) throws {
+      func recordSnapshot(writeToDisk: Bool) async throws {
         let snapshotData = try snapshotting.diffing.toData(diffable)
 
         if writeToDisk {
@@ -366,24 +334,25 @@ public func verifySnapshot<Value, Format>(
             )
             #endif
           } else {
-            XCTContext.runActivity(named: "Attached Recorded Snapshot") { activity in
-              if writeToDisk {
-                // Snapshot was written to disk. Create attachment from file
-                let attachment = XCTAttachment(contentsOfFile: snapshotFileUrl)
-                activity.add(attachment)
-              } else {
-                // Snapshot was not written to disk. Create attachment from data and path extension
-                let typeIdentifier = snapshotting.pathExtension.flatMap(
-                  uniformTypeIdentifier(fromExtension:)
-                )
+            let typeIdentifier = snapshotting.pathExtension.flatMap(
+              uniformTypeIdentifier(fromExtension:)
+            )
+            await MainActor.run {
+              XCTContext.runActivity(named: "Attached Recorded Snapshot") { activity in
+                if writeToDisk {
+                  // Snapshot was written to disk. Create attachment from file
+                  let attachment = XCTAttachment(contentsOfFile: snapshotFileUrl)
+                  activity.add(attachment)
+                } else {
+                  // Snapshot was not written to disk. Create attachment from data and path extension
+                  let attachment = XCTAttachment(
+                    uniformTypeIdentifier: typeIdentifier,
+                    name: snapshotFileUrl.lastPathComponent,
+                    payload: snapshotData
+                  )
 
-                let attachment = XCTAttachment(
-                  uniformTypeIdentifier: typeIdentifier,
-                  name: snapshotFileUrl.lastPathComponent,
-                  payload: snapshotData
-                )
-
-                activity.add(attachment)
+                  activity.add(attachment)
+                }
               }
             }
           }
@@ -392,7 +361,7 @@ public func verifySnapshot<Value, Format>(
       }
 
       if record == .all {
-        try recordSnapshot(writeToDisk: true)
+        try await recordSnapshot(writeToDisk: true)
 
         return """
           Record mode is on. Automatically recorded snapshot: …
@@ -405,13 +374,13 @@ public func verifySnapshot<Value, Format>(
 
       guard fileManager.fileExists(atPath: snapshotFileUrl.path) else {
         if record == .never {
-          try recordSnapshot(writeToDisk: false)
+          try await recordSnapshot(writeToDisk: false)
 
           return """
             No reference was found on disk. New snapshot was not recorded because recording is disabled
             """
         } else {
-          try recordSnapshot(writeToDisk: true)
+          try await recordSnapshot(writeToDisk: true)
 
           return """
             No reference was found on disk. Automatically recorded snapshot: …
@@ -476,14 +445,16 @@ public func verifySnapshot<Value, Format>(
             }
             #endif
           } else {
-            XCTContext.runActivity(named: "Attached Failure Diff") { activity in
-              attachments.forEach {
-                switch $0 {
-                case .data(let data, let name):
-                  let attachment = XCTAttachment(data: data)
-                  attachment.name = name
-                  activity.add(attachment)
-                  break
+            await MainActor.run {
+              XCTContext.runActivity(named: "Attached Failure Diff") { activity in
+                attachments.forEach {
+                  switch $0 {
+                  case .data(let data, let name):
+                    let attachment = XCTAttachment(data: data)
+                    attachment.name = name
+                    activity.add(attachment)
+                    break
+                  }
                 }
               }
             }
@@ -508,7 +479,7 @@ public func verifySnapshot<Value, Format>(
       }
 
       if record == .failed {
-        try recordSnapshot(writeToDisk: true)
+        try await recordSnapshot(writeToDisk: true)
         failureMessage += " A new snapshot was automatically recorded."
       }
 
@@ -562,18 +533,13 @@ func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
 
 // We need to clean counter between tests executions in order to support test-iterations.
 private class CleanCounterBetweenTestCases: NSObject, XCTestObservation {
-  private static var registered = false
+  @MainActor private static var registered = false
 
+  @MainActor
   static func registerIfNeeded() {
     guard !registered else { return }
-    defer { registered = true }
-    if Thread.isMainThread {
-      XCTestObservationCenter.shared.addTestObserver(CleanCounterBetweenTestCases())
-    } else {
-      DispatchQueue.main.sync {
-        XCTestObservationCenter.shared.addTestObserver(CleanCounterBetweenTestCases())
-      }
-    }
+    registered = true
+    XCTestObservationCenter.shared.addTestObserver(CleanCounterBetweenTestCases())
   }
 
   func testCaseDidFinish(_ testCase: XCTestCase) {
@@ -584,23 +550,20 @@ private class CleanCounterBetweenTestCases: NSObject, XCTestObservation {
 enum File {
   @TaskLocal static var counter = Counter()
 
-  final class Counter: @unchecked Sendable {
-    private var counts: [String: Int] = [:]
-    private let lock = NSLock()
+  final class Counter: Sendable {
+    private let counts = Mutex<[String: Int]>([:])
 
     init() {}
 
     func next(for key: String) -> Int {
-      lock.lock()
-      defer { lock.unlock() }
-      counts[key, default: 0] += 1
-      return counts[key]!
+      counts.withLock {
+        $0[key, default: 0] += 1
+        return $0[key]!
+      }
     }
 
     func reset() {
-      lock.lock()
-      defer { lock.unlock() }
-      counts.removeAll()
+      counts.withLock { $0.removeAll() }
     }
   }
 }

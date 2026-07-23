@@ -5,7 +5,9 @@ import XCTest
 
 extension Diffing where Value == NSImage {
   /// A pixel-diffing strategy for NSImage's which requires a 100% match.
-  public static let image = Diffing.image()
+  public static var image: Diffing {
+    Diffing.image()
+  }
 
   /// A pixel-diffing strategy for NSImage that allows customizing how precise the matching must be.
   ///

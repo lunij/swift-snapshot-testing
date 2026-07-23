@@ -1,9 +1,12 @@
 #if canImport(SwiftUI)
 import Foundation
-import SwiftUI
+@preconcurrency import SwiftUI
+#if os(macOS)
+@preconcurrency import AppKit
+#endif
 
 /// The size constraint for a snapshot (similar to `PreviewLayout`).
-public enum SwiftUISnapshotLayout {
+public enum SwiftUISnapshotLayout: Sendable {
   #if os(iOS) || os(tvOS)
   /// Center the view in a device container described by`config`.
   case device(config: ViewImageConfig)
@@ -70,25 +73,20 @@ extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).asyncPullback { view in
+    ).asyncPullback { @MainActor (view: Value) async -> UIImage in
       var config = config
-
       let controller: UIViewController
 
       if config.size != nil {
-        controller = UIHostingController.init(
-          rootView: view
-        )
+        controller = UIHostingController(rootView: view)
       } else {
-        let hostingController = UIHostingController.init(rootView: view)
-
+        let hostingController = UIHostingController(rootView: view)
         let maxSize = CGSize(width: 0.0, height: 0.0)
         config.size = hostingController.sizeThatFits(in: maxSize)
-
         controller = hostingController
       }
 
-      return snapshotView(
+      return await snapshotView(
         config: config,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         traits: traits,
@@ -130,7 +128,7 @@ extension Snapshotting where Value: View, Format == NSImage {
   ) -> Snapshotting {
     SimplySnapshotting
       .image(precision: precision, perceptualPrecision: perceptualPrecision)
-      .asyncPullback { view in
+      .asyncPullback { @MainActor (view: Value) async -> NSImage in
         let controller = NSHostingController(rootView: view)
         let initialFrame = controller.view.frame
 
@@ -142,16 +140,14 @@ extension Snapshotting where Value: View, Format == NSImage {
           size = controller.sizeThatFits(in: .zero)
         }
 
-        let view = controller.view
-        view.frame.size = size
+        let nsView = controller.view
+        nsView.frame.size = size
 
-        return Async { callback in
-          addImagesForRenderedViews(view).sequence().run { views in
-            callback(view.convertToImage(scale: scale))
-            views.forEach { $0.removeFromSuperview() }
-            view.frame = initialFrame
-          }
-        }
+        let views = await addImagesForRenderedViews(nsView)
+        let image = nsView.convertToImage(scale: scale)
+        views.forEach { $0.removeFromSuperview() }
+        nsView.frame = initialFrame
+        return image
       }
   }
 }

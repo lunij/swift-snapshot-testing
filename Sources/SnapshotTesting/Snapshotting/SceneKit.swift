@@ -61,7 +61,7 @@ extension Snapshotting where Value == SCNScene, Format == XImage {
     return Snapshotting<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).pullback { scene in
+    ).asyncPullback { @MainActor (scene: SCNScene) async -> SCNView in
       let view = SCNView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
       view.scene = scene
       return view

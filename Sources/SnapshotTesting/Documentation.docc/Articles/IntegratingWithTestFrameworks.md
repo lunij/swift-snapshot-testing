@@ -18,7 +18,7 @@ you have a test case inheriting from `XCTestCase` that ultimiately invokes the n
 macro, that too will not actually trigger a test failure.
 
 However, these details have all been hidden away in the SnapshotTesting library. You can simply
-use ``assertSnapshot(of:as:named:record:timeout:file:testName:line:)`` in either an `XCTestCase`
+use ``assertSnapshot(of:as:named:record:isolation:fileID:file:testName:line:column:)`` in either an `XCTestCase`
 subclass _or_ `@Test`, and it will dynamically detect what context it is running in and trigger
 the correct test failure:
 

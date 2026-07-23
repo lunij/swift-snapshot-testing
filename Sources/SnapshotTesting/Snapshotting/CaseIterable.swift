@@ -35,23 +35,17 @@ extension Snapshotting where Value: CaseIterable, Format == String {
   /// ```
   public static func `func`<A>(
     into witness: Snapshotting<A, Format>
-  ) -> Snapshotting<
-    (Value) -> A, Format
-  > {
-    var snapshotting = Snapshotting<String, String>.lines.asyncPullback { (f: (Value) -> A) in
-      Value.allCases.map { input in
-        witness.snapshot(f(input))
-          .map { (input, $0) }
+  ) -> Snapshotting<(Value) -> A, Format> {
+    var snapshotting = Snapshotting<String, String>.lines.asyncPullback {
+      (f: @escaping (Value) -> A) async -> String in
+      var rows: [String] = []
+      for input in Value.allCases {
+        let output = await witness.snapshot(f(input))
+        rows.append("\"\(input)\",\"\(output)\"")
       }
-      .sequence()
-      .map { rows in
-        rows.map { "\"\($0)\",\"\($1)\"" }
-          .joined(separator: "\n")
-      }
+      return rows.joined(separator: "\n")
     }
-
     snapshotting.pathExtension = "csv"
-
     return snapshotting
   }
 }

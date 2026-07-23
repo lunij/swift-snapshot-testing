@@ -1,15 +1,15 @@
-# ``SnapshotTesting/assertSnapshot(of:as:named:record:timeout:file:testName:line:)``
+# ``SnapshotTesting/assertSnapshot(of:as:named:record:isolation:fileID:file:testName:line:column:)``
 
 ## Topics
 
 ### Multiple snapshots
 
-- ``assertSnapshots(of:as:record:timeout:file:testName:line:)-6mdbp``
-- ``assertSnapshots(of:as:record:timeout:file:testName:line:)-6c4fe``
+- ``assertSnapshots(of:as:record:isolation:fileID:file:testName:line:column:)-6mdbp``
+- ``assertSnapshots(of:as:record:isolation:fileID:file:testName:line:column:)-6c4fe``
 
 ### Custom assertions
 
-- ``verifySnapshot(of:as:named:record:snapshotDirectory:timeout:file:testName:line:)``
+- ``verifySnapshot(of:as:named:record:snapshotDirectory:isolation:fileID:file:testName:line:column:)``
 
 ### Deprecations
 

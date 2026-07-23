@@ -40,50 +40,46 @@ value alongside it.
 
 ### Asynchronous Strategies
 
-Some types need to be snapshot in an asynchronous fashion. ``SnapshotTesting/Snapshotting`` offers
-two APIs for building asynchronous strategies by utilizing a built-in ``Async`` type.
+Some types need to be snapshot in an asynchronous fashion. ``SnapshotTesting/Snapshotting``
+supports this natively: the `snapshot` closure and the transform passed to
+``Snapshotting/asyncPullback(_:)`` are both `async`, so you can `await` anything inside them.
 
 #### Async pullbacks
 
-Alongside ``Snapshotting/pullback(_:)`` there is ``Snapshotting/asyncPullback(_:)``, which takes a
-transform function `(NewStrategyValue) -> Async<ExistingStrategyValue>`.
+Alongside ``Snapshotting/pullback(_:)`` there is ``Snapshotting/asyncPullback(_:)``, which takes an
+`async` transform function `(NewStrategyValue) async -> ExistingStrategyValue`.
 
-For example, WebKit's `WKWebView` offers a callback-based API for taking image snapshots, where the
-image is passed asynchronously to the callback block. While `pullback` would require the `UIImage`
-to be returned from the transform function, `asyncPullback` and `Async` allow us to pass the `image`
-a value that can pass its callback along to the scope in which the image has been created.
+For example, WebKit's `WKWebView` offers a callback-based API for taking image snapshots. You can
+bridge it to `async/await` using `withCheckedContinuation`:
 
 ``` swift
 extension Snapshotting where Value == WKWebView, Format == UIImage {
   public static let image: Snapshotting = Snapshotting<UIImage, UIImage>
     .image
-    .asyncPullback { webView in
-      Async { callback in
-        webView.takeSnapshot(with: nil) { image, error in
-          callback(image!)
+    .asyncPullback { @MainActor webView async -> UIImage in
+      await withCheckedContinuation { continuation in
+        webView.takeSnapshot(with: nil) { image, _ in
+          continuation.resume(returning: image ?? UIImage())
         }
       }
-  }
+    }
 }
 ```
 
 #### Async initialization
 
-`Snapshotting` defines an alternate initializer to describe snapshotting values in an asynchronous
-fashion.
-
-For example, were we to define a strategy for `WKWebView` _without_
-``Snapshotting/asyncPullback(_:)``:
+`Snapshotting` accepts an `async` closure directly in its initializer, so you can describe
+asynchronous strategies without going through `asyncPullback`:
 
 ``` swift
 extension Snapshotting where Value == WKWebView, Format == UIImage {
   public static let image = Snapshotting(
     pathExtension: "png",
     diffing: .image,
-    asyncSnapshot: { webView in
-      Async { callback in
-        webView.takeSnapshot(with: nil) { image, error in
-          callback(image!)
+    snapshot: { @MainActor webView async -> UIImage in
+      await withCheckedContinuation { continuation in
+        webView.takeSnapshot(with: nil) { image, _ in
+          continuation.resume(returning: image ?? UIImage())
         }
       }
     }

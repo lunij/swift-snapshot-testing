@@ -9,7 +9,7 @@ extension BaseSuite {
     /// with a 10×10-point logical size, and that all four corners contain the
     /// expected color — including the far corner (19, 19) which was
     /// transparent under the old dead-`scaleBy` bug.
-    @Test func convertToImageScale2RendersEntireView() throws {
+    @Test @MainActor func convertToImageScale2RendersEntireView() throws {
       let view = NSView(frame: NSRect(x: 0, y: 0, width: 10, height: 10))
       view.wantsLayer = true
       view.layer?.backgroundColor = NSColor(red: 0, green: 1, blue: 0, alpha: 1).cgColor
