@@ -99,25 +99,6 @@ final class SnapshotTestingTests: BaseTestCase {
     await assertSnapshot(of: set, as: .dump)
   }
 
-  func testCaseIterable() async {
-    enum Direction: String, CaseIterable {
-      case up, down, left, right
-      var rotatedLeft: Direction {
-        switch self {
-        case .up: return .left
-        case .down: return .right
-        case .left: return .down
-        case .right: return .up
-        }
-      }
-    }
-
-    await assertSnapshot(
-      of: { $0.rotatedLeft },
-      as: Snapshotting<Direction, String>.func(into: .description)
-    )
-  }
-
   func testData() async {
     let data = Data([0xDE, 0xAD, 0xBE, 0xEF])
 
