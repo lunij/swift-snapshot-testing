@@ -1,0 +1,6 @@
+curl \
+	--request POST \
+	--header "Accept: text/html" \
+	--data "plan[billing]=monthly&plan[tier]=basic" \
+	--cookie "session={\"user_id\":\"0\"}" \
+	"https://www.example.com/signup"

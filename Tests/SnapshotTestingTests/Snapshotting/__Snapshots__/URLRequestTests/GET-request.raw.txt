@@ -1,0 +1,4 @@
+GET https://www.example.com/
+Accept: text/html
+Content-Type: application/json
+Cookie: session={}

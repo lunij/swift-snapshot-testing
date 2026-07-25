@@ -1,0 +1,6 @@
+curl \
+	--request POST \
+	--header "Accept: application/json" \
+	--header "Content-Type: application/json" \
+	--data "{\"name\":\"Jane Doe\", \"age\":30, \"role\":\"tester\"}" \
+	"https://api.example.com/v1/users"

@@ -1,0 +1,5 @@
+POST https://www.example.com/signup
+Accept: text/html
+Cookie: session={"user_id":"0"}
+
+plan[billing]=monthly&plan[tier]=basic

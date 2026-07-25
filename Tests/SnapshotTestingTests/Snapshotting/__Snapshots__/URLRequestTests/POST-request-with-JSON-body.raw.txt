@@ -1,0 +1,5 @@
+POST https://api.example.com/v1/users
+Accept: application/json
+Content-Type: application/json
+
+{"name":"Jane Doe", "age":30, "role":"tester"}

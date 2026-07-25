@@ -1,0 +1,5 @@
+curl \
+	--header "Accept: text/html" \
+	--header "Content-Type: application/json" \
+	--cookie "session={}" \
+	"https://www.example.com?key_1=value_1&key_2=value_2&key_3=value_3"
