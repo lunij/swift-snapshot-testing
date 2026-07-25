@@ -1,14 +1,15 @@
-import XCTest
-
-@testable import SnapshotTesting
+import SnapshotTesting
+import Testing
 
 #if canImport(UIKit)
 import UIKit
 #endif
 
-final class ViewControllerTests: BaseTestCase {
-  func testAutolayout() async {
-    #if os(iOS)
+@MainActor
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct ViewControllerTests {
+  #if os(iOS)
+  @Test func `auto layout`() async {
     let vc = UIViewController()
     vc.view.translatesAutoresizingMaskIntoConstraints = false
     let subview = UIView()
@@ -21,11 +22,9 @@ final class ViewControllerTests: BaseTestCase {
       subview.rightAnchor.constraint(equalTo: vc.view.rightAnchor)
     ])
     await assertSnapshot(of: vc, as: .image)
-    #endif
   }
 
-  func testTableViewController() async {
-    #if os(iOS)
+  @Test func `table view controller`() async {
     class TableViewController: UITableViewController {
       override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,11 +46,9 @@ final class ViewControllerTests: BaseTestCase {
     }
     let tableViewController = TableViewController()
     await assertSnapshot(of: tableViewController, as: .image(on: .iPhoneSe))
-    #endif
   }
 
-  func testAssertMultipleSnapshot() async {
-    #if os(iOS)
+  @Test func `multiple snapshots`() async {
     class TableViewController: UITableViewController {
       override func viewDidLoad() {
         super.viewDidLoad()
@@ -80,12 +77,9 @@ final class ViewControllerTests: BaseTestCase {
       of: tableViewController,
       as: [.image(on: .iPhoneX), .image(on: .iPhoneXsMax)]
     )
-    #endif
   }
 
-  func testCollectionViewsWithMultipleScreenSizes() async {
-    #if os(iOS)
-
+  @Test func `collection views with multiple screen sizes`() async {
     final class CollectionViewController: UIViewController, UICollectionViewDataSource,
       UICollectionViewDelegateFlowLayout
     {
@@ -178,65 +172,52 @@ final class ViewControllerTests: BaseTestCase {
         "iphoneMax": .image(on: .iPhoneXsMax)
       ]
     )
-    #endif
   }
 
-  func testUIViewControllerLifeCycle() async {
-    #if os(iOS)
+  @Test func `view controller lifecycle`() async {
     class ViewController: UIViewController {
-      let viewDidLoadExpectation = XCTestExpectation(description: "viewDidLoad")
-
-      let viewWillAppearExpectation = XCTestExpectation(description: "viewWillAppear")
-      let viewDidAppearExpectation = XCTestExpectation(description: "viewDidAppear")
-
-      let viewWillDisappearExpectation = XCTestExpectation(description: "viewWillDisappear")
-      let viewDidDisappearExpectation = XCTestExpectation(description: "viewDidDisappear")
+      var lifecycleEvents: [String] = []
 
       override func viewDidLoad() {
         super.viewDidLoad()
-        viewDidLoadExpectation.fulfill()
+        lifecycleEvents.append("viewDidLoad")
       }
       override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        viewWillAppearExpectation.fulfill()
+        lifecycleEvents.append("viewWillAppear")
       }
       override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewDidAppearExpectation.fulfill()
+        lifecycleEvents.append("viewDidAppear")
       }
       override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        viewWillDisappearExpectation.fulfill()
+        lifecycleEvents.append("viewWillDisappear")
       }
       override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        viewDidDisappearExpectation.fulfill()
+        lifecycleEvents.append("viewDidDisappear")
       }
     }
 
     let viewController = ViewController()
-    viewController.viewWillAppearExpectation.expectedFulfillmentCount = 2
-    viewController.viewDidAppearExpectation.expectedFulfillmentCount = 2
-    viewController.viewWillDisappearExpectation.expectedFulfillmentCount = 1
-    viewController.viewDidDisappearExpectation.expectedFulfillmentCount = 1
 
     await assertSnapshot(of: viewController, as: .image)
 
-    await fulfillment(
-      of: [
-        viewController.viewDidLoadExpectation,
-        viewController.viewWillAppearExpectation,
-        viewController.viewDidAppearExpectation,
-        viewController.viewWillDisappearExpectation,
-        viewController.viewDidDisappearExpectation
-      ],
-      enforceOrder: true
+    #expect(
+      viewController.lifecycleEvents == [
+        "viewDidLoad",
+        "viewWillAppear",
+        "viewDidAppear",
+        "viewWillAppear",
+        "viewDidAppear",
+        "viewWillDisappear",
+        "viewDidDisappear"
+      ]
     )
-    #endif
   }
 
-  func testViewControllerHierarchy() async {
-    #if os(iOS)
+  @Test func `view controller hierarchy`() async {
     let page = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
     page.setViewControllers([UIViewController()], direction: .forward, animated: false)
     let tab = UITabBarController()
@@ -248,6 +229,6 @@ final class ViewControllerTests: BaseTestCase {
       UINavigationController(rootViewController: UIViewController())
     ]
     await assertSnapshot(of: tab, as: .hierarchy)
-    #endif
   }
+  #endif
 }

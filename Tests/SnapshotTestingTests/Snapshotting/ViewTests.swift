@@ -1,17 +1,18 @@
 #if os(iOS) || os(macOS)
+import SnapshotTesting
+import Testing
+
 #if os(iOS)
 import UIKit
 #else
 import AppKit
 #endif
 
-import XCTest
-
-@testable import SnapshotTesting
-
-final class ViewTests: BaseTestCase {
+@MainActor
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct ViewTests {
   #if os(macOS)
-  func testNSView() async {
+  @Test func `nsview`() async {
     let button = NSButton()
     button.bezelStyle = .rounded
     button.title = "Push Me"
@@ -20,7 +21,7 @@ final class ViewTests: BaseTestCase {
     await assertSnapshot(of: button, as: .recursiveDescription, named: "\(platform)\(osVersion.majorVersion)")
   }
 
-  func testNSViewWithLayer() async {
+  @Test func `nsview with layer`() async {
     let view = NSView()
     view.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
     view.wantsLayer = true
@@ -32,7 +33,7 @@ final class ViewTests: BaseTestCase {
   #endif
 
   #if os(iOS)
-  func testUIView() async {
+  @Test func `uiview`() async {
     let view = UIButton(type: .contactAdd)
     await assertSnapshot(of: view, as: .image)
     await assertSnapshot(of: view, as: .recursiveDescription)
