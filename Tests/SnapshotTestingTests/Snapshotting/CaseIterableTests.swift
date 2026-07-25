@@ -1,9 +1,9 @@
-import XCTest
+import SnapshotTesting
+import Testing
 
-@testable import SnapshotTesting
-
-final class CaseIterableTests: BaseTestCase {
-  func testCaseIterable() async {
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct CaseIterableTests {
+  @Test func `CaseIterable snapshot`() async {
     enum Direction: String, CaseIterable {
       case up, down, left, right
       var rotatedLeft: Direction {
