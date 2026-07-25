@@ -1,10 +1,10 @@
 #if canImport(SwiftUI)
+import SnapshotTesting
 import SwiftUI
-import XCTest
+import Testing
 
-@testable import SnapshotTesting
-
-final class SwiftUIViewTests: BaseTestCase {
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct SwiftUIViewTests {
   struct SwiftUIView: View {
     var body: some View {
       ZStack {
@@ -15,17 +15,10 @@ final class SwiftUIViewTests: BaseTestCase {
     }
   }
 
-  #if os(macOS)
-  func testSwiftUIView() async {
+  @Test func `SwiftUI View`() async {
     let view = SwiftUIView()
-    await assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "\(platform)\(osVersion.majorVersion)-fixed")
-    await assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "\(platform)\(osVersion.majorVersion)-size-that-fits")
-  }
-  #endif
 
-  #if os(iOS)
-  func testSwiftUIView() async {
-    let view = SwiftUIView()
+    #if os(iOS)
     await assertSnapshot(
       of: view,
       as: .image(layout: .fixed(width: 100, height: 100), traits: { $0.userInterfaceStyle = .light }),
@@ -37,16 +30,18 @@ final class SwiftUIViewTests: BaseTestCase {
       as: .image(layout: .device(config: .iPhoneSe), traits: { $0.userInterfaceStyle = .light }),
       named: "\(platform)-device"
     )
-  }
-  #endif
+    #endif
 
-  #if os(tvOS)
-  func testSwiftUIView() async {
-    let view = SwiftUIView()
+    #if os(macOS)
+    await assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "\(platform)\(osVersion.majorVersion)-fixed")
+    await assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "\(platform)\(osVersion.majorVersion)-size-that-fits")
+    #endif
+
+    #if os(tvOS)
     await assertSnapshot(of: view, as: .image(layout: .fixed(width: 100, height: 100)), named: "\(platform)-fixed")
     await assertSnapshot(of: view, as: .image(layout: .sizeThatFits), named: "\(platform)-size-that-fits")
     await assertSnapshot(of: view, as: .image(layout: .device(config: .tv)), named: "\(platform)-device")
+    #endif
   }
-  #endif
 }
 #endif
