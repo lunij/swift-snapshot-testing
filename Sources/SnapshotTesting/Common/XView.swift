@@ -229,6 +229,15 @@ func snapshotView(
     view: view,
     viewController: viewController
   )
+  // Metal-backed views must be captured through their own snapshot API;
+  // rendering their layer yields an empty image. WKWebView is excluded:
+  // its layer renders fine, and `takeSnapshot` would ignore the
+  // strategy's `scale` parameter.
+  if view is SCNView || view is SKView, let image = await view.snapshot {
+    view.frame = initialFrame
+    dispose()
+    return image
+  }
   let views = await addImagesForRenderedViews(view)
   let image = view.convertToImage(
     scale: config.scale,

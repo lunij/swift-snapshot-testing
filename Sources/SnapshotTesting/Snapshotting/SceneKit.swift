@@ -19,12 +19,10 @@ extension Snapshotting where Value == SCNScene, Format == NSImage {
   ///   - size: The size of the scene.
   public static func image(
     precision: Float = 1,
-    perceptualPrecision: Float = 1,
+    perceptualPrecision: Float = 0.99,
     size: CGSize
-  )
-    -> Snapshotting
-  {
-    return .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
+  ) -> Snapshotting {
+    .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
   }
 }
 #elseif os(iOS) || os(tvOS)
@@ -40,12 +38,10 @@ extension Snapshotting where Value == SCNScene, Format == UIImage {
   ///   - size: The size of the scene.
   public static func image(
     precision: Float = 1,
-    perceptualPrecision: Float = 1,
+    perceptualPrecision: Float = 0.99,
     size: CGSize
-  )
-    -> Snapshotting
-  {
-    return .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
+  ) -> Snapshotting {
+    .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
   }
 }
 #endif
@@ -55,10 +51,8 @@ extension Snapshotting where Value == SCNScene, Format == XImage {
     precision: Float,
     perceptualPrecision: Float,
     size: CGSize
-  )
-    -> Snapshotting
-  {
-    return Snapshotting<XView, XImage>.image(
+  ) -> Snapshotting {
+    Snapshotting<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).asyncPullback { @MainActor (scene: SCNScene) async -> SCNView in

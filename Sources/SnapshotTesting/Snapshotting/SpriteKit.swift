@@ -19,12 +19,10 @@ extension Snapshotting where Value == SKScene, Format == NSImage {
   ///   - size: The size of the scene.
   public static func image(
     precision: Float = 1,
-    perceptualPrecision: Float = 1,
+    perceptualPrecision: Float = 0.99,
     size: CGSize
-  )
-    -> Snapshotting
-  {
-    return .skScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
+  ) -> Snapshotting {
+    .skScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
   }
 }
 #elseif os(iOS) || os(tvOS)
@@ -40,11 +38,9 @@ extension Snapshotting where Value == SKScene, Format == UIImage {
   ///   - size: The size of the scene.
   public static func image(
     precision: Float = 1,
-    perceptualPrecision: Float = 1,
+    perceptualPrecision: Float = 0.99,
     size: CGSize
-  )
-    -> Snapshotting
-  {
+  ) -> Snapshotting {
     return .skScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
   }
 }
@@ -55,9 +51,7 @@ extension Snapshotting where Value == SKScene, Format == XImage {
     precision: Float,
     perceptualPrecision: Float,
     size: CGSize
-  )
-    -> Snapshotting
-  {
+  ) -> Snapshotting {
     return Snapshotting<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
