@@ -3,47 +3,14 @@ import XCTest
 
 @testable import SnapshotTesting
 
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
 #if canImport(SceneKit)
 import SceneKit
 #endif
 #if canImport(SpriteKit)
 import SpriteKit
 #endif
-#if canImport(WebKit)
-@preconcurrency import WebKit
-#endif
-#if canImport(UIKit)
-import UIKit.UIView
-#endif
 
-final class SnapshotTestingTests: BaseTestCase {
-  func testMixedViews() async {
-    //    #if os(iOS) || os(macOS)
-    //    // NB: CircleCI crashes while trying to instantiate SKView.
-    //    if !CI {
-    //      let webView = WKWebView(frame: .init(x: 0, y: 0, width: 50, height: 50))
-    //      webView.loadHTMLString("🌎", baseURL: nil)
-    //
-    //      let skView = SKView(frame: .init(x: 50, y: 0, width: 50, height: 50))
-    //      let scene = SKScene(size: .init(width: 50, height: 50))
-    //      let node = SKShapeNode(circleOfRadius: 15)
-    //      node.fillColor = .red
-    //      node.position = .init(x: 25, y: 25)
-    //      scene.addChild(node)
-    //      skView.presentScene(scene)
-    //
-    //      let view = View(frame: .init(x: 0, y: 0, width: 100, height: 50))
-    //      view.addSubview(webView)
-    //      view.addSubview(skView)
-    //
-    //      await assertSnapshot(of: view, as: .image, named: platform)
-    //    }
-    //    #endif
-  }
-
+final class MetalViewTests: BaseTestCase {
   func testSCNView() async {
     // #if os(iOS) || os(macOS) || os(tvOS)
     // // NB: CircleCI crashes while trying to instantiate SCNView.
