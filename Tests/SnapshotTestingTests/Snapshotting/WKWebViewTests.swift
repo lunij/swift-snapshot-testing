@@ -1,7 +1,6 @@
 import Foundation
-import XCTest
-
-@testable import SnapshotTesting
+import SnapshotTesting
+import Testing
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -16,9 +15,10 @@ import UIKit.UIView
 #endif
 
 @MainActor
-final class WKWebViewTests: XCTestCase {
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct WKWebViewTests {
   #if os(iOS) || os(macOS)
-  func testWebView() async throws {
+  @Test func `web view`() async throws {
     let webView = WKWebView()
     webView.load(.init(url: .htmlFixture))
     await assertSnapshot(
@@ -33,7 +33,7 @@ final class WKWebViewTests: XCTestCase {
     )
   }
 
-  func testWebViewWithManipulatingNavigationDelegate() async throws {
+  @Test func `web view with manipulating navigation delegate`() async throws {
     final class ManipulatingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
       func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // The fixture's `#banner` CSS makes the injected element stand out in the snapshot.
@@ -64,7 +64,7 @@ final class WKWebViewTests: XCTestCase {
     _ = manipulatingWKWebViewNavigationDelegate
   }
 
-  func testWebViewWithCancellingNavigationDelegate() async throws {
+  @Test func `web view with cancelling navigation delegate`() async throws {
     final class CancellingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
       func webView(
         _ webView: WKWebView,
@@ -88,7 +88,7 @@ final class WKWebViewTests: XCTestCase {
   #endif
 
   #if os(iOS)
-  func testEmbeddedWebView() async throws {
+  @Test func `embedded web view`() async throws {
     let label = UILabel()
     label.text = "Hello, Blob!"
 
@@ -110,9 +110,9 @@ final class WKWebViewTests: XCTestCase {
 
 private extension URL {
   static var htmlFixture: URL {
-    URL(fileURLWithPath: #filePath, isDirectory: false)
+    URL(filePath: #filePath)
       .deletingLastPathComponent()
       .deletingLastPathComponent()
-      .appendingPathComponent("__Fixtures__/fixture.html")
+      .appending(path: "__Fixtures__/fixture.html")
   }
 }
