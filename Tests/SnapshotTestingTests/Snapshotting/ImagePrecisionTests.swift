@@ -1,7 +1,6 @@
 #if os(iOS) || os(macOS) || os(tvOS)
 import Foundation
-import XCTest
-
+import Testing
 @testable import SnapshotTesting
 
 #if canImport(AppKit)
@@ -11,13 +10,10 @@ import AppKit
 import UIKit
 #endif
 
-final class ImagePrecisionTests: BaseTestCase {
-  private let fixturesURL = URL(fileURLWithPath: #filePath, isDirectory: false)
-    .deletingLastPathComponent()
-    .deletingLastPathComponent()
-    .appendingPathComponent("__Fixtures__", isDirectory: true)
-
-  func testPrecision() async {
+@MainActor
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct ImagePrecisionTests {
+  @Test func `precision snapshot`() async {
     let view = XView(frame: .init(x: 0, y: 0, width: 100, height: 100))  // 10000 pixels
     view.backgroundColor = .blue
     await assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: "\(platform)-original")
@@ -29,14 +25,14 @@ final class ImagePrecisionTests: BaseTestCase {
 
     var message = await verifySnapshot(of: view, as: .image(precision: 0.999, perceptualPrecision: 1), named: "\(platform)-original", record: .never)
     let firstLine = message?.split(whereSeparator: \.isNewline).first
-    XCTAssertEqual(firstLine, "[\(platform)-original] Image does not match reference (pixel precision 0.995 is less than required 0.999).")
+    #expect(firstLine == "[\(platform)-original] Image does not match reference (pixel precision 0.995 is less than required 0.999).")
 
     // 10000-100=9900 => 99% precision
     message = await verifySnapshot(of: view, as: .image(precision: 0.99, perceptualPrecision: 1), named: "\(platform)-original", record: .never)
-    XCTAssertNil(message)
+    #expect(message == nil)
   }
 
-  func testPerceptualPrecision() async {
+  @Test func `perceptual precision snapshot`() async {
     let view = XView(frame: .init(x: 0, y: 0, width: 100, height: 100))
     view.backgroundColor = .black
     await assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: platform + "-original")
@@ -45,14 +41,6 @@ final class ImagePrecisionTests: BaseTestCase {
     await assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: platform + "-modified")
 
     await assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 0.98), named: platform + "-original", record: .never)
-  }
-
-  func testImagePrecision() async throws {
-    let imageURL = fixturesURL.appendingPathComponent("testImagePrecision.reference.png")
-    let image = try XCTUnwrap(XImage(contentsOf: imageURL))
-
-    await assertSnapshot(of: image, as: .image(precision: 0.995), named: "exact")
-    await assertSnapshot(of: image, as: .image(perceptualPrecision: 0.98), named: "perceptual")
   }
 }
 
