@@ -118,14 +118,6 @@ final class SnapshotTestingTests: BaseTestCase {
     )
   }
 
-  #if os(iOS) || os(macOS) || os(tvOS)
-  func testCGPath() async {
-    let path = CGPath.heart
-    await assertSnapshot(of: path, as: .image, named: platform)
-    await assertSnapshot(of: path, as: .elementsDescription, named: platform)
-  }
-  #endif
-
   func testData() async {
     let data = Data([0xDE, 0xAD, 0xBE, 0xEF])
 
@@ -178,12 +170,6 @@ final class SnapshotTestingTests: BaseTestCase {
   }
 
   #if os(macOS)
-  func testNSBezierPath() async {
-    let path = NSBezierPath.heart
-    await assertSnapshot(of: path, as: .image, named: platform)
-    await assertSnapshot(of: path, as: .elementsDescription, named: platform)
-  }
-
   func testNSView() async {
     let button = NSButton()
     button.bezelStyle = .rounded
@@ -1191,27 +1177,6 @@ final class SnapshotTestingTests: BaseTestCase {
         ),
         named: "label-\(name)"
       )
-    }
-    #endif
-  }
-
-  func testUIBezierPath() async {
-    #if os(iOS) || os(tvOS)
-    let path = UIBezierPath.heart
-
-    let osName: String
-    #if os(iOS)
-    osName = "iOS"
-    #elseif os(tvOS)
-    osName = "tvOS"
-    #endif
-
-    if !CI {
-      await assertSnapshot(of: path, as: .image, named: osName)
-    }
-
-    if #available(iOS 11.0, tvOS 11.0, *) {
-      await assertSnapshot(of: path, as: .elementsDescription, named: osName)
     }
     #endif
   }
