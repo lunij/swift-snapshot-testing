@@ -11,6 +11,6 @@
       - value: 3
   ▿ set: 2 members
     ▿ Person
-      - name: "Brandon"
+      - name: "Bob"
     ▿ Person
-      - name: "Stephen"
+      - name: "John"
