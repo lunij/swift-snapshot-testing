@@ -1,5 +1,4 @@
 import Foundation
-import XCTest
 
 /// A failure produced by a ``Diffing`` strategy when two values do not match.
 public struct SnapshotFailure {

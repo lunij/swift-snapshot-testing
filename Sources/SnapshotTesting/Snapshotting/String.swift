@@ -1,5 +1,4 @@
 import Foundation
-import XCTest
 
 extension Snapshotting where Value == String, Format == String {
   /// A snapshot strategy for comparing strings based on equality.

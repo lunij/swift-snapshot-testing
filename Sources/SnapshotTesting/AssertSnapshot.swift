@@ -1,6 +1,5 @@
 import Foundation
 import Synchronization
-import XCTest
 
 #if canImport(UIKit)
 import UIKit
@@ -261,14 +260,6 @@ public func verifySnapshot<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) async -> String? {
-  #if canImport(Testing)
-  if Test.current == nil {
-    await CleanCounterBetweenTestCases.registerIfNeeded()
-  }
-  #else
-  await CleanCounterBetweenTestCases.registerIfNeeded()
-  #endif
-
   let record = record ?? SnapshotTestingConfiguration.current?.record ?? _record
   return await withSnapshotTesting(record: record, isolation: isolation) { () async -> String? in
     do {
@@ -320,42 +311,18 @@ public func verifySnapshot<Value, Format>(
 
         #if !os(Android) && !os(Linux) && !os(Windows)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
-          if isSwiftTesting {
-            #if compiler(>=6.2)
-            recordSwiftTestingAttachment(
-              writeToDisk ? try Data(contentsOf: snapshotFileUrl) : snapshotData,
-              named: snapshotFileUrl.lastPathComponent,
-              sourceLocation: SourceLocation(
-                fileID: fileID.description,
-                filePath: filePath.description,
-                line: Int(line),
-                column: Int(column)
-              )
+          #if compiler(>=6.2)
+          recordSwiftTestingAttachment(
+            writeToDisk ? try Data(contentsOf: snapshotFileUrl) : snapshotData,
+            named: snapshotFileUrl.lastPathComponent,
+            sourceLocation: SourceLocation(
+              fileID: fileID.description,
+              filePath: filePath.description,
+              line: Int(line),
+              column: Int(column)
             )
-            #endif
-          } else {
-            let typeIdentifier = snapshotting.pathExtension.flatMap(
-              uniformTypeIdentifier(fromExtension:)
-            )
-            await MainActor.run {
-              XCTContext.runActivity(named: "Attached Recorded Snapshot") { activity in
-                if writeToDisk {
-                  // Snapshot was written to disk. Create attachment from file
-                  let attachment = XCTAttachment(contentsOfFile: snapshotFileUrl)
-                  activity.add(attachment)
-                } else {
-                  // Snapshot was not written to disk. Create attachment from data and path extension
-                  let attachment = XCTAttachment(
-                    uniformTypeIdentifier: typeIdentifier,
-                    name: snapshotFileUrl.lastPathComponent,
-                    payload: snapshotData
-                  )
-
-                  activity.add(attachment)
-                }
-              }
-            }
-          }
+          )
+          #endif
         }
         #endif
       }
@@ -426,39 +393,23 @@ public func verifySnapshot<Value, Format>(
       if !attachments.isEmpty {
         #if !os(Linux) && !os(Android) && !os(Windows)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
-          if isSwiftTesting {
-            #if compiler(>=6.2)
-            attachments.forEach {
-              switch $0 {
-              case .data(let data, let name):
-                recordSwiftTestingAttachment(
-                  data,
-                  named: name,
-                  sourceLocation: SourceLocation(
-                    fileID: fileID.description,
-                    filePath: filePath.description,
-                    line: Int(line),
-                    column: Int(column)
-                  )
+          #if compiler(>=6.2)
+          attachments.forEach {
+            switch $0 {
+            case .data(let data, let name):
+              recordSwiftTestingAttachment(
+                data,
+                named: name,
+                sourceLocation: SourceLocation(
+                  fileID: fileID.description,
+                  filePath: filePath.description,
+                  line: Int(line),
+                  column: Int(column)
                 )
-              }
-            }
-            #endif
-          } else {
-            await MainActor.run {
-              XCTContext.runActivity(named: "Attached Failure Diff") { activity in
-                attachments.forEach {
-                  switch $0 {
-                  case .data(let data, let name):
-                    let attachment = XCTAttachment(data: data)
-                    attachment.name = name
-                    activity.add(attachment)
-                    break
-                  }
-                }
-              }
+              )
             }
           }
+          #endif
         }
         #endif
       }
@@ -530,22 +481,6 @@ func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
   UTType(filenameExtension: pathExtension)?.identifier
 }
 #endif
-
-// We need to clean counter between tests executions in order to support test-iterations.
-private class CleanCounterBetweenTestCases: NSObject, XCTestObservation {
-  @MainActor private static var registered = false
-
-  @MainActor
-  static func registerIfNeeded() {
-    guard !registered else { return }
-    registered = true
-    XCTestObservationCenter.shared.addTestObserver(CleanCounterBetweenTestCases())
-  }
-
-  func testCaseDidFinish(_ testCase: XCTestCase) {
-    _counter.reset()
-  }
-}
 
 enum File {
   @TaskLocal static var counter = Counter()

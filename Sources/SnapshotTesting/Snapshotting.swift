@@ -1,5 +1,4 @@
 import Foundation
-import XCTest
 
 /// A type representing the ability to transform a snapshottable value into a diffable format (like
 /// text or an image) for snapshot testing.

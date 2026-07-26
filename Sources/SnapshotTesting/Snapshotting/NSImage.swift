@@ -1,7 +1,6 @@
 #if os(macOS)
 import Accelerate.vImage
 import Cocoa
-import XCTest
 
 extension Diffing where Value == NSImage {
   /// A pixel-diffing strategy for NSImage's which requires a 100% match.
