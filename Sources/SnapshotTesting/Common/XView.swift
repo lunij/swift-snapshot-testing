@@ -373,7 +373,7 @@ import Cocoa
 
 private final class ScaledWindow: NSWindow {
   override var backingScaleFactor: CGFloat {
-    return 2
+    2
   }
 }
 #endif

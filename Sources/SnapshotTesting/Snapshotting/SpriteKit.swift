@@ -41,7 +41,7 @@ extension Snapshotting where Value == SKScene, Format == UIImage {
     perceptualPrecision: Float = 0.99,
     size: CGSize
   ) -> Snapshotting {
-    return .skScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
+    .skScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
   }
 }
 #endif
@@ -52,7 +52,7 @@ extension Snapshotting where Value == SKScene, Format == XImage {
     perceptualPrecision: Float,
     size: CGSize
   ) -> Snapshotting {
-    return Snapshotting<XView, XImage>.image(
+    Snapshotting<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).asyncPullback { @MainActor (scene: SKScene) async -> SKView in

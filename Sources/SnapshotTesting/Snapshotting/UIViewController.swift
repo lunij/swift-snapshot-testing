@@ -7,7 +7,7 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing view controller views based on pixel equality.
@@ -35,7 +35,7 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
   )
     -> Snapshotting
   {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: config.scale
@@ -77,7 +77,7 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
   )
     -> Snapshotting
   {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
@@ -118,7 +118,7 @@ extension Snapshotting where Value == UIViewController, Format == String {
   ///    |    | <UIViewController>, state: disappeared, view: (view not loaded)
   /// ```
   public static var hierarchy: Snapshotting {
-    return Snapshotting<String, String>.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
+    Snapshotting<String, String>.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         config: .init(),
         drawHierarchyInKeyWindow: false,
@@ -137,7 +137,7 @@ extension Snapshotting where Value == UIViewController, Format == String {
   /// A snapshot strategy for comparing view controllers based on a recursive description of
   /// their properties and hierarchies.
   public static var recursiveDescription: Snapshotting {
-    return Snapshotting.recursiveDescription()
+    Snapshotting.recursiveDescription()
   }
 
   /// A snapshot strategy for comparing view controllers based on a recursive description of
@@ -154,7 +154,7 @@ extension Snapshotting where Value == UIViewController, Format == String {
   )
     -> Snapshotting<UIViewController, String>
   {
-    return SimplySnapshotting.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
+    SimplySnapshotting.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         config: .init(
           safeArea: config.safeArea,

@@ -14,7 +14,7 @@ extension Snapshotting where Value == CALayer, Format == NSImage {
   /// assertSnapshot(of: layer, as: .image(precision: 0.99))
   /// ```
   public static var image: Snapshotting {
-    return .image(precision: 1)
+    .image(precision: 1)
   }
 
   /// A snapshot strategy for comparing layers based on pixel equality.
@@ -26,7 +26,7 @@ extension Snapshotting where Value == CALayer, Format == NSImage {
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
   public static func image(precision: Float, perceptualPrecision: Float = 1) -> Snapshotting {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).pullback { layer in
@@ -50,7 +50,7 @@ extension Snapshotting where Value == CALayer, Format == UIImage {
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing layers based on pixel equality.
@@ -73,7 +73,7 @@ extension Snapshotting where Value == CALayer, Format == UIImage {
   )
     -> Snapshotting
   {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale

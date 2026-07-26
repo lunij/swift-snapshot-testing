@@ -54,7 +54,7 @@ open class PropertyListEncoder {
 
   /// The options set on the top-level encoder.
   fileprivate var options: _Options {
-    return _Options(outputFormat: outputFormat, userInfo: userInfo)
+    _Options(outputFormat: outputFormat, userInfo: userInfo)
   }
 
   // MARK: - Constructing a Property List Encoder
@@ -154,7 +154,7 @@ private class _PlistEncoder: Encoder {
 
   /// Contextual user-provided information for use during encoding.
   public var userInfo: [CodingUserInfoKey: Any] {
-    return self.options.userInfo
+    self.options.userInfo
   }
 
   // MARK: - Initialization
@@ -176,7 +176,7 @@ private class _PlistEncoder: Encoder {
     //
     // This means that anytime something that can request a new container goes onto the stack, we MUST push a key onto the coding path.
     // Things which will not request containers do not need to have the coding path extended for them (but it doesn't matter if it is, because they will not reach here).
-    return self.storage.count == self.codingPath.count
+    self.storage.count == self.codingPath.count
   }
 
   // MARK: - Encoder Methods
@@ -228,7 +228,7 @@ private class _PlistEncoder: Encoder {
   }
 
   public func singleValueContainer() -> SingleValueEncodingContainer {
-    return self
+    self
   }
 }
 
@@ -249,7 +249,7 @@ private struct _PlistEncodingStorage {
   // MARK: - Modifying the Stack
 
   fileprivate var count: Int {
-    return self.containers.count
+    self.containers.count
   }
 
   fileprivate mutating func pushKeyedContainer() -> NSMutableDictionary {
@@ -391,7 +391,7 @@ private struct _PlistKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContaine
   }
 
   public mutating func superEncoder() -> Encoder {
-    return _PlistReferencingEncoder(
+    _PlistReferencingEncoder(
       referencing: self.encoder,
       at: _PlistKey.super,
       wrapping: self.container
@@ -399,7 +399,7 @@ private struct _PlistKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContaine
   }
 
   public mutating func superEncoder(forKey key: Key) -> Encoder {
-    return _PlistReferencingEncoder(referencing: self.encoder, at: key, wrapping: self.container)
+    _PlistReferencingEncoder(referencing: self.encoder, at: key, wrapping: self.container)
   }
 }
 
@@ -417,7 +417,7 @@ private struct _PlistUnkeyedEncodingContainer: UnkeyedEncodingContainer {
 
   /// The number of elements encoded into the container.
   public var count: Int {
-    return self.container.count
+    self.container.count
   }
 
   // MARK: - Initialization
@@ -500,7 +500,7 @@ private struct _PlistUnkeyedEncodingContainer: UnkeyedEncodingContainer {
   }
 
   public mutating func superEncoder() -> Encoder {
-    return _PlistReferencingEncoder(
+    _PlistReferencingEncoder(
       referencing: self.encoder,
       at: self.container.count,
       wrapping: self.container
@@ -604,23 +604,23 @@ extension _PlistEncoder: SingleValueEncodingContainer {
 extension _PlistEncoder {
 
   /// Returns the given value boxed in a container appropriate for pushing onto the container stack.
-  fileprivate func box(_ value: Bool) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: Int) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: Int8) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: Int16) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: Int32) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: Int64) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: UInt) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: UInt8) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: UInt16) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: UInt32) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: UInt64) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: Float) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: Double) -> NSObject { return NSNumber(value: value) }
-  fileprivate func box(_ value: String) -> NSObject { return NSString(string: value) }
+  fileprivate func box(_ value: Bool) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: Int) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: Int8) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: Int16) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: Int32) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: Int64) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: UInt) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: UInt8) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: UInt16) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: UInt32) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: UInt64) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: Float) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: Double) -> NSObject { NSNumber(value: value) }
+  fileprivate func box(_ value: String) -> NSObject { NSString(string: value) }
 
   fileprivate func box<T: Encodable>(_ value: T) throws -> NSObject {
-    return try self.box_(value) ?? NSDictionary()
+    try self.box_(value) ?? NSDictionary()
   }
 
   fileprivate func box_<T: Encodable>(_ value: T) throws -> NSObject? {
@@ -712,7 +712,7 @@ private class _PlistReferencingEncoder: _PlistEncoder {
     // With a regular encoder, the storage and coding path grow together.
     // A referencing encoder, however, inherits its parents coding path, as well as the key it was created for.
     // We have to take this into account.
-    return self.storage.count == self.codingPath.count - self.encoder.codingPath.count - 1
+    self.storage.count == self.codingPath.count - self.encoder.codingPath.count - 1
   }
 
   // MARK: - Deinitialization
@@ -754,7 +754,7 @@ open class PropertyListDecoder {
 
   /// The options set on the top-level decoder.
   fileprivate var options: _Options {
-    return _Options(userInfo: userInfo)
+    _Options(userInfo: userInfo)
   }
 
   // MARK: - Constructing a Property List Decoder
@@ -848,7 +848,7 @@ private class _PlistDecoder: Decoder {
 
   /// Contextual user-provided information for use during encoding.
   public var userInfo: [CodingUserInfoKey: Any] {
-    return self.options.userInfo
+    self.options.userInfo
   }
 
   // MARK: - Initialization
@@ -913,7 +913,7 @@ private class _PlistDecoder: Decoder {
   }
 
   public func singleValueContainer() throws -> SingleValueDecodingContainer {
-    return self
+    self
   }
 }
 
@@ -934,7 +934,7 @@ private struct _PlistDecodingStorage {
   // MARK: - Modifying the Stack
 
   fileprivate var count: Int {
-    return self.containers.count
+    self.containers.count
   }
 
   fileprivate var topContainer: Any {
@@ -980,11 +980,11 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
   // MARK: - KeyedDecodingContainerProtocol Methods
 
   public var allKeys: [Key] {
-    return self.container.keys.compactMap { Key(stringValue: $0) }
+    self.container.keys.compactMap { Key(stringValue: $0) }
   }
 
   public func contains(_ key: Key) -> Bool {
-    return self.container[key.stringValue] != nil
+    self.container[key.stringValue] != nil
   }
 
   public func decodeNil(forKey key: Key) throws -> Bool {
@@ -1483,11 +1483,11 @@ private struct _PlistKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContaine
   }
 
   public func superDecoder() throws -> Decoder {
-    return try _superDecoder(forKey: _PlistKey.super)
+    try _superDecoder(forKey: _PlistKey.super)
   }
 
   public func superDecoder(forKey key: Key) throws -> Decoder {
-    return try _superDecoder(forKey: key)
+    try _superDecoder(forKey: key)
   }
 }
 
@@ -1519,11 +1519,11 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
   // MARK: - UnkeyedDecodingContainer Methods
 
   public var count: Int? {
-    return self.container.count
+    self.container.count
   }
 
   public var isAtEnd: Bool {
-    return self.currentIndex >= self.count!
+    self.currentIndex >= self.count!
   }
 
   public mutating func decodeNil() throws -> Bool {

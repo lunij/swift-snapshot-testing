@@ -64,7 +64,7 @@ struct Hunk {
   // Semigroup
 
   static func + (lhs: Hunk, rhs: Hunk) -> Hunk {
-    return Hunk(
+    Hunk(
       fstIdx: lhs.fstIdx + rhs.fstIdx,
       fstLen: lhs.fstLen + rhs.fstLen,
       sndIdx: lhs.sndIdx + rhs.sndIdx,
@@ -90,7 +90,7 @@ struct Hunk {
 
 func chunk(diff diffs: [Difference<String>], context ctx: Int = 4) -> [Hunk] {
   func prepending(_ prefix: String) -> (String) -> String {
-    return { prefix + $0 + ($0.hasSuffix(" ") ? "¬" : "") }
+    { prefix + $0 + ($0.hasSuffix(" ") ? "¬" : "") }
   }
   let changed: (Hunk) -> Bool = {
     $0.lines.contains(where: { $0.hasPrefix(minus) || $0.hasPrefix(plus) })

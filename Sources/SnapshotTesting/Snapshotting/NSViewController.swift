@@ -5,7 +5,7 @@ import Cocoa
 extension Snapshotting where Value == NSViewController, Format == NSImage {
   /// A snapshot strategy for comparing view controller views based on pixel equality.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing view controller views based on pixel equality.
@@ -22,7 +22,7 @@ extension Snapshotting where Value == NSViewController, Format == NSImage {
     perceptualPrecision: Float = 1,
     size: CGSize? = nil
   ) -> Snapshotting {
-    return Snapshotting<NSView, NSImage>.image(
+    Snapshotting<NSView, NSImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       size: size
@@ -34,7 +34,7 @@ extension Snapshotting where Value == NSViewController, Format == String {
   /// A snapshot strategy for comparing view controller views based on a recursive description of
   /// their properties and hierarchies.
   public static var recursiveDescription: Snapshotting {
-    return Snapshotting<NSView, String>.recursiveDescription.asyncPullback {
+    Snapshotting<NSView, String>.recursiveDescription.asyncPullback {
       @MainActor (vc: NSViewController) async -> NSView in vc.view
     }
   }

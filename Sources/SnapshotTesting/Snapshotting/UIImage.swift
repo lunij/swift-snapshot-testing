@@ -43,7 +43,7 @@ extension Diffing where Value == UIImage {
 extension Snapshotting where Value == UIImage, Format == UIImage {
   /// A snapshot strategy for comparing images based on pixel equality.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing images based on pixel equality.
@@ -60,7 +60,7 @@ extension Snapshotting where Value == UIImage, Format == UIImage {
     perceptualPrecision: Float = 1,
     scale: CGFloat = 1
   ) -> Snapshotting {
-    return .init(
+    .init(
       pathExtension: "png",
       diffing: .image(
         precision: precision,

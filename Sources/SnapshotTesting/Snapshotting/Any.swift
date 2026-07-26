@@ -14,7 +14,7 @@ extension Snapshotting where Format == String {
   /// User(bio: "Blobbed around the world.", id: 1, name: "Blobby")
   /// ```
   public static var description: Snapshotting {
-    return SimplySnapshotting.lines.pullback(String.init(describing:))
+    SimplySnapshotting.lines.pullback(String.init(describing:))
   }
 }
 
@@ -62,7 +62,7 @@ extension Snapshotting where Format == String {
     message: "Use '.customDump' from the 'SnapshotTestingCustomDump' module, instead."
   )
   public static var dump: Snapshotting {
-    return SimplySnapshotting.lines.pullback { snap($0) }
+    SimplySnapshotting.lines.pullback { snap($0) }
   }
 }
 
@@ -158,7 +158,7 @@ private func sort(
 )
   -> Mirror.Children
 {
-  return .init(
+  .init(
     children
       .map({ (child: $0, snap: snap($0, visitedValues: visitedValues)) })
       .sorted(by: { $0.snap < $1.snap })
@@ -180,55 +180,55 @@ public protocol AnySnapshotStringConvertible {
 
 extension AnySnapshotStringConvertible {
   public static var renderChildren: Bool {
-    return false
+    false
   }
 }
 
 extension Character: AnySnapshotStringConvertible {
   public var snapshotDescription: String {
-    return self.debugDescription
+    self.debugDescription
   }
 }
 
 extension Data: AnySnapshotStringConvertible {
   public var snapshotDescription: String {
-    return self.debugDescription
+    self.debugDescription
   }
 }
 
 extension Date: AnySnapshotStringConvertible {
   public var snapshotDescription: String {
-    return snapshotDateFormatter.string(from: self)
+    snapshotDateFormatter.string(from: self)
   }
 }
 
 extension NSObject: AnySnapshotStringConvertible {
   #if canImport(ObjectiveC)
   @objc open var snapshotDescription: String {
-    return purgePointers(self.debugDescription)
+    purgePointers(self.debugDescription)
   }
   #else
   open var snapshotDescription: String {
-    return purgePointers(self.debugDescription)
+    purgePointers(self.debugDescription)
   }
   #endif
 }
 
 extension String: AnySnapshotStringConvertible {
   public var snapshotDescription: String {
-    return self.debugDescription
+    self.debugDescription
   }
 }
 
 extension Substring: AnySnapshotStringConvertible {
   public var snapshotDescription: String {
-    return self.debugDescription
+    self.debugDescription
   }
 }
 
 extension URL: AnySnapshotStringConvertible {
   public var snapshotDescription: String {
-    return self.debugDescription
+    self.debugDescription
   }
 }
 
@@ -242,7 +242,7 @@ private let snapshotDateFormatter: DateFormatter = {
 }()
 
 func purgePointers(_ string: String) -> String {
-  return string.replacingOccurrences(
+  string.replacingOccurrences(
     of: ":?\\s*0x[\\da-f]+(\\s*)",
     with: "$1",
     options: .regularExpression

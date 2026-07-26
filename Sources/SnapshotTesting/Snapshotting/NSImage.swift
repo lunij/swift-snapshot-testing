@@ -18,7 +18,7 @@ extension Diffing where Value == NSImage {
   ///     human eye.
   /// - Returns: A new diffing strategy.
   public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
-    return .diff(
+    .diff(
       toData: convertToData,
       fromData: { data in
         guard let image = NSImage(data: data) else {
@@ -38,7 +38,7 @@ extension Diffing where Value == NSImage {
 extension Snapshotting where Value == NSImage, Format == NSImage {
   /// A snapshot strategy for comparing images based on pixel equality.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing images based on pixel equality.
@@ -50,7 +50,7 @@ extension Snapshotting where Value == NSImage, Format == NSImage {
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
   public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
-    return .init(
+    .init(
       pathExtension: "png",
       diffing: .image(precision: precision, perceptualPrecision: perceptualPrecision)
     )

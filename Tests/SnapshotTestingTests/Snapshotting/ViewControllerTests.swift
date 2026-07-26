@@ -31,7 +31,7 @@ struct ViewControllerTests {
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
       }
       override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+        10
       }
       override func tableView(
         _ tableView: UITableView,
@@ -55,7 +55,7 @@ struct ViewControllerTests {
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
       }
       override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+        10
       }
       override func tableView(
         _ tableView: UITableView,
@@ -145,7 +145,7 @@ struct ViewControllerTests {
       )
         -> Int
       {
-        return 20
+        20
       }
 
       func collectionView(
@@ -153,7 +153,7 @@ struct ViewControllerTests {
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
       ) -> CGSize {
-        return CGSize(
+        CGSize(
           width: min(collectionView.frame.width - 50, 300),
           height: collectionView.frame.height
         )

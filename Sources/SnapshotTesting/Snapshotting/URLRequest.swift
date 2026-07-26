@@ -28,7 +28,7 @@ extension Snapshotting where Value == URLRequest, Format == String {
   ///
   /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
   public static func raw(pretty: Bool) -> Snapshotting {
-    return SimplySnapshotting.lines.pullback { (request: URLRequest) in
+    SimplySnapshotting.lines.pullback { (request: URLRequest) in
       let method =
         "\(request.httpMethod ?? "GET") \(request.url?.sortingQueryItems()?.absoluteString ?? "(null)")"
 

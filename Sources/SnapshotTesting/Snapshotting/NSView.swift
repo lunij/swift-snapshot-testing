@@ -5,7 +5,7 @@ import Cocoa
 extension Snapshotting where Value == NSView, Format == NSImage {
   /// A snapshot strategy for comparing views based on pixel equality.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing views based on pixel equality.
@@ -26,7 +26,7 @@ extension Snapshotting where Value == NSView, Format == NSImage {
     scale: CGFloat = 1,
     size: CGSize? = nil
   ) -> Snapshotting {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).asyncPullback { @MainActor (view: NSView) async -> NSImage in
@@ -60,8 +60,8 @@ extension Snapshotting where Value == NSView, Format == String {
   ///   [   AF      LU ] h=--- v=--- NSButtonTextField "Push Me" f=(10,6,57,16) b=(-)
   /// ```
   public static var recursiveDescription: Snapshotting<NSView, String> {
-    return SimplySnapshotting.lines.pullback { view in
-      return purgePointers(
+    SimplySnapshotting.lines.pullback { view in
+      purgePointers(
         view.perform(Selector(("_subtreeDescription"))).retain().takeUnretainedValue()
           as! String
       )

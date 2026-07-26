@@ -295,11 +295,11 @@ public struct ViewImageConfig: Sendable {
   public static let iPad9_7 = iPadMini
 
   public static func iPad9_7(_ orientation: Orientation) -> ViewImageConfig {
-    return iPadMini(orientation)
+    iPadMini(orientation)
   }
 
   public static func iPad9_7(_ orientation: TabletOrientation) -> ViewImageConfig {
-    return iPadMini(orientation)
+    iPadMini(orientation)
   }
 
   public static let iPad10_2 = ViewImageConfig.iPad10_2(.landscape)

@@ -7,7 +7,7 @@ extension Snapshotting where Value == UIView, Format == UIImage {
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing views based on pixel equality.
@@ -36,7 +36,7 @@ extension Snapshotting where Value == UIView, Format == UIImage {
   )
     -> Snapshotting
   {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
@@ -74,7 +74,7 @@ extension Snapshotting where Value == UIView, Format == String {
   ///    | <UIImageView; frame = (0 0; 22 22); clipsToBounds = YES; opaque = NO; userInteractionEnabled = NO; layer = <CALayer>>
   /// ```
   public static var recursiveDescription: Snapshotting {
-    return Snapshotting.recursiveDescription()
+    Snapshotting.recursiveDescription()
   }
 
   /// A snapshot strategy for comparing views based on a recursive description of their properties
@@ -85,7 +85,7 @@ extension Snapshotting where Value == UIView, Format == String {
   )
     -> Snapshotting<UIView, String>
   {
-    return SimplySnapshotting.lines.asyncPullback { @MainActor (view: UIView) async -> String in
+    SimplySnapshotting.lines.asyncPullback { @MainActor (view: UIView) async -> String in
       let dispose = prepareView(
         config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
         drawHierarchyInKeyWindow: false,

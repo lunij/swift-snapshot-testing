@@ -5,7 +5,7 @@ import Cocoa
 extension Snapshotting where Value == NSBezierPath, Format == NSImage {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
@@ -25,7 +25,7 @@ extension Snapshotting where Value == NSBezierPath, Format == NSImage {
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
   public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).pullback { path in
@@ -66,7 +66,7 @@ extension Snapshotting where Value == NSBezierPath, Format == String {
   @available(macOS 11.0, *)
   @available(iOS 11.0, *)
   public static var elementsDescription: Snapshotting {
-    return .elementsDescription(numberFormatter: defaultNumberFormatter)
+    .elementsDescription(numberFormatter: defaultNumberFormatter)
   }
 
   /// A snapshot strategy for comparing bezier paths based on pixel equality.

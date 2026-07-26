@@ -4,7 +4,7 @@ import UIKit
 extension Snapshotting where Value == UIBezierPath, Format == UIImage {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
@@ -21,7 +21,7 @@ extension Snapshotting where Value == UIBezierPath, Format == UIImage {
     perceptualPrecision: Float = 1,
     scale: CGFloat = 1
   ) -> Snapshotting {
-    return SimplySnapshotting.image(
+    SimplySnapshotting.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale

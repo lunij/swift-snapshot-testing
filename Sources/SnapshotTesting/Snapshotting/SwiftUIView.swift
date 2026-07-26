@@ -26,7 +26,7 @@ extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
   public static var image: Snapshotting {
-    return .image()
+    .image()
   }
 
   /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
