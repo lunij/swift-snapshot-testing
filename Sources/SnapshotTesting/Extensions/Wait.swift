@@ -1,6 +1,6 @@
 import Foundation
 
-extension Snapshotting {
+extension SnapshotStrategy {
   /// Transforms an existing snapshot strategy into one that waits for some amount of time before
   /// taking the snapshot. This can be useful for waiting for animations to complete or for UIKit
   /// events to finish (_i.e._ waiting for a `UINavigationController` to push a child onto the

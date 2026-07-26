@@ -39,11 +39,9 @@ extension SnapshotComparator where Value == NSImage {
   }
 }
 
-extension Snapshotting where Value == NSImage, Format == NSImage {
+extension SnapshotStrategy where Value == NSImage, Format == NSImage {
   /// A snapshot strategy for comparing images based on pixel equality.
-  public static var image: Snapshotting {
-    .image()
-  }
+  public static var image: SnapshotStrategy { .image() }
 
   /// A snapshot strategy for comparing images based on pixel equality.
   ///
@@ -53,7 +51,7 @@ extension Snapshotting where Value == NSImage, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
+  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> SnapshotStrategy {
     .init(
       pathExtension: "png",
       serializer: .image,

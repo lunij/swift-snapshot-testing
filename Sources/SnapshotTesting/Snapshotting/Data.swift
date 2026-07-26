@@ -1,8 +1,8 @@
 import Foundation
 
-extension Snapshotting where Value == Data, Format == Data {
+extension SnapshotStrategy where Value == Data, Format == Data {
   /// A snapshot strategy for comparing bare binary data.
-  public static var data: Snapshotting {
+  public static var data: SnapshotStrategy {
     .init(
       pathExtension: nil,
       serializer: SnapshotSerializer(toData: { $0 }, fromData: { $0 }),

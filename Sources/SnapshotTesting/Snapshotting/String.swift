@@ -1,9 +1,9 @@
 import Foundation
 
-extension Snapshotting where Value == String, Format == String {
+extension SnapshotStrategy where Value == String, Format == String {
   /// A snapshot strategy for comparing strings based on equality.
-  public static var lines: Snapshotting {
-    Snapshotting(pathExtension: "txt", serializer: .lines, comparator: .lines)
+  public static var lines: SnapshotStrategy {
+    SnapshotStrategy(pathExtension: "txt", serializer: .lines, comparator: .lines)
   }
 }
 

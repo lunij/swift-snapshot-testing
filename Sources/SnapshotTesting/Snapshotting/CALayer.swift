@@ -3,7 +3,7 @@ import AppKit
 import Cocoa
 import QuartzCore
 
-extension Snapshotting where Value == CALayer, Format == NSImage {
+extension SnapshotStrategy where Value == CALayer, Format == NSImage {
   /// A snapshot strategy for comparing layers based on pixel equality.
   ///
   /// ``` swift
@@ -13,7 +13,7 @@ extension Snapshotting where Value == CALayer, Format == NSImage {
   /// // Allow for a 1% pixel difference.
   /// assertSnapshot(of: layer, as: .image(precision: 0.99))
   /// ```
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image(precision: 1)
   }
 
@@ -25,8 +25,8 @@ extension Snapshotting where Value == CALayer, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  public static func image(precision: Float, perceptualPrecision: Float = 1) -> Snapshotting {
-    SimplySnapshotting.image(
+  public static func image(precision: Float, perceptualPrecision: Float = 1) -> SnapshotStrategy {
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).pullback { layer in
@@ -44,12 +44,12 @@ extension Snapshotting where Value == CALayer, Format == NSImage {
 #elseif os(iOS) || os(tvOS)
 import UIKit
 
-extension Snapshotting where Value == CALayer, Format == UIImage {
+extension SnapshotStrategy where Value == CALayer, Format == UIImage {
   /// A snapshot strategy for comparing layers based on pixel equality.
   ///
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -71,9 +71,9 @@ extension Snapshotting where Value == CALayer, Format == UIImage {
     scale: CGFloat = 1,
     traits: @escaping TraitMutations = { _ in }
   )
-    -> Snapshotting
+    -> SnapshotStrategy
   {
-    SimplySnapshotting.image(
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale

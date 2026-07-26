@@ -1,12 +1,12 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-extension Snapshotting where Value == UIViewController, Format == UIImage {
+extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   /// A snapshot strategy for comparing view controller views based on pixel equality.
   ///
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -33,9 +33,9 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
-    -> Snapshotting
+    -> SnapshotStrategy
   {
-    SimplySnapshotting.image(
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: config.scale
@@ -75,9 +75,9 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
-    -> Snapshotting
+    -> SnapshotStrategy
   {
-    SimplySnapshotting.image(
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
@@ -93,7 +93,7 @@ extension Snapshotting where Value == UIViewController, Format == UIImage {
   }
 }
 
-extension Snapshotting where Value == UIViewController, Format == String {
+extension SnapshotStrategy where Value == UIViewController, Format == String {
   /// A snapshot strategy for comparing view controllers based on their embedded controller
   /// hierarchy.
   ///
@@ -117,8 +117,8 @@ extension Snapshotting where Value == UIViewController, Format == String {
   ///    | <UINavigationController>, state: disappeared, view: <UILayoutContainerView> not in the window
   ///    |    | <UIViewController>, state: disappeared, view: (view not loaded)
   /// ```
-  public static var hierarchy: Snapshotting {
-    Snapshotting<String, String>.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
+  public static var hierarchy: SnapshotStrategy {
+    SnapshotStrategy<String, String>.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         config: .init(),
         drawHierarchyInKeyWindow: false,
@@ -136,8 +136,8 @@ extension Snapshotting where Value == UIViewController, Format == String {
 
   /// A snapshot strategy for comparing view controllers based on a recursive description of
   /// their properties and hierarchies.
-  public static var recursiveDescription: Snapshotting {
-    Snapshotting.recursiveDescription()
+  public static var recursiveDescription: SnapshotStrategy {
+    SnapshotStrategy.recursiveDescription()
   }
 
   /// A snapshot strategy for comparing view controllers based on a recursive description of
@@ -152,9 +152,9 @@ extension Snapshotting where Value == UIViewController, Format == String {
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
-    -> Snapshotting<UIViewController, String>
+    -> SnapshotStrategy<UIViewController, String>
   {
-    SimplySnapshotting.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
+    DirectSnapshotStrategy.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         config: .init(
           safeArea: config.safeArea,

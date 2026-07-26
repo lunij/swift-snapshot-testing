@@ -3,9 +3,9 @@ import AppKit
 import Cocoa
 import CoreGraphics
 
-extension Snapshotting where Value == CGPath, Format == NSImage {
+extension SnapshotStrategy where Value == CGPath, Format == NSImage {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -30,8 +30,8 @@ extension Snapshotting where Value == CGPath, Format == NSImage {
     precision: Float = 1,
     perceptualPrecision: Float = 1,
     drawingMode: CGPathDrawingMode = .eoFill
-  ) -> Snapshotting {
-    SimplySnapshotting.image(
+  ) -> SnapshotStrategy {
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).pullback { path in
@@ -71,9 +71,9 @@ extension Snapshotting where Value == CGPath, Format == NSImage {
 #elseif os(iOS) || os(tvOS)
 import UIKit
 
-extension Snapshotting where Value == CGPath, Format == UIImage {
+extension SnapshotStrategy where Value == CGPath, Format == UIImage {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -90,8 +90,8 @@ extension Snapshotting where Value == CGPath, Format == UIImage {
     perceptualPrecision: Float = 1,
     scale: CGFloat = 1,
     drawingMode: CGPathDrawingMode = .eoFill
-  ) -> Snapshotting {
-    SimplySnapshotting.image(
+  ) -> SnapshotStrategy {
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
@@ -110,16 +110,16 @@ extension Snapshotting where Value == CGPath, Format == UIImage {
 #endif
 
 #if os(macOS) || os(iOS) || os(tvOS)
-extension Snapshotting where Value == CGPath, Format == String {
+extension SnapshotStrategy where Value == CGPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on element descriptions.
-  public static var elementsDescription: Snapshotting {
+  public static var elementsDescription: SnapshotStrategy {
     .elementsDescription(numberFormatter: defaultNumberFormatter)
   }
 
   /// A snapshot strategy for comparing bezier paths based on element descriptions.
   ///
   /// - Parameter numberFormatter: The number formatter used for formatting points.
-  public static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
+  public static func elementsDescription(numberFormatter: NumberFormatter) -> SnapshotStrategy {
     let namesByType: [CGPathElementType: String] = [
       .moveToPoint: "MoveTo",
       .addLineToPoint: "LineTo",
@@ -136,7 +136,7 @@ extension Snapshotting where Value == CGPath, Format == String {
       .closeSubpath: 0
     ]
 
-    return SimplySnapshotting.lines.pullback { path in
+    return DirectSnapshotStrategy.lines.pullback { path in
       var string: String = ""
 
       path.applyWithBlock { elementPointer in

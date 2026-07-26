@@ -1,6 +1,6 @@
 import Foundation
 
-extension Snapshotting where Format == String {
+extension SnapshotStrategy where Format == String {
   /// A snapshot strategy that captures a value's textual description from `String`'s
   /// `init(describing:)` initializer.
   ///
@@ -13,12 +13,12 @@ extension Snapshotting where Format == String {
   /// ```
   /// User(bio: "Blobbed around the world.", id: 1, name: "Blobby")
   /// ```
-  public static var description: Snapshotting {
-    SimplySnapshotting.lines.pullback(String.init(describing:))
+  public static var description: SnapshotStrategy {
+    DirectSnapshotStrategy.lines.pullback(String.init(describing:))
   }
 }
 
-extension Snapshotting where Format == String {
+extension SnapshotStrategy where Format == String {
   /// A snapshot strategy for comparing any structure based on a sanitized text dump.
   ///
   /// The reference format looks a lot like the output of Swift's built-in `dump` function, though
@@ -61,21 +61,21 @@ extension Snapshotting where Format == String {
     deprecated: 9999,
     message: "Use '.customDump' from the 'SnapshotTestingCustomDump' module, instead."
   )
-  public static var dump: Snapshotting {
-    SimplySnapshotting.lines.pullback { snap($0) }
+  public static var dump: SnapshotStrategy {
+    DirectSnapshotStrategy.lines.pullback { snap($0) }
   }
 }
 
 @available(macOS 10.13, watchOS 4.0, tvOS 11.0, *)
-extension Snapshotting where Format == String {
+extension SnapshotStrategy where Format == String {
   /// A snapshot strategy for comparing any structure based on their JSON representation.
-  public static var json: Snapshotting {
+  public static var json: SnapshotStrategy {
     let options: JSONSerialization.WritingOptions = [
       .prettyPrinted,
       .sortedKeys
     ]
 
-    var snapshotting = SimplySnapshotting.lines.pullback { (data: Value) in
+    var strategy = DirectSnapshotStrategy.lines.pullback { (data: Value) in
       try! String(
         decoding: JSONSerialization.data(
           withJSONObject: data,
@@ -84,8 +84,8 @@ extension Snapshotting where Format == String {
         as: UTF8.self
       )
     }
-    snapshotting.pathExtension = "json"
-    return snapshotting
+    strategy.pathExtension = "json"
+    return strategy
   }
 }
 

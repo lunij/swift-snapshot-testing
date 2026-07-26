@@ -66,7 +66,7 @@ private let __record = Mutex<SnapshotTestingConfiguration.Record>(
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
-///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
+///   - strategy: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -81,7 +81,7 @@ private let __record = Mutex<SnapshotTestingConfiguration.Record>(
 ///     was called.
 public func assertSnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
-  as snapshotting: Snapshotting<Value, Format>,
+  as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
   record: SnapshotTestingConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
@@ -93,7 +93,7 @@ public func assertSnapshot<Value, Format>(
 ) async {
   let failure = await verifySnapshot(
     of: try value(),
-    as: snapshotting,
+    as: strategy,
     named: name,
     record: record,
     isolation: isolation,
@@ -132,7 +132,7 @@ public func assertSnapshot<Value, Format>(
 ///     was called.
 public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
-  as strategies: [String: Snapshotting<Value, Format>],
+  as strategies: [String: SnapshotStrategy<Value, Format>],
   record: SnapshotTestingConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
@@ -175,7 +175,7 @@ public func assertSnapshots<Value, Format>(
 ///     was called.
 public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
-  as strategies: [Snapshotting<Value, Format>],
+  as strategies: [SnapshotStrategy<Value, Format>],
   record: SnapshotTestingConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
@@ -209,7 +209,7 @@ public func assertSnapshots<Value, Format>(
 /// ```swift
 /// public func myAssertSnapshot<Value, Format>(
 ///   of value: @autoclosure () throws -> Value,
-///   as snapshotting: Snapshotting<Value, Format>,
+///   as strategy: SnapshotStrategy<Value, Format>,
 ///   named name: String? = nil,
 ///   record: SnapshotTestingConfiguration.Record? = nil,
 ///   file: StaticString = #file,
@@ -220,7 +220,7 @@ public func assertSnapshots<Value, Format>(
 ///     let snapshotDirectory = ProcessInfo.processInfo.environment["SNAPSHOT_REFERENCE_DIR"]! + "/" + #file
 ///     let failure = await verifySnapshot(
 ///       of: try value(),
-///       as: snapshotting,
+///       as: strategy,
 ///       named: name,
 ///       record: record,
 ///       snapshotDirectory: snapshotDirectory,
@@ -234,7 +234,7 @@ public func assertSnapshots<Value, Format>(
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
-///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
+///   - strategy: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
@@ -249,7 +249,7 @@ public func assertSnapshots<Value, Format>(
 /// - Returns: A failure message or, if the value matches, nil.
 public func verifySnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
-  as snapshotting: Snapshotting<Value, Format>,
+  as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
   record: SnapshotTestingConfiguration.Record? = nil,
   snapshotDirectory: String? = nil,
@@ -293,17 +293,17 @@ public func verifySnapshot<Value, Format>(
       var snapshotFileUrl =
         snapshotDirectoryUrl
         .appendingPathComponent("\(testName).\(identifier)")
-      if let ext = snapshotting.pathExtension {
+      if let ext = strategy.pathExtension {
         snapshotFileUrl = snapshotFileUrl.appendingPathExtension(ext)
       }
       let fileManager = FileManager.default
       try fileManager.createDirectory(at: snapshotDirectoryUrl, withIntermediateDirectories: true)
 
       let snapshotValue = try value()
-      let diffable = await snapshotting.snapshot(snapshotValue)
+      let diffable = await strategy.snapshot(snapshotValue)
 
       func recordSnapshot(writeToDisk: Bool) async throws {
-        let snapshotData = try snapshotting.serializer.toData(diffable)
+        let snapshotData = try strategy.serializer.toData(diffable)
 
         if writeToDisk {
           try snapshotData.write(to: snapshotFileUrl)
@@ -362,7 +362,7 @@ public func verifySnapshot<Value, Format>(
       let data = try Data(contentsOf: snapshotFileUrl)
       let reference: Format
       do {
-        reference = try snapshotting.serializer.fromData(data)
+        reference = try strategy.serializer.fromData(data)
       } catch {
         return """
           Couldn't load reference snapshot: \(error.localizedDescription)
@@ -373,7 +373,7 @@ public func verifySnapshot<Value, Format>(
           """
       }
 
-      guard let failure = try snapshotting.comparator.diff(reference, diffable) else {
+      guard let failure = try strategy.comparator.diff(reference, diffable) else {
         return nil
       }
       let artifacts = failure.artifacts
@@ -388,7 +388,7 @@ public func verifySnapshot<Value, Format>(
       let failedSnapshotFileUrl = artifactsSubUrl.appendingPathComponent(
         snapshotFileUrl.lastPathComponent
       )
-      try snapshotting.serializer.toData(diffable).write(to: failedSnapshotFileUrl)
+      try strategy.serializer.toData(diffable).write(to: failedSnapshotFileUrl)
 
       if !artifacts.isEmpty {
         #if !os(Linux) && !os(Android) && !os(Windows)

@@ -18,7 +18,7 @@ struct CaseIterableTests {
 
     await assertSnapshot(
       of: { $0.rotatedLeft },
-      as: Snapshotting<Direction, String>.func(into: .description)
+      as: SnapshotStrategy<Direction, String>.func(into: .description)
     )
   }
 }

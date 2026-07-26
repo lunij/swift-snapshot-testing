@@ -13,7 +13,7 @@ import SwiftSyntaxBuilder
 ///
 /// - Parameters:
 ///   - value: A value to compare against a snapshot.
-///   - snapshotting: A strategy for snapshotting and comparing values.
+///   - strategy: A strategy for snapshotting and comparing values.
 ///   - message: An optional description of the assertion, for inclusion in test results.
 ///   - isRecording: Whether or not to record a new reference.
 ///   - syntaxDescriptor: An optional description of where the snapshot is inlined. This parameter
@@ -34,7 +34,7 @@ import SwiftSyntaxBuilder
 ///     function was called.
 public func assertInlineSnapshot<Value>(
   of value: @autoclosure () throws -> Value?,
-  as snapshotting: Snapshotting<Value, String>,
+  as strategy: SnapshotStrategy<Value, String>,
   message: @autoclosure () -> String = "",
   record: SnapshotTestingConfiguration.Record? = nil,
   syntaxDescriptor: InlineSnapshotSyntaxDescriptor = InlineSnapshotSyntaxDescriptor(),
@@ -52,7 +52,7 @@ public func assertInlineSnapshot<Value>(
     do {
       var actual: String?
       if let value = try value() {
-        actual = await snapshotting.snapshot(value)
+        actual = await strategy.snapshot(value)
       }
       let expected = expected?()
       func recordSnapshot() {
@@ -87,7 +87,7 @@ public func assertInlineSnapshot<Value>(
             Automatically recorded a new snapshot for "\(syntaxDescriptor.trailingClosureLabel)".
             """
         }
-        if let diffFailure = try snapshotting.comparator.diff(expected ?? "", actual ?? "") {
+        if let diffFailure = try strategy.comparator.diff(expected ?? "", actual ?? "") {
           let difference = diffFailure.detail ?? diffFailure.reason
           failure += " Difference: …\n\n\(difference.indenting(by: 2))"
         }
@@ -119,7 +119,7 @@ public func assertInlineSnapshot<Value>(
         return
       }
       guard
-        let diffFailure = try snapshotting.comparator.diff(expected, actual ?? "")
+        let diffFailure = try strategy.comparator.diff(expected, actual ?? "")
       else { return }
       let difference = diffFailure.detail ?? diffFailure.reason
 
@@ -157,7 +157,7 @@ public func assertInlineSnapshot<Value>(
 @available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0")
 public func assertInlineSnapshot<Value>(
   of value: @autoclosure () throws -> Value?,
-  as snapshotting: Snapshotting<Value, String>,
+  as strategy: SnapshotStrategy<Value, String>,
   message: @autoclosure () -> String = "",
   record isRecording: Bool? = nil,
   syntaxDescriptor: InlineSnapshotSyntaxDescriptor = InlineSnapshotSyntaxDescriptor(),

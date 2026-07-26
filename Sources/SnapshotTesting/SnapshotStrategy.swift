@@ -2,7 +2,7 @@ import Foundation
 
 /// A type representing the ability to transform a snapshottable value into a diffable format (like
 /// text or an image) for snapshot testing.
-public struct Snapshotting<Value, Format> {
+public struct SnapshotStrategy<Value, Format> {
   /// The path extension applied to references saved to disk.
   public var pathExtension: String?
 
@@ -42,17 +42,17 @@ public struct Snapshotting<Value, Format> {
   /// `(NewValue) -> Value`.
   ///
   /// This is the most important operation for transforming existing strategies into new strategies.
-  /// It allows you to transform a `Snapshotting<Value, Format>` into a
-  /// `Snapshotting<NewValue, Format>` by pulling it back along a function `(NewValue) -> Value`.
+  /// It allows you to transform a `SnapshotStrategy<Value, Format>` into a
+  /// `SnapshotStrategy<NewValue, Format>` by pulling it back along a function `(NewValue) -> Value`.
   /// Notice that the function must go in the direction `(NewValue) -> Value` even though we are
   /// transforming in the other direction
-  /// `(Snapshotting<Value, Format>) -> Snapshotting<NewValue, Format>`.
+  /// `(SnapshotStrategy<Value, Format>) -> SnapshotStrategy<NewValue, Format>`.
   ///
   /// A simple example of this is to `pullback` the snapshot strategy on `UIView`s to work on
   /// `UIViewController`s:
   ///
   /// ```swift
-  /// let strategy = Snapshotting<UIView, UIImage>.image.pullback { (vc: UIViewController) in
+  /// let strategy = SnapshotStrategy<UIView, UIImage>.image.pullback { (vc: UIViewController) in
   ///   vc.view
   /// }
   /// ```
@@ -68,8 +68,8 @@ public struct Snapshotting<Value, Format> {
   ///   - transform: A transform function from `NewValue` into `Value`.
   public func pullback<NewValue>(
     _ transform: @escaping (_ otherValue: NewValue) -> Value
-  ) -> Snapshotting<NewValue, Format> {
-    Snapshotting<NewValue, Format>(
+  ) -> SnapshotStrategy<NewValue, Format> {
+    SnapshotStrategy<NewValue, Format>(
       pathExtension: pathExtension,
       serializer: serializer,
       comparator: comparator
@@ -90,8 +90,8 @@ public struct Snapshotting<Value, Format> {
   ///   - transform: An async transform function from `NewValue` into `Value`.
   public func asyncPullback<NewValue>(
     _ transform: nonisolated(nonsending) @escaping (_ otherValue: NewValue) async -> Value
-  ) -> Snapshotting<NewValue, Format> {
-    Snapshotting<NewValue, Format>(
+  ) -> SnapshotStrategy<NewValue, Format> {
+    SnapshotStrategy<NewValue, Format>(
       pathExtension: pathExtension,
       serializer: serializer,
       comparator: comparator
@@ -102,9 +102,9 @@ public struct Snapshotting<Value, Format> {
 }
 
 /// A snapshot strategy where the type being snapshot is also a diffable type.
-public typealias SimplySnapshotting<Format> = Snapshotting<Format, Format>
+public typealias DirectSnapshotStrategy<Format> = SnapshotStrategy<Format, Format>
 
-extension Snapshotting where Value == Format {
+extension SnapshotStrategy where Value == Format {
   public init(
     pathExtension: String?,
     serializer: SnapshotSerializer<Format>,

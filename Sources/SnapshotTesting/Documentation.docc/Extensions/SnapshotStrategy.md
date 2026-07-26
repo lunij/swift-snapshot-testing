@@ -1,4 +1,4 @@
-# ``SnapshotTesting/Snapshotting``
+# ``SnapshotTesting/SnapshotStrategy``
 
 ## Topics
 
@@ -59,5 +59,5 @@
 ### Supporting types
 
 - ``AnySnapshotStringConvertible``
-- ``SimplySnapshotting``
+- ``DirectSnapshotStrategy``
 - ``SwiftUISnapshotLayout``

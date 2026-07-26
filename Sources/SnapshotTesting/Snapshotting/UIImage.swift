@@ -47,11 +47,9 @@ extension SnapshotComparator where Value == UIImage {
   }
 }
 
-extension Snapshotting where Value == UIImage, Format == UIImage {
+extension SnapshotStrategy where Value == UIImage, Format == UIImage {
   /// A snapshot strategy for comparing images based on pixel equality.
-  public static var image: Snapshotting {
-    .image()
-  }
+  public static var image: SnapshotStrategy { .image() }
 
   /// A snapshot strategy for comparing images based on pixel equality.
   ///
@@ -66,7 +64,7 @@ extension Snapshotting where Value == UIImage, Format == UIImage {
     precision: Float = 1,
     perceptualPrecision: Float = 1,
     scale: CGFloat = 1
-  ) -> Snapshotting {
+  ) -> SnapshotStrategy {
     .init(
       pathExtension: "png",
       serializer: .image(scale: scale),

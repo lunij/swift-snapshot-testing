@@ -7,7 +7,7 @@ import UIKit
 #endif
 
 #if os(macOS)
-extension Snapshotting where Value == SCNScene, Format == NSImage {
+extension SnapshotStrategy where Value == SCNScene, Format == NSImage {
   /// A snapshot strategy for comparing SceneKit scenes based on pixel equality.
   ///
   /// - Parameters:
@@ -21,12 +21,12 @@ extension Snapshotting where Value == SCNScene, Format == NSImage {
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
     size: CGSize
-  ) -> Snapshotting {
+  ) -> SnapshotStrategy {
     .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
   }
 }
 #elseif os(iOS) || os(tvOS)
-extension Snapshotting where Value == SCNScene, Format == UIImage {
+extension SnapshotStrategy where Value == SCNScene, Format == UIImage {
   /// A snapshot strategy for comparing SceneKit scenes based on pixel equality.
   ///
   /// - Parameters:
@@ -40,19 +40,19 @@ extension Snapshotting where Value == SCNScene, Format == UIImage {
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
     size: CGSize
-  ) -> Snapshotting {
+  ) -> SnapshotStrategy {
     .scnScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
   }
 }
 #endif
 
-extension Snapshotting where Value == SCNScene, Format == XImage {
+extension SnapshotStrategy where Value == SCNScene, Format == XImage {
   fileprivate static func scnScene(
     precision: Float,
     perceptualPrecision: Float,
     size: CGSize
-  ) -> Snapshotting {
-    Snapshotting<XView, XImage>.image(
+  ) -> SnapshotStrategy {
+    SnapshotStrategy<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).asyncPullback { @MainActor (scene: SCNScene) async -> SCNView in

@@ -5,7 +5,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-extension Snapshotting where Value == URLRequest, Format == String {
+extension SnapshotStrategy where Value == URLRequest, Format == String {
   /// A snapshot strategy for comparing requests based on raw equality.
   ///
   /// ``` swift
@@ -20,15 +20,15 @@ extension Snapshotting where Value == URLRequest, Format == String {
   ///
   /// email=blob%40pointfree.co&name=Blob
   /// ```
-  public static var raw: Snapshotting {
-    Snapshotting.raw(pretty: false)
+  public static var raw: SnapshotStrategy {
+    SnapshotStrategy.raw(pretty: false)
   }
 
   /// A snapshot strategy for comparing requests based on raw equality.
   ///
   /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
-  public static func raw(pretty: Bool) -> Snapshotting {
-    SimplySnapshotting.lines.pullback { (request: URLRequest) in
+  public static func raw(pretty: Bool) -> SnapshotStrategy {
+    DirectSnapshotStrategy.lines.pullback { (request: URLRequest) in
       let method =
         "\(request.httpMethod ?? "GET") \(request.url?.sortingQueryItems()?.absoluteString ?? "(null)")"
 
@@ -82,8 +82,8 @@ extension Snapshotting where Value == URLRequest, Format == String {
   //   --data 'pricing[billing]=monthly&pricing[lane]=individual' \
   //   "https://www.pointfree.co/subscribe"
   // ```
-  public static var curl: Snapshotting {
-    SimplySnapshotting.lines.pullback { (request: URLRequest) in
+  public static var curl: SnapshotStrategy {
+    DirectSnapshotStrategy.lines.pullback { (request: URLRequest) in
 
       var components = ["curl"]
 

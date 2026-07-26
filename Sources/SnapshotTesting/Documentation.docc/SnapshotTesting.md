@@ -12,7 +12,7 @@ Powerfully flexible snapshot testing.
 ### Strategies
 
 - <doc:CustomStrategies>
-- ``Snapshotting``
+- ``SnapshotStrategy``
 - ``SnapshotSerializer``
 - ``SnapshotComparator``
 

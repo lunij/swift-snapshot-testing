@@ -2,9 +2,9 @@
 import AppKit
 import Cocoa
 
-extension Snapshotting where Value == NSViewController, Format == NSImage {
+extension SnapshotStrategy where Value == NSViewController, Format == NSImage {
   /// A snapshot strategy for comparing view controller views based on pixel equality.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -21,8 +21,8 @@ extension Snapshotting where Value == NSViewController, Format == NSImage {
     precision: Float = 1,
     perceptualPrecision: Float = 1,
     size: CGSize? = nil
-  ) -> Snapshotting {
-    Snapshotting<NSView, NSImage>.image(
+  ) -> SnapshotStrategy {
+    SnapshotStrategy<NSView, NSImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       size: size
@@ -30,11 +30,11 @@ extension Snapshotting where Value == NSViewController, Format == NSImage {
   }
 }
 
-extension Snapshotting where Value == NSViewController, Format == String {
+extension SnapshotStrategy where Value == NSViewController, Format == String {
   /// A snapshot strategy for comparing view controller views based on a recursive description of
   /// their properties and hierarchies.
-  public static var recursiveDescription: Snapshotting {
-    Snapshotting<NSView, String>.recursiveDescription.asyncPullback {
+  public static var recursiveDescription: SnapshotStrategy {
+    SnapshotStrategy<NSView, String>.recursiveDescription.asyncPullback {
       @MainActor (vc: NSViewController) async -> NSView in vc.view
     }
   }

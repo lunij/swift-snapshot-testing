@@ -1,4 +1,4 @@
-extension Snapshotting where Value: CaseIterable, Format == String {
+extension SnapshotStrategy where Value: CaseIterable, Format == String {
   /// A strategy for snapshotting the output for every input of a function. The format of the
   /// snapshot is a comma-separated value (CSV) file that shows the mapping of inputs to outputs.
   ///
@@ -34,9 +34,9 @@ extension Snapshotting where Value: CaseIterable, Format == String {
   /// "right","up"
   /// ```
   public static func `func`<A>(
-    into witness: Snapshotting<A, Format>
-  ) -> Snapshotting<(Value) -> A, Format> {
-    var snapshotting = Snapshotting<String, String>.lines.asyncPullback {
+    into witness: SnapshotStrategy<A, Format>
+  ) -> SnapshotStrategy<(Value) -> A, Format> {
+    var strategy = SnapshotStrategy<String, String>.lines.asyncPullback {
       (f: @escaping (Value) -> A) async -> String in
       var rows: [String] = []
       for input in Value.allCases {
@@ -45,7 +45,7 @@ extension Snapshotting where Value: CaseIterable, Format == String {
       }
       return rows.joined(separator: "\n")
     }
-    snapshotting.pathExtension = "csv"
-    return snapshotting
+    strategy.pathExtension = "csv"
+    return strategy
   }
 }

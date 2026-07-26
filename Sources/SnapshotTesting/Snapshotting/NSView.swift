@@ -2,9 +2,9 @@
 import AppKit
 import Cocoa
 
-extension Snapshotting where Value == NSView, Format == NSImage {
+extension SnapshotStrategy where Value == NSView, Format == NSImage {
   /// A snapshot strategy for comparing views based on pixel equality.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -25,8 +25,8 @@ extension Snapshotting where Value == NSView, Format == NSImage {
     perceptualPrecision: Float = 1,
     scale: CGFloat = 1,
     size: CGSize? = nil
-  ) -> Snapshotting {
-    SimplySnapshotting.image(
+  ) -> SnapshotStrategy {
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).asyncPullback { @MainActor (view: NSView) async -> NSImage in
@@ -44,7 +44,7 @@ extension Snapshotting where Value == NSView, Format == NSImage {
   }
 }
 
-extension Snapshotting where Value == NSView, Format == String {
+extension SnapshotStrategy where Value == NSView, Format == String {
   /// A snapshot strategy for comparing views based on a recursive description of their properties
   /// and hierarchies.
   ///
@@ -59,8 +59,8 @@ extension Snapshotting where Value == NSView, Format == String {
   ///   [   A       LU ] h=--- v=--- NSButtonBezelView f=(0,0,77,32) b=(-)
   ///   [   AF      LU ] h=--- v=--- NSButtonTextField "Push Me" f=(10,6,57,16) b=(-)
   /// ```
-  public static var recursiveDescription: Snapshotting<NSView, String> {
-    SimplySnapshotting.lines.pullback { view in
+  public static var recursiveDescription: SnapshotStrategy<NSView, String> {
+    DirectSnapshotStrategy.lines.pullback { view in
       purgePointers(
         view.perform(Selector(("_subtreeDescription"))).retain().takeUnretainedValue()
           as! String

@@ -19,13 +19,13 @@ public enum SwiftUISnapshotLayout: Sendable {
 
 #if os(iOS) || os(tvOS)
 @available(iOS 13.0, tvOS 13.0, *)
-extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
+extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
 
   /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
   ///
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -53,7 +53,7 @@ extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
     scale: CGFloat = 2,
     traits: @escaping TraitMutations = { _ in }
   )
-    -> Snapshotting
+    -> SnapshotStrategy
   {
     let config: ViewImageConfig
 
@@ -69,7 +69,7 @@ extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
       config = .init(safeArea: .zero, scale: scale, size: size, traits: traits)
     }
 
-    return SimplySnapshotting.image(
+    return DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
@@ -100,15 +100,13 @@ extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
 
 #if os(macOS)
 @available(macOS 10.15, *)
-extension Snapshotting where Value: View, Format == NSImage {
+extension SnapshotStrategy where Value: View, Format == NSImage {
 
   /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
   ///
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
-  public static var image: Snapshotting {
-    .image()
-  }
+  public static var image: SnapshotStrategy { .image() }
 
   /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
   ///
@@ -125,8 +123,8 @@ extension Snapshotting where Value: View, Format == NSImage {
     perceptualPrecision: Float = 0.99,
     layout: SwiftUISnapshotLayout = .sizeThatFits,
     scale: CGFloat = 1
-  ) -> Snapshotting {
-    SimplySnapshotting
+  ) -> SnapshotStrategy {
+    DirectSnapshotStrategy
       .image(precision: precision, perceptualPrecision: perceptualPrecision)
       .asyncPullback { @MainActor (view: Value) async -> NSImage in
         let controller = NSHostingController(rootView: view)

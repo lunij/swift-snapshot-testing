@@ -1,12 +1,12 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-extension Snapshotting where Value == UIView, Format == UIImage {
+extension SnapshotStrategy where Value == UIView, Format == UIImage {
   /// A snapshot strategy for comparing views based on pixel equality.
   ///
   /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
   /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -34,9 +34,9 @@ extension Snapshotting where Value == UIView, Format == UIImage {
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
-    -> Snapshotting
+    -> SnapshotStrategy
   {
-    SimplySnapshotting.image(
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
@@ -52,7 +52,7 @@ extension Snapshotting where Value == UIView, Format == UIImage {
   }
 }
 
-extension Snapshotting where Value == UIView, Format == String {
+extension SnapshotStrategy where Value == UIView, Format == String {
   /// A snapshot strategy for comparing views based on a recursive description of their properties
   /// and hierarchies.
   ///
@@ -73,8 +73,8 @@ extension Snapshotting where Value == UIView, Format == String {
   /// <UIButton; frame = (0 0; 22 22); opaque = NO; layer = <CALayer>>
   ///    | <UIImageView; frame = (0 0; 22 22); clipsToBounds = YES; opaque = NO; userInteractionEnabled = NO; layer = <CALayer>>
   /// ```
-  public static var recursiveDescription: Snapshotting {
-    Snapshotting.recursiveDescription()
+  public static var recursiveDescription: SnapshotStrategy {
+    SnapshotStrategy.recursiveDescription()
   }
 
   /// A snapshot strategy for comparing views based on a recursive description of their properties
@@ -83,9 +83,9 @@ extension Snapshotting where Value == UIView, Format == String {
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
-    -> Snapshotting<UIView, String>
+    -> SnapshotStrategy<UIView, String>
   {
-    SimplySnapshotting.lines.asyncPullback { @MainActor (view: UIView) async -> String in
+    DirectSnapshotStrategy.lines.asyncPullback { @MainActor (view: UIView) async -> String in
       let dispose = prepareView(
         config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
         drawHierarchyInKeyWindow: false,

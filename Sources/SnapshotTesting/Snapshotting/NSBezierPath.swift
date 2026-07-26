@@ -2,9 +2,9 @@
 import AppKit
 import Cocoa
 
-extension Snapshotting where Value == NSBezierPath, Format == NSImage {
+extension SnapshotStrategy where Value == NSBezierPath, Format == NSImage {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
-  public static var image: Snapshotting {
+  public static var image: SnapshotStrategy {
     .image()
   }
 
@@ -24,8 +24,8 @@ extension Snapshotting where Value == NSBezierPath, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
-    SimplySnapshotting.image(
+  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> SnapshotStrategy {
+    DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
     ).pullback { path in
@@ -61,11 +61,11 @@ extension Snapshotting where Value == NSBezierPath, Format == NSImage {
   }
 }
 
-extension Snapshotting where Value == NSBezierPath, Format == String {
+extension SnapshotStrategy where Value == NSBezierPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   @available(macOS 11.0, *)
   @available(iOS 11.0, *)
-  public static var elementsDescription: Snapshotting {
+  public static var elementsDescription: SnapshotStrategy {
     .elementsDescription(numberFormatter: defaultNumberFormatter)
   }
 
@@ -74,7 +74,7 @@ extension Snapshotting where Value == NSBezierPath, Format == String {
   /// - Parameter numberFormatter: The number formatter used for formatting points.
   @available(macOS 11.0, *)
   @available(iOS 11.0, *)
-  public static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
+  public static func elementsDescription(numberFormatter: NumberFormatter) -> SnapshotStrategy {
     let namesByType: [NSBezierPath.ElementType: String] = [
       .moveTo: "MoveTo",
       .lineTo: "LineTo",
@@ -89,7 +89,7 @@ extension Snapshotting where Value == NSBezierPath, Format == String {
       .closePath: 0
     ]
 
-    return SimplySnapshotting.lines.pullback { path in
+    return DirectSnapshotStrategy.lines.pullback { path in
       var string: String = ""
 
       var elementPoints = [CGPoint](repeating: .zero, count: 3)
