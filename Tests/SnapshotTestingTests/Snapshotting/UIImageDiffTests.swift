@@ -26,7 +26,7 @@ struct UIImageDiffTests {
       "Precondition failed: the reference must decode to a sub-32bpp image to reproduce"
     )
 
-    let failure = try #require(try Diffing<UIImage>.image.diffV2(old, new))
+    let failure = try #require(try Diffing<UIImage>.image.diff(old, new))
     let diffData = try #require(
       failure.attachments.compactMap { attachment -> Data? in
         guard case let .data(data, name) = attachment, name == "diff" else { return nil }

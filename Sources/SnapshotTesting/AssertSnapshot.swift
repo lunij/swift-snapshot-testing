@@ -373,7 +373,7 @@ public func verifySnapshot<Value, Format>(
           """
       }
 
-      guard let failure = try snapshotting.diffing.diffV2(reference, diffable) else {
+      guard let failure = try snapshotting.diffing.diff(reference, diffable) else {
         return nil
       }
       let attachments = failure.attachments

@@ -29,12 +29,12 @@ struct NSImageDiffTests {
     // 50/101 columns differ. Each differing pixel contributes 3 changed bytes (R,G,B) and 1
     // unchanged (A=255), giving ~37% byte mismatch. precision=0.4 allows 60% → passes.
     let shouldPass = try Diffing<NSImage>.image(precision: 0.4, perceptualPrecision: 1)
-      .diffV2(old, new)
+      .diff(old, new)
     #expect(shouldPass == nil)
 
     // ~37% byte mismatch. precision=0.7 allows only 30% → fails.
     let shouldFail = try Diffing<NSImage>.image(precision: 0.7, perceptualPrecision: 1)
-      .diffV2(old, new)
+      .diff(old, new)
     #expect(shouldFail != nil)
   }
 

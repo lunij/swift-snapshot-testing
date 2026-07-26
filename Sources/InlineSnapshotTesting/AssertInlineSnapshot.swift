@@ -87,7 +87,7 @@ public func assertInlineSnapshot<Value>(
             Automatically recorded a new snapshot for "\(syntaxDescriptor.trailingClosureLabel)".
             """
         }
-        if let diffFailure = try snapshotting.diffing.diffV2(expected ?? "", actual ?? "") {
+        if let diffFailure = try snapshotting.diffing.diff(expected ?? "", actual ?? "") {
           let difference = diffFailure.detail ?? diffFailure.reason
           failure += " Difference: …\n\n\(difference.indenting(by: 2))"
         }
@@ -119,7 +119,7 @@ public func assertInlineSnapshot<Value>(
         return
       }
       guard
-        let diffFailure = try snapshotting.diffing.diffV2(expected, actual ?? "")
+        let diffFailure = try snapshotting.diffing.diff(expected, actual ?? "")
       else { return }
       let difference = diffFailure.detail ?? diffFailure.reason
 

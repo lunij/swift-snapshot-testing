@@ -32,24 +32,24 @@ public struct Diffing<Value> {
   public var fromData: (Data) throws -> Value
 
   /// Compares two values. If the values do not match, returns a failure describing the mismatch.
-  public var diffV2: (Value, Value) throws -> SnapshotFailure?
+  public var diff: (Value, Value) throws -> SnapshotFailure?
 
   private init(
     toData: @escaping (Value) throws -> Data,
     fromData: @escaping (Data) throws -> Value,
-    diffV2: @escaping (Value, Value) throws -> SnapshotFailure?
+    diff: @escaping (Value, Value) throws -> SnapshotFailure?
   ) {
     self.toData = toData
     self.fromData = fromData
-    self.diffV2 = diffV2
+    self.diff = diff
   }
 
   public static func diff(
     toData: @escaping (_ value: Value) throws -> Data,
     fromData: @escaping (_ data: Data) throws -> Value,
-    diffV2: @escaping (_ lhs: Value, _ rhs: Value) throws -> SnapshotFailure?
+    diff: @escaping (_ lhs: Value, _ rhs: Value) throws -> SnapshotFailure?
   ) -> Self {
-    Diffing(toData: toData, fromData: fromData, diffV2: diffV2)
+    Diffing(toData: toData, fromData: fromData, diff: diff)
   }
 }
 
