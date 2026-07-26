@@ -6,16 +6,10 @@ import Testing
 @Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct WaitTests {
   @Test func wait() async {
-    var value = "Failed to wait"
-    Task { @MainActor in
-      try? await Task.sleep(for: .seconds(1))
-      value = "Successfully waited"
-    }
-
+    let start = ContinuousClock.now
     let strategy = Snapshotting.lines.pullback { (_: Void) in
-      value
+      start.duration(to: .now) >= .seconds(1.5) ? "Successfully waited" : "Failed to wait"
     }
-
     await assertSnapshot(of: (), as: .wait(for: 1.5, on: strategy))
   }
 }
