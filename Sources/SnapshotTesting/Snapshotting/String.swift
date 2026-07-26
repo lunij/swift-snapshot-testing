@@ -28,7 +28,7 @@ extension Diffing where Value == String {
       return SnapshotFailure(
         reason: "Text does not match reference (+\(added) −\(removed) lines).",
         detail: patch,
-        attachments: [.data(Data(patch.utf8), name: "difference.patch")]
+        artifacts: [.init(name: "difference.patch", data: Data(patch.utf8))]
       )
     }
   }

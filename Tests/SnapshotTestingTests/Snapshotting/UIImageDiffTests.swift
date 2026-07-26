@@ -28,9 +28,9 @@ struct UIImageDiffTests {
 
     let failure = try #require(try Diffing<UIImage>.image.diff(old, new))
     let diffData = try #require(
-      failure.attachments.compactMap { attachment -> Data? in
-        guard case let .data(data, name) = attachment, name == "diff" else { return nil }
-        return data
+      failure.artifacts.compactMap { artifact -> Data? in
+        guard artifact.name == "diff" else { return nil }
+        return artifact.data
       }.first
     )
     let diffImage = try #require(UIImage(data: diffData))

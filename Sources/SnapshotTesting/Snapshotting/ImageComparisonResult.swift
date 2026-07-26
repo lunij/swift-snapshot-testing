@@ -18,9 +18,9 @@ enum ImageComparisonResult {
 }
 
 extension ImageComparisonResult {
-  /// Maps a comparison result to a snapshot failure, or `nil` for a match. The attachments
+  /// Maps a comparison result to a snapshot failure, or `nil` for a match. The artifacts
   /// closure is only invoked for results where a visual diff is meaningful.
-  func snapshotFailure(attachments: () throws -> [DiffAttachment]) throws -> SnapshotFailure? {
+  func snapshotFailure(artifacts: () throws -> [SnapshotFailure.Artifact]) throws -> SnapshotFailure? {
     switch self {
     case .isMatching:
       return nil
@@ -31,14 +31,14 @@ extension ImageComparisonResult {
     case .isNotMatching:
       return SnapshotFailure(
         reason: "Image does not match reference.",
-        attachments: try attachments()
+        artifacts: try artifacts()
       )
     case let .unequalSize(oldSize, newSize):
       return SnapshotFailure(
         reason: """
           Image size \(format(newSize)) does not match reference size \(format(oldSize)).
           """,
-        attachments: try attachments()
+        artifacts: try artifacts()
       )
     case let .unmatchedPrecision(expectedPrecision, actualPrecision):
       return SnapshotFailure(
@@ -46,7 +46,7 @@ extension ImageComparisonResult {
           Image does not match reference (pixel precision \(actualPrecision) is less than \
           required \(expectedPrecision)).
           """,
-        attachments: try attachments()
+        artifacts: try artifacts()
       )
     case let .unmatchedPrecisions(
       expectedPixelPrecision,
@@ -60,7 +60,7 @@ extension ImageComparisonResult {
           The percentage of pixels that match \(actualPixelPrecision) is less than expected \(expectedPixelPrecision)
           The lowest perceptual color precision \(actualPerceptualPrecision) is less than expected \(expectedPerceptualPrecision)
           """,
-        attachments: try attachments()
+        artifacts: try artifacts()
       )
     }
   }

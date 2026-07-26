@@ -312,7 +312,7 @@ public func verifySnapshot<Value, Format>(
         #if !os(Android) && !os(Linux) && !os(Windows)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
           #if compiler(>=6.2)
-          recordSwiftTestingAttachment(
+          recordAttachment(
             writeToDisk ? try Data(contentsOf: snapshotFileUrl) : snapshotData,
             named: snapshotFileUrl.lastPathComponent,
             sourceLocation: SourceLocation(
@@ -376,7 +376,7 @@ public func verifySnapshot<Value, Format>(
       guard let failure = try snapshotting.diffing.diff(reference, diffable) else {
         return nil
       }
-      let attachments = failure.attachments
+      let artifacts = failure.artifacts
 
       let artifactsUrl = URL(
         fileURLWithPath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
@@ -390,24 +390,21 @@ public func verifySnapshot<Value, Format>(
       )
       try snapshotting.diffing.toData(diffable).write(to: failedSnapshotFileUrl)
 
-      if !attachments.isEmpty {
+      if !artifacts.isEmpty {
         #if !os(Linux) && !os(Android) && !os(Windows)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
           #if compiler(>=6.2)
-          attachments.forEach {
-            switch $0 {
-            case .data(let data, let name):
-              recordSwiftTestingAttachment(
-                data,
-                named: name,
-                sourceLocation: SourceLocation(
-                  fileID: fileID.description,
-                  filePath: filePath.description,
-                  line: Int(line),
-                  column: Int(column)
-                )
+          for artifact in artifacts {
+            recordAttachment(
+              artifact.data,
+              named: artifact.name,
+              sourceLocation: SourceLocation(
+                fileID: fileID.description,
+                filePath: filePath.description,
+                line: Int(line),
+                column: Int(column)
               )
-            }
+            )
           }
           #endif
         }
@@ -503,8 +500,7 @@ enum File {
   }
 }
 
-#if canImport(Testing) && compiler(>=6.2)
-private func recordSwiftTestingAttachment(
+private func recordAttachment(
   _ data: Data,
   named name: String,
   sourceLocation: SourceLocation
@@ -521,4 +517,3 @@ private func recordSwiftTestingAttachment(
   Attachment.record(data, named: name, sourceLocation: sourceLocation)
   #endif
 }
-#endif

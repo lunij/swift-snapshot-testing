@@ -13,13 +13,18 @@ public struct SnapshotFailure: Sendable {
   /// breakdown. Rendered below the reason in the failure message.
   public let detail: String?
 
-  /// Artifacts describing the failure, attached to the test report.
-  public let attachments: [DiffAttachment]
+  /// Artifacts describing the failure.
+  public let artifacts: [Artifact]
 
-  public init(reason: String, detail: String? = nil, attachments: [DiffAttachment] = []) {
+  public init(reason: String, detail: String? = nil, artifacts: [Artifact] = []) {
     self.reason = reason
     self.detail = detail
-    self.attachments = attachments
+    self.artifacts = artifacts
+  }
+
+  public struct Artifact: Sendable {
+    public let name: String
+    public let data: Data
   }
 }
 
@@ -53,23 +58,19 @@ public struct Diffing<Value> {
   }
 }
 
-public enum DiffAttachment: Sendable {
-  case data(Data, name: String)
-}
-
 #if os(iOS) || os(macOS) || os(tvOS) || os(visionOS)
 extension Diffing where Value == XImage {
-  static func attachments(
+  static func artifacts(
     _ old: Value,
     _ new: Value,
     _ toDiffImage: @escaping (Value, Value) -> Value,
     _ toData: (Value) throws -> Data
-  ) throws -> [DiffAttachment] {
+  ) throws -> [SnapshotFailure.Artifact] {
     let diff = toDiffImage(old, new)
     return [
-      DiffAttachment.data(try toData(old), name: "old"),
-      DiffAttachment.data(try toData(new), name: "new"),
-      DiffAttachment.data(try toData(diff), name: "diff")
+      .init(name: "old", data: try toData(old)),
+      .init(name: "new", data: try toData(new)),
+      .init(name: "diff", data: try toData(diff))
     ]
   }
 }

@@ -34,7 +34,7 @@ extension Diffing where Value == UIImage {
     ) { old, new in
       try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
         .snapshotFailure {
-          try self.attachments(old, new, diffImage, convertToData)
+          try self.artifacts(old, new, diffImage, convertToData)
         }
     }
   }
