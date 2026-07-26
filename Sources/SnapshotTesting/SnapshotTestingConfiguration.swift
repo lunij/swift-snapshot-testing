@@ -52,12 +52,10 @@ public func withSnapshotTesting<R>(
     SnapshotTestingConfiguration(
       record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
       diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool
-    ),
-    operation: {
-      try await operation()
-    },
-    isolation: isolation
-  )
+    )
+  ) {
+    try await operation()
+  }
 }
 
 /// The configuration for a snapshot test.
