@@ -1,532 +1,178 @@
-import XCTest
-
-@testable import SnapshotTesting
+#if os(iOS) || os(tvOS)
+import SnapshotTesting
+import Testing
 
 #if canImport(UIKit)
 import UIKit
 #endif
 
-final class TraitTests: BaseTestCase {
-  func testTraits() async {
-    #if os(iOS) || os(tvOS)
-    if #available(iOS 11.0, tvOS 11.0, *) {
-      let viewController = TraitsViewController()
+@MainActor
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct TraitTests {
+  @Test func `traits`() async {
+    let vc = TraitsViewController()
 
-      #if os(iOS)
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneSe), named: "iphone-se")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhone8), named: "iphone-8")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhone8Plus), named: "iphone-8-plus")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneX), named: "iphone-x")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneXr), named: "iphone-xr")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneXsMax), named: "iphone-xs-max")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadMini), named: "ipad-mini")
-      await assertSnapshot(of: viewController, as: .image(on: .iPad9_7), named: "ipad-9-7")
-      await assertSnapshot(of: viewController, as: .image(on: .iPad10_2), named: "ipad-10-2")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadPro10_5), named: "ipad-pro-10-5")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadPro11), named: "ipad-pro-11")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadPro12_9), named: "ipad-pro-12-9")
+    #if os(iOS)
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneSe), named: "iphone-se")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8), named: "iphone-8")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8Plus), named: "iphone-8-plus")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneX), named: "iphone-x")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXr), named: "iphone-xr")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXsMax), named: "iphone-xs-max")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini), named: "ipad-mini")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7), named: "ipad-9-7")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2), named: "ipad-10-2")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5), named: "ipad-pro-10-5")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11), named: "ipad-pro-11")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9), named: "ipad-pro-12-9")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPhoneSe),
-        named: "iphone-se"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPhone8),
-        named: "iphone-8"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPhone8Plus),
-        named: "iphone-8-plus"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPhoneX),
-        named: "iphone-x"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPhoneXr),
-        named: "iphone-xr"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPhoneXsMax),
-        named: "iphone-xs-max"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPadMini),
-        named: "ipad-mini"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPad9_7),
-        named: "ipad-9-7"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPad10_2),
-        named: "ipad-10-2"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPadPro10_5),
-        named: "ipad-pro-10-5"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPadPro11),
-        named: "ipad-pro-11"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .recursiveDescription(on: .iPadPro12_9),
-        named: "ipad-pro-12-9"
-      )
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhoneSe), named: "iphone-se")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhone8), named: "iphone-8")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhone8Plus), named: "iphone-8-plus")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhoneX), named: "iphone-x")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhoneXr), named: "iphone-xr")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhoneXsMax), named: "iphone-xs-max")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPadMini), named: "ipad-mini")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPad9_7), named: "ipad-9-7")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPad10_2), named: "ipad-10-2")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPadPro10_5), named: "ipad-pro-10-5")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPadPro11), named: "ipad-pro-11")
+    await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPadPro12_9), named: "ipad-pro-12-9")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneSe(.portrait)),
-        named: "iphone-se"
-      )
-      await assertSnapshot(of: viewController, as: .image(on: .iPhone8(.portrait)), named: "iphone-8")
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhone8Plus(.portrait)),
-        named: "iphone-8-plus"
-      )
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneX(.portrait)), named: "iphone-x")
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneXr(.portrait)),
-        named: "iphone-xr"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneXsMax(.portrait)),
-        named: "iphone-xs-max"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.landscape)),
-        named: "ipad-mini"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.landscape)),
-        named: "ipad-9-7"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.landscape)),
-        named: "ipad-10-2"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.landscape)),
-        named: "ipad-pro-10-5"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.landscape)),
-        named: "ipad-pro-11"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.landscape)),
-        named: "ipad-pro-12-9"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneSe(.portrait)), named: "iphone-se")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8(.portrait)), named: "iphone-8")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8Plus(.portrait)), named: "iphone-8-plus")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneX(.portrait)), named: "iphone-x")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXr(.portrait)), named: "iphone-xr")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXsMax(.portrait)), named: "iphone-xs-max")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.landscape)), named: "ipad-mini")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.landscape)), named: "ipad-9-7")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.landscape)), named: "ipad-10-2")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.landscape)), named: "ipad-pro-10-5")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.landscape)), named: "ipad-pro-11")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.landscape)), named: "ipad-pro-12-9")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.landscape(splitView: .oneThird))),
-        named: "ipad-mini-33-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.landscape(splitView: .oneHalf))),
-        named: "ipad-mini-50-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.landscape(splitView: .twoThirds))),
-        named: "ipad-mini-66-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.portrait(splitView: .oneThird))),
-        named: "ipad-mini-33-split-portrait"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.portrait(splitView: .twoThirds))),
-        named: "ipad-mini-66-split-portrait"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.landscape(splitView: .oneThird))), named: "ipad-mini-33-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.landscape(splitView: .oneHalf))), named: "ipad-mini-50-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.landscape(splitView: .twoThirds))), named: "ipad-mini-66-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.portrait(splitView: .oneThird))), named: "ipad-mini-33-split-portrait")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.portrait(splitView: .twoThirds))), named: "ipad-mini-66-split-portrait")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.landscape(splitView: .oneThird))),
-        named: "ipad-9-7-33-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.landscape(splitView: .oneHalf))),
-        named: "ipad-9-7-50-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.landscape(splitView: .twoThirds))),
-        named: "ipad-9-7-66-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.portrait(splitView: .oneThird))),
-        named: "ipad-9-7-33-split-portrait"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.portrait(splitView: .twoThirds))),
-        named: "ipad-9-7-66-split-portrait"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.landscape(splitView: .oneThird))), named: "ipad-9-7-33-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.landscape(splitView: .oneHalf))), named: "ipad-9-7-50-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.landscape(splitView: .twoThirds))), named: "ipad-9-7-66-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.portrait(splitView: .oneThird))), named: "ipad-9-7-33-split-portrait")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.portrait(splitView: .twoThirds))), named: "ipad-9-7-66-split-portrait")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.landscape(splitView: .oneThird))),
-        named: "ipad-10-2-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.landscape(splitView: .oneHalf))),
-        named: "ipad-10-2-50-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.landscape(splitView: .twoThirds))),
-        named: "ipad-10-2-66-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.portrait(splitView: .oneThird))),
-        named: "ipad-10-2-33-split-portrait"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.portrait(splitView: .twoThirds))),
-        named: "ipad-10-2-66-split-portrait"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.landscape(splitView: .oneThird))), named: "ipad-10-2-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.landscape(splitView: .oneHalf))), named: "ipad-10-2-50-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.landscape(splitView: .twoThirds))), named: "ipad-10-2-66-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.portrait(splitView: .oneThird))), named: "ipad-10-2-33-split-portrait")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.portrait(splitView: .twoThirds))), named: "ipad-10-2-66-split-portrait")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.landscape(splitView: .oneThird))),
-        named: "ipad-pro-10inch-33-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.landscape(splitView: .oneHalf))),
-        named: "ipad-pro-10inch-50-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.landscape(splitView: .twoThirds))),
-        named: "ipad-pro-10inch-66-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.portrait(splitView: .oneThird))),
-        named: "ipad-pro-10inch-33-split-portrait"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.portrait(splitView: .twoThirds))),
-        named: "ipad-pro-10inch-66-split-portrait"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.landscape(splitView: .oneThird))), named: "ipad-pro-10inch-33-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.landscape(splitView: .oneHalf))), named: "ipad-pro-10inch-50-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.landscape(splitView: .twoThirds))), named: "ipad-pro-10inch-66-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.portrait(splitView: .oneThird))), named: "ipad-pro-10inch-33-split-portrait")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.portrait(splitView: .twoThirds))), named: "ipad-pro-10inch-66-split-portrait")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.landscape(splitView: .oneThird))),
-        named: "ipad-pro-11inch-33-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.landscape(splitView: .oneHalf))),
-        named: "ipad-pro-11inch-50-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.landscape(splitView: .twoThirds))),
-        named: "ipad-pro-11inch-66-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.portrait(splitView: .oneThird))),
-        named: "ipad-pro-11inch-33-split-portrait"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.portrait(splitView: .twoThirds))),
-        named: "ipad-pro-11inch-66-split-portrait"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.landscape(splitView: .oneThird))), named: "ipad-pro-11inch-33-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.landscape(splitView: .oneHalf))), named: "ipad-pro-11inch-50-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.landscape(splitView: .twoThirds))), named: "ipad-pro-11inch-66-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.portrait(splitView: .oneThird))), named: "ipad-pro-11inch-33-split-portrait")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.portrait(splitView: .twoThirds))), named: "ipad-pro-11inch-66-split-portrait")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.landscape(splitView: .oneThird))),
-        named: "ipad-pro-12inch-33-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.landscape(splitView: .oneHalf))),
-        named: "ipad-pro-12inch-50-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.landscape(splitView: .twoThirds))),
-        named: "ipad-pro-12inch-66-split-landscape"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.portrait(splitView: .oneThird))),
-        named: "ipad-pro-12inch-33-split-portrait"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.portrait(splitView: .twoThirds))),
-        named: "ipad-pro-12inch-66-split-portrait"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.landscape(splitView: .oneThird))), named: "ipad-pro-12inch-33-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.landscape(splitView: .oneHalf))), named: "ipad-pro-12inch-50-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.landscape(splitView: .twoThirds))), named: "ipad-pro-12inch-66-split-landscape")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.portrait(splitView: .oneThird))), named: "ipad-pro-12inch-33-split-portrait")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.portrait(splitView: .twoThirds))), named: "ipad-pro-12inch-66-split-portrait")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneSe(.landscape)),
-        named: "iphone-se-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhone8(.landscape)),
-        named: "iphone-8-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhone8Plus(.landscape)),
-        named: "iphone-8-plus-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneX(.landscape)),
-        named: "iphone-x-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneXr(.landscape)),
-        named: "iphone-xr-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneXsMax(.landscape)),
-        named: "iphone-xs-max-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.portrait)),
-        named: "ipad-mini-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.portrait)),
-        named: "ipad-9-7-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.portrait)),
-        named: "ipad-10-2-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.portrait)),
-        named: "ipad-pro-10-5-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.portrait)),
-        named: "ipad-pro-11-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.portrait)),
-        named: "ipad-pro-12-9-alternative"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneSe(.landscape)), named: "iphone-se-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8(.landscape)), named: "iphone-8-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8Plus(.landscape)), named: "iphone-8-plus-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneX(.landscape)), named: "iphone-x-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXr(.landscape)), named: "iphone-xr-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXsMax(.landscape)), named: "iphone-xs-max-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.portrait)), named: "ipad-mini-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.portrait)), named: "ipad-9-7-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.portrait)), named: "ipad-10-2-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.portrait)), named: "ipad-pro-10-5-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.portrait)), named: "ipad-pro-11-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.portrait)), named: "ipad-pro-12-9-alternative")
 
-      for (name, contentSize) in allContentSizes {
-        await assertSnapshot(
-          of: viewController,
-          as: .image(on: .iPhoneSe, traits: { $0.preferredContentSizeCategory = contentSize }),
-          named: "iphone-se-\(name)"
-        )
-      }
-      #elseif os(tvOS)
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .tv),
-        named: "tv"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .tv4K),
-        named: "tv4k"
-      )
-      #endif
+    for (name, contentSize) in allContentSizes {
+      await assertSnapshot(of: vc, as: .image(on: .iPhoneSe, traits: { $0.preferredContentSizeCategory = contentSize }), named: "iphone-se-\(name)")
     }
+    #elseif os(tvOS)
+    await assertSnapshot(of: viewController, as: .image(on: .tv), named: "tv")
+    await assertSnapshot(of: viewController, as: .image(on: .tv4K), named: "tv4k")
     #endif
   }
 
-  func testTraitsEmbeddedInTabNavigation() async {
-    #if os(iOS)
-    if #available(iOS 11.0, *) {
-      let myViewController = TraitsViewController()
-      let navController = UINavigationController(rootViewController: myViewController)
-      let viewController = UITabBarController()
-      viewController.setViewControllers([navController], animated: false)
+  #if os(iOS)
+  @Test func `traits embedded in tab navigation`() async {
+    let myViewController = TraitsViewController()
+    let navController = UINavigationController(rootViewController: myViewController)
+    let vc = UITabBarController()
+    vc.setViewControllers([navController], animated: false)
 
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneSe), named: "iphone-se")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhone8), named: "iphone-8")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhone8Plus), named: "iphone-8-plus")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneX), named: "iphone-x")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneXr), named: "iphone-xr")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneXsMax), named: "iphone-xs-max")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadMini), named: "ipad-mini")
-      await assertSnapshot(of: viewController, as: .image(on: .iPad9_7), named: "ipad-9-7")
-      await assertSnapshot(of: viewController, as: .image(on: .iPad10_2), named: "ipad-10-2")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadPro10_5), named: "ipad-pro-10-5")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadPro11), named: "ipad-pro-11")
-      await assertSnapshot(of: viewController, as: .image(on: .iPadPro12_9), named: "ipad-pro-12-9")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneSe), named: "iphone-se")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8), named: "iphone-8")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8Plus), named: "iphone-8-plus")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneX), named: "iphone-x")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXr), named: "iphone-xr")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXsMax), named: "iphone-xs-max")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini), named: "ipad-mini")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7), named: "ipad-9-7")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2), named: "ipad-10-2")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5), named: "ipad-pro-10-5")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11), named: "ipad-pro-11")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9), named: "ipad-pro-12-9")
 
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneSe(.portrait)), named: "iphone-se")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhone8(.portrait)), named: "iphone-8")
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhone8Plus(.portrait)),
-        named: "iphone-8-plus"
-      )
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneX(.portrait)), named: "iphone-x")
-      await assertSnapshot(of: viewController, as: .image(on: .iPhoneXr(.portrait)), named: "iphone-xr")
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneXsMax(.portrait)),
-        named: "iphone-xs-max"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.landscape)),
-        named: "ipad-mini"
-      )
-      await assertSnapshot(of: viewController, as: .image(on: .iPad9_7(.landscape)), named: "ipad-9-7")
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.landscape)),
-        named: "ipad-10-2"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.landscape)),
-        named: "ipad-pro-10-5"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.landscape)),
-        named: "ipad-pro-11"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.landscape)),
-        named: "ipad-pro-12-9"
-      )
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneSe(.portrait)), named: "iphone-se")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8(.portrait)), named: "iphone-8")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8Plus(.portrait)), named: "iphone-8-plus")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneX(.portrait)), named: "iphone-x")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXr(.portrait)), named: "iphone-xr")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXsMax(.portrait)), named: "iphone-xs-max")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.landscape)), named: "ipad-mini")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.landscape)), named: "ipad-9-7")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.landscape)), named: "ipad-10-2")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.landscape)), named: "ipad-pro-10-5")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.landscape)), named: "ipad-pro-11")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.landscape)), named: "ipad-pro-12-9")
 
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneSe(.landscape)),
-        named: "iphone-se-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhone8(.landscape)),
-        named: "iphone-8-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhone8Plus(.landscape)),
-        named: "iphone-8-plus-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneX(.landscape)),
-        named: "iphone-x-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneXr(.landscape)),
-        named: "iphone-xr-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPhoneXsMax(.landscape)),
-        named: "iphone-xs-max-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadMini(.portrait)),
-        named: "ipad-mini-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad9_7(.portrait)),
-        named: "ipad-9-7-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPad10_2(.portrait)),
-        named: "ipad-10-2-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro10_5(.portrait)),
-        named: "ipad-pro-10-5-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro11(.portrait)),
-        named: "ipad-pro-11-alternative"
-      )
-      await assertSnapshot(
-        of: viewController,
-        as: .image(on: .iPadPro12_9(.portrait)),
-        named: "ipad-pro-12-9-alternative"
-      )
-    }
-    #endif
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneSe(.landscape)), named: "iphone-se-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8(.landscape)), named: "iphone-8-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhone8Plus(.landscape)), named: "iphone-8-plus-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneX(.landscape)), named: "iphone-x-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXr(.landscape)), named: "iphone-xr-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPhoneXsMax(.landscape)), named: "iphone-xs-max-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadMini(.portrait)), named: "ipad-mini-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPad9_7(.portrait)), named: "ipad-9-7-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPad10_2(.portrait)), named: "ipad-10-2-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro10_5(.portrait)), named: "ipad-pro-10-5-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro11(.portrait)), named: "ipad-pro-11-alternative")
+    await assertSnapshot(of: vc, as: .image(on: .iPadPro12_9(.portrait)), named: "ipad-pro-12-9-alternative")
   }
 
-  func testTraitsWithView() async {
-    #if os(iOS)
-    if #available(iOS 11.0, *) {
-      let label = UILabel()
-      label.font = .preferredFont(forTextStyle: .title1)
-      label.adjustsFontForContentSizeCategory = true
-      label.text = "What's the point?"
+  @Test func `traits with view`() async {
+    let label = UILabel()
+    label.font = .preferredFont(forTextStyle: .title1)
+    label.adjustsFontForContentSizeCategory = true
+    label.text = "What's the point?"
 
-      for (name, contentSize) in allContentSizes {
-        await assertSnapshot(
-          of: label,
-          as: .image(traits: { $0.preferredContentSizeCategory = contentSize }),
-          named: "label-\(name)"
-        )
-      }
+    for (name, contentSize) in allContentSizes {
+      await assertSnapshot(
+        of: label,
+        as: .image(traits: { $0.preferredContentSizeCategory = contentSize }),
+        named: "label-\(name)"
+      )
     }
-    #endif
   }
 
-  func testTraitsWithViewController() async {
-    #if os(iOS)
+  @Test func `traits with view controller`() async {
     let label = UILabel()
     label.font = .preferredFont(forTextStyle: .title1)
     label.adjustsFontForContentSizeCategory = true
@@ -556,11 +202,10 @@ final class TraitTests: BaseTestCase {
         named: "label-\(name)"
       )
     }
-    #endif
   }
+  #endif
 }
 
-#if os(iOS) || os(tvOS)
 private final class TraitsViewController: UIViewController {
   let topLabel = UILabel()
   let leadingLabel = UILabel()
@@ -653,7 +298,6 @@ private final class TraitsViewController: UIViewController {
     self.view.updateConstraintsIfNeeded()
   }
 }
-#endif
 
 #if os(iOS)
 private let allContentSizes =
@@ -671,4 +315,5 @@ private let allContentSizes =
     "accessibility-extra-extra-large": .accessibilityExtraExtraLarge,
     "accessibility-extra-extra-extra-large": .accessibilityExtraExtraExtraLarge
   ]
+#endif
 #endif
