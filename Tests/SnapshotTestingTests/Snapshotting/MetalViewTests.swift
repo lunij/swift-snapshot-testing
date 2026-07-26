@@ -1,8 +1,7 @@
 #if os(iOS) || os(macOS) || os(tvOS)
 import Foundation
-import XCTest
-
-@testable import SnapshotTesting
+import SnapshotTesting
+import Testing
 
 #if canImport(SceneKit)
 import SceneKit
@@ -11,8 +10,10 @@ import SceneKit
 import SpriteKit
 #endif
 
-final class MetalViewTests: BaseTestCase {
-  func testSCNView() async {
+@MainActor
+@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+struct MetalViewTests {
+  @Test func `scenekit view`() async {
     let scene = SCNScene()
 
     let sphereGeometry = SCNSphere(radius: 3)
@@ -45,7 +46,7 @@ final class MetalViewTests: BaseTestCase {
     )
   }
 
-  func testSKView() async {
+  @Test func `spritekit view`() async {
     let scene = SKScene(size: .init(width: 50, height: 50))
     let node = SKShapeNode(circleOfRadius: 15)
     node.fillColor = .red
