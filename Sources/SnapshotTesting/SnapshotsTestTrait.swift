@@ -40,7 +40,6 @@ extension Trait where Self == _SnapshotsTestTrait {
   }
 }
 
-#if compiler(>=6.1)
 extension _SnapshotsTestTrait: TestScoping {
   public func provideScope(
     for test: Test,
@@ -57,5 +56,4 @@ extension _SnapshotsTestTrait: TestScoping {
     }
   }
 }
-#endif
 #endif

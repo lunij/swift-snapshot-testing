@@ -124,7 +124,7 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
   if precision >= 1, perceptualPrecision >= 1 {
     return .isNotMatching
   }
-  if perceptualPrecision < 1, #available(iOS 11.0, tvOS 11.0, *) {
+  if perceptualPrecision < 1 {
     return perceptuallyCompare(
       CIImage(cgImage: oldCgImage),
       CIImage(cgImage: newCgImage),

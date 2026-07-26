@@ -27,12 +27,7 @@ extension Snapshotting where Value == UIBezierPath, Format == UIImage {
       scale: scale
     ).pullback { path in
       let bounds = path.bounds
-      let format: UIGraphicsImageRendererFormat
-      if #available(iOS 11.0, tvOS 11.0, *) {
-        format = UIGraphicsImageRendererFormat.preferred()
-      } else {
-        format = UIGraphicsImageRendererFormat.default()
-      }
+      let format = UIGraphicsImageRendererFormat.preferred()
       format.scale = scale
       return UIGraphicsImageRenderer(bounds: bounds, format: format).image { ctx in
         path.fill()
@@ -41,7 +36,6 @@ extension Snapshotting where Value == UIBezierPath, Format == UIImage {
   }
 }
 
-@available(iOS 11.0, tvOS 11.0, *)
 extension Snapshotting where Value == UIBezierPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   public static var elementsDescription: Snapshotting {

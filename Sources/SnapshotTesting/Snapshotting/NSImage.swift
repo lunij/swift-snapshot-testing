@@ -123,7 +123,7 @@ private func compare(
   if precision >= 1, perceptualPrecision >= 1 {
     return .isNotMatching
   }
-  if perceptualPrecision < 1, #available(macOS 10.13, *) {
+  if perceptualPrecision < 1 {
     return perceptuallyCompare(
       CIImage(cgImage: oldCgImage),
       CIImage(cgImage: newCgImage),

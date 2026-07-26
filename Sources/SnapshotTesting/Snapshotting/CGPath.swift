@@ -97,12 +97,7 @@ extension Snapshotting where Value == CGPath, Format == UIImage {
       scale: scale
     ).pullback { path in
       let bounds = path.boundingBoxOfPath
-      let format: UIGraphicsImageRendererFormat
-      if #available(iOS 11.0, tvOS 11.0, *) {
-        format = UIGraphicsImageRendererFormat.preferred()
-      } else {
-        format = UIGraphicsImageRendererFormat.default()
-      }
+      let format = UIGraphicsImageRendererFormat.preferred()
       format.scale = scale
       return UIGraphicsImageRenderer(bounds: bounds, format: format).image { ctx in
         let cgContext = ctx.cgContext
@@ -115,7 +110,6 @@ extension Snapshotting where Value == CGPath, Format == UIImage {
 #endif
 
 #if os(macOS) || os(iOS) || os(tvOS)
-@available(iOS 11.0, OSX 10.13, tvOS 11.0, *)
 extension Snapshotting where Value == CGPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on element descriptions.
   public static var elementsDescription: Snapshotting {

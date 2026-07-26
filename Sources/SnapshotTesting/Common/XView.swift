@@ -48,16 +48,12 @@ extension XView {
       if let scnView = self as? SCNView {
         return inWindow { scnView.snapshot() }
       } else if let skView = self as? SKView {
-        if #available(macOS 10.11, *) {
-          let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
-          #if os(macOS)
-          return XImage(cgImage: cgImage, size: skView.bounds.size)
-          #elseif os(iOS) || os(tvOS)
-          return XImage(cgImage: cgImage)
-          #endif
-        } else {
-          fatalError("Taking SKView snapshots requires macOS 10.11 or greater")
-        }
+        let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
+        #if os(macOS)
+        return XImage(cgImage: cgImage, size: skView.bounds.size)
+        #elseif os(iOS) || os(tvOS)
+        return XImage(cgImage: cgImage)
+        #endif
       }
       #if os(iOS) || os(macOS)
       if let wkWebView = self as? WKWebView {
@@ -360,7 +356,6 @@ private final class Window: UIWindow {
     fatalError("init(coder:) has not been implemented")
   }
 
-  @available(iOS 11.0, *)
   override var safeAreaInsets: UIEdgeInsets {
     #if os(iOS)
     let removeTopInset =
