@@ -91,3 +91,38 @@ extension Snapshotting where Value == WKWebView, Format == UIImage {
 
 The ``SnapshotTesting/Diffing`` type represents the ability to compare `Value`s and convert them to
 and from `Data`.
+
+To define a custom diffing strategy, use the ``Diffing/diff(toData:fromData:diffV2:)`` static method
+and return ``DiffAttachment`` values to describe failure artifacts such as reference images, failure
+images, and difference images:
+
+``` swift
+extension Diffing where Value == MyImage {
+  static let myImage = Diffing.diff(
+    toData: { $0.pngData()! },
+    fromData: { MyImage(data: $0)! }
+  ) { old, new in
+    guard old != new else { return nil }
+    return (
+      "Images did not match",
+      [
+        .data(old.pngData()!, name: "reference.png"),
+        .data(new.pngData()!, name: "failure.png"),
+      ]
+    )
+  }
+}
+```
+
+``DiffAttachment`` values are surfaced as test attachments in Swift Testing results. The
+``DiffAttachment/data(_:name:)`` case accepts raw `Data` and a file name and is the preferred
+approach for custom strategies.
+
+If you need to access the diff result of an existing ``Diffing`` value directly, use the
+``Diffing/diffV2`` property, which returns `[DiffAttachment]`:
+
+``` swift
+if let (message, attachments) = diffing.diffV2(expected, actual) {
+  // attachments: [DiffAttachment]
+}
+```

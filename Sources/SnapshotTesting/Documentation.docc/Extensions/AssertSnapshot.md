@@ -10,10 +10,3 @@
 ### Custom assertions
 
 - ``verifySnapshot(of:as:named:record:snapshotDirectory:isolation:fileID:file:testName:line:column:)``
-
-### Deprecations
-
-- ``assertSnapshot(matching:as:named:record:timeout:file:testName:line:)``
-- ``assertSnapshots(matching:as:record:timeout:file:testName:line:)-4fz7d``
-- ``assertSnapshots(matching:as:record:timeout:file:testName:line:)-wq4j``
-- ``verifySnapshot(matching:as:named:record:snapshotDirectory:timeout:file:testName:line:)``
