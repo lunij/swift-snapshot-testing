@@ -7,18 +7,6 @@
 /// > Note: To customize tests when using Swift's native Testing library, use the
 /// > ``Testing/Trait/snapshots(diffTool:record:)`` trait.
 ///
-/// For example, to specify to put an entire test class in record mode you do the following:
-///
-/// ```swift
-/// class FeatureTests: XCTestCase {
-///   override func invokeTest() {
-///     withSnapshotTesting(record: .all) {
-///       super.invokeTest()
-///     }
-///   }
-/// }
-/// ```
-///
 /// - Parameters:
 ///   - record: The record mode to use while asserting snapshots.
 ///   - diffTool: The diff tool to use while asserting snapshots.
