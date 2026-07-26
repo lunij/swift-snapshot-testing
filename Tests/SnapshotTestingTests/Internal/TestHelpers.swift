@@ -1,4 +1,4 @@
-import XCTest
+import Foundation
 
 @testable import SnapshotTesting
 
@@ -6,21 +6,17 @@ let osVersion = ProcessInfo.processInfo.operatingSystemVersion
 
 #if os(iOS)
 let platform = "ios"
-#elseif os(tvOS)
-let platform = "tvos"
 #elseif os(macOS)
 let platform = "macos"
-extension NSTextField {
-  var text: String {
-    get { return self.stringValue }
-    set { self.stringValue = newValue }
-  }
-}
+#elseif os(tvOS)
+let platform = "tvos"
 #endif
 
 let CI = ProcessInfo.processInfo.environment["CI"] != nil
 
-#if os(macOS) || os(iOS) || os(tvOS)
+#if os(iOS) || os(macOS) || os(tvOS)
+import CoreGraphics
+
 extension CGPath {
   /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
   static var heart: CGPath {
@@ -63,6 +59,8 @@ extension CGPath {
 #endif
 
 #if os(iOS) || os(tvOS)
+import UIKit
+
 extension UIBezierPath {
   /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
   static var heart: UIBezierPath {
@@ -72,6 +70,8 @@ extension UIBezierPath {
 #endif
 
 #if os(macOS)
+import AppKit
+
 extension NSBezierPath {
   /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
   static var heart: NSBezierPath {
