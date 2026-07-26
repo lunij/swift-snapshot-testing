@@ -5,7 +5,8 @@ extension Snapshotting where Value == Data, Format == Data {
   public static var data: Snapshotting {
     .init(
       pathExtension: nil,
-      diffing: .diff(toData: { $0 }, fromData: { $0 }) { old, new in
+      serializer: SnapshotSerializer(toData: { $0 }, fromData: { $0 }),
+      comparator: SnapshotComparator { old, new in
         guard old != new else { return nil }
         let reason =
           old.count == new.count

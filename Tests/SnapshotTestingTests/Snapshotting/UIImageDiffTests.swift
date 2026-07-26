@@ -26,7 +26,7 @@ struct UIImageDiffTests {
       "Precondition failed: the reference must decode to a sub-32bpp image to reproduce"
     )
 
-    let failure = try #require(try Diffing<UIImage>.image.diff(old, new))
+    let failure = try #require(try SnapshotComparator<UIImage>.image.diff(old, new))
     let diffData = try #require(
       failure.artifacts.compactMap { artifact -> Data? in
         guard artifact.name == "diff" else { return nil }
@@ -47,7 +47,7 @@ struct UIImageDiffTests {
   }
 
   /// Builds a `UIImage` backed by ImageIO's native decode of a grayscale PNG, like a reference
-  /// image loaded from disk by `Diffing.fromData`.
+  /// image loaded from disk by `SnapshotSerializer.fromData`.
   private func grayscalePNGImage(
     width: Int,
     height: Int,

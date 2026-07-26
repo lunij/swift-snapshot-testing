@@ -13,8 +13,8 @@ Powerfully flexible snapshot testing.
 
 - <doc:CustomStrategies>
 - ``Snapshotting``
-- ``Diffing``
-- ``Async``
+- ``SnapshotSerializer``
+- ``SnapshotComparator``
 
 ### Configuration
 

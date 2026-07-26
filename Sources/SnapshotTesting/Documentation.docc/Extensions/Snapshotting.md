@@ -40,8 +40,8 @@
 
 ### Defining a strategy
 
-- ``init(pathExtension:diffing:snapshot:)``
-- ``init(pathExtension:diffing:)``
+- ``init(pathExtension:serializer:comparator:snapshot:)``
+- ``init(pathExtension:serializer:comparator:)``
 
 ### Transforming strategies
 
@@ -52,7 +52,8 @@
 ### Properties
 
 - ``snapshot``
-- ``diffing``
+- ``serializer``
+- ``comparator``
 - ``pathExtension``
 
 ### Supporting types

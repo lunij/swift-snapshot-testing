@@ -15,7 +15,8 @@ extension Snapshotting {
   ) -> Self {
     Self(
       pathExtension: strategy.pathExtension,
-      diffing: strategy.diffing
+      serializer: strategy.serializer,
+      comparator: strategy.comparator
     ) { value in
       try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
       return await strategy.snapshot(value)

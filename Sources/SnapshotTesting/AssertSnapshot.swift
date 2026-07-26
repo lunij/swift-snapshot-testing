@@ -303,7 +303,7 @@ public func verifySnapshot<Value, Format>(
       let diffable = await snapshotting.snapshot(snapshotValue)
 
       func recordSnapshot(writeToDisk: Bool) async throws {
-        let snapshotData = try snapshotting.diffing.toData(diffable)
+        let snapshotData = try snapshotting.serializer.toData(diffable)
 
         if writeToDisk {
           try snapshotData.write(to: snapshotFileUrl)
@@ -362,7 +362,7 @@ public func verifySnapshot<Value, Format>(
       let data = try Data(contentsOf: snapshotFileUrl)
       let reference: Format
       do {
-        reference = try snapshotting.diffing.fromData(data)
+        reference = try snapshotting.serializer.fromData(data)
       } catch {
         return """
           Couldn't load reference snapshot: \(error.localizedDescription)
@@ -373,7 +373,7 @@ public func verifySnapshot<Value, Format>(
           """
       }
 
-      guard let failure = try snapshotting.diffing.diff(reference, diffable) else {
+      guard let failure = try snapshotting.comparator.diff(reference, diffable) else {
         return nil
       }
       let artifacts = failure.artifacts
@@ -388,7 +388,7 @@ public func verifySnapshot<Value, Format>(
       let failedSnapshotFileUrl = artifactsSubUrl.appendingPathComponent(
         snapshotFileUrl.lastPathComponent
       )
-      try snapshotting.diffing.toData(diffable).write(to: failedSnapshotFileUrl)
+      try snapshotting.serializer.toData(diffable).write(to: failedSnapshotFileUrl)
 
       if !artifacts.isEmpty {
         #if !os(Linux) && !os(Android) && !os(Windows)

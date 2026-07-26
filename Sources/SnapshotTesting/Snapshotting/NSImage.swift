@@ -2,23 +2,10 @@
 import Accelerate.vImage
 import Cocoa
 
-extension Diffing where Value == NSImage {
-  /// A pixel-diffing strategy for NSImage's which requires a 100% match.
-  public static var image: Diffing {
-    Diffing.image()
-  }
-
-  /// A pixel-diffing strategy for NSImage that allows customizing how precise the matching must be.
-  ///
-  /// - Parameters:
-  ///   - precision: The percentage of pixels that must match.
-  ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-  ///     match. 98-99% mimics
-  ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-  ///     human eye.
-  /// - Returns: A new diffing strategy.
-  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
-    .diff(
+extension SnapshotSerializer where Value == NSImage {
+  /// A PNG serializer for NSImage.
+  public static var image: SnapshotSerializer {
+    SnapshotSerializer(
       toData: convertToData,
       fromData: { data in
         guard let image = NSImage(data: data) else {
@@ -26,7 +13,24 @@ extension Diffing where Value == NSImage {
         }
         return image
       }
-    ) { old, new in
+    )
+  }
+}
+
+extension SnapshotComparator where Value == NSImage {
+  /// A pixel-diffing comparator for NSImage that requires a 100% match.
+  public static var image: SnapshotComparator { .image() }
+
+  /// A pixel-diffing comparator for NSImage.
+  ///
+  /// - Parameters:
+  ///   - precision: The percentage of pixels that must match.
+  ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
+  ///     match. 98-99% mimics
+  ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
+  ///     human eye.
+  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> SnapshotComparator {
+    SnapshotComparator { old, new in
       try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
         .snapshotFailure {
           try self.artifacts(old, new, diffImage, convertToData)
@@ -52,7 +56,8 @@ extension Snapshotting where Value == NSImage, Format == NSImage {
   public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
     .init(
       pathExtension: "png",
-      diffing: .image(precision: precision, perceptualPrecision: perceptualPrecision)
+      serializer: .image,
+      comparator: .image(precision: precision, perceptualPrecision: perceptualPrecision)
     )
   }
 }

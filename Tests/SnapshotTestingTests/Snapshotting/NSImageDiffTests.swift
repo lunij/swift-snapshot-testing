@@ -28,18 +28,18 @@ struct NSImageDiffTests {
 
     // 50/101 columns differ. Each differing pixel contributes 3 changed bytes (R,G,B) and 1
     // unchanged (A=255), giving ~37% byte mismatch. precision=0.4 allows 60% → passes.
-    let shouldPass = try Diffing<NSImage>.image(precision: 0.4, perceptualPrecision: 1)
+    let shouldPass = try SnapshotComparator<NSImage>.image(precision: 0.4, perceptualPrecision: 1)
       .diff(old, new)
     #expect(shouldPass == nil)
 
     // ~37% byte mismatch. precision=0.7 allows only 30% → fails.
-    let shouldFail = try Diffing<NSImage>.image(precision: 0.7, perceptualPrecision: 1)
+    let shouldFail = try SnapshotComparator<NSImage>.image(precision: 0.7, perceptualPrecision: 1)
       .diff(old, new)
     #expect(shouldFail != nil)
   }
 
   /// Builds an NSImage backed by ImageIO's native decode of a grayscale PNG, matching how
-  /// reference images are loaded from disk by Diffing.fromData.
+  /// reference images are loaded from disk by SnapshotSerializer.fromData.
   private func grayscaleNSImage(
     width: Int,
     height: Int,

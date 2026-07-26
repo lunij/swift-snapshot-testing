@@ -6,8 +6,11 @@ public struct Snapshotting<Value, Format> {
   /// The path extension applied to references saved to disk.
   public var pathExtension: String?
 
-  /// How the snapshot format is diffed and converted to and from data.
-  public var diffing: Diffing<Format>
+  /// Serializes and deserializes the snapshot format to and from `Data` for disk storage.
+  public var serializer: SnapshotSerializer<Format>
+
+  /// Compares two snapshot format values and produces a failure description when they differ.
+  public var comparator: SnapshotComparator<Format>
 
   /// How a value is transformed into a diffable snapshot format.
   ///
@@ -19,16 +22,19 @@ public struct Snapshotting<Value, Format> {
   ///
   /// - Parameters:
   ///   - pathExtension: The path extension applied to references saved to disk.
-  ///   - diffing: How to diff and convert the snapshot format to and from data.
+  ///   - serializer: How to serialize and deserialize the snapshot format to and from `Data`.
+  ///   - comparator: How to compare two snapshot format values.
   ///   - snapshot: A transform function from a value into a diffable snapshot format.
   ///     Synchronous closures are accepted because non-async is a subtype of async in Swift.
   public init(
     pathExtension: String?,
-    diffing: Diffing<Format>,
+    serializer: SnapshotSerializer<Format>,
+    comparator: SnapshotComparator<Format>,
     snapshot: nonisolated(nonsending) @escaping (_ value: Value) async -> Format
   ) {
     self.pathExtension = pathExtension
-    self.diffing = diffing
+    self.serializer = serializer
+    self.comparator = comparator
     self.snapshot = snapshot
   }
 
@@ -65,7 +71,8 @@ public struct Snapshotting<Value, Format> {
   ) -> Snapshotting<NewValue, Format> {
     Snapshotting<NewValue, Format>(
       pathExtension: pathExtension,
-      diffing: diffing
+      serializer: serializer,
+      comparator: comparator
     ) { newValue in
       await self.snapshot(transform(newValue))
     }
@@ -86,7 +93,8 @@ public struct Snapshotting<Value, Format> {
   ) -> Snapshotting<NewValue, Format> {
     Snapshotting<NewValue, Format>(
       pathExtension: pathExtension,
-      diffing: diffing
+      serializer: serializer,
+      comparator: comparator
     ) { newValue in
       await self.snapshot(await transform(newValue))
     }
@@ -97,10 +105,15 @@ public struct Snapshotting<Value, Format> {
 public typealias SimplySnapshotting<Format> = Snapshotting<Format, Format>
 
 extension Snapshotting where Value == Format {
-  public init(pathExtension: String?, diffing: Diffing<Format>) {
+  public init(
+    pathExtension: String?,
+    serializer: SnapshotSerializer<Format>,
+    comparator: SnapshotComparator<Format>
+  ) {
     self.init(
       pathExtension: pathExtension,
-      diffing: diffing,
+      serializer: serializer,
+      comparator: comparator,
       snapshot: { $0 }
     )
   }

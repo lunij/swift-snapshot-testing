@@ -3,17 +3,24 @@ import Foundation
 extension Snapshotting where Value == String, Format == String {
   /// A snapshot strategy for comparing strings based on equality.
   public static var lines: Snapshotting {
-    Snapshotting(pathExtension: "txt", diffing: .lines)
+    Snapshotting(pathExtension: "txt", serializer: .lines, comparator: .lines)
   }
 }
 
-extension Diffing where Value == String {
-  /// A line-diffing strategy for UTF-8 text.
-  public static var lines: Diffing {
-    Diffing.diff(
+extension SnapshotSerializer where Value == String {
+  /// A UTF-8 text serializer.
+  public static var lines: SnapshotSerializer {
+    SnapshotSerializer(
       toData: { Data($0.utf8) },
       fromData: { String(decoding: $0, as: UTF8.self) }
-    ) { old, new in
+    )
+  }
+}
+
+extension SnapshotComparator where Value == String {
+  /// A line-diffing comparator for UTF-8 text.
+  public static var lines: SnapshotComparator {
+    SnapshotComparator { old, new in
       guard old != new else { return nil }
       let differences = SnapshotTesting.diff(
         old.split(separator: "\n", omittingEmptySubsequences: false).map(String.init),

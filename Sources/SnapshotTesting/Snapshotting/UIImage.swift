@@ -2,28 +2,15 @@
 import Accelerate.vImage
 import UIKit
 
-extension Diffing where Value == UIImage {
-  /// A pixel-diffing strategy for UIImage's which requires a 100% match.
-  public static var image: Diffing {
-    Diffing.image()
-  }
+extension SnapshotSerializer where Value == UIImage {
+  /// A PNG serializer for UIImage, decoding references at scale 1.
+  public static var image: SnapshotSerializer { .image() }
 
-  /// A pixel-diffing strategy for UIImage that allows customizing how precise the matching must be.
+  /// A PNG serializer for UIImage.
   ///
-  /// - Parameters:
-  ///   - precision: The percentage of pixels that must match.
-  ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-  ///     match. 98-99% mimics
-  ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-  ///     human eye.
-  ///   - scale: The scale used to decode the reference image from disk. Defaults to `1`.
-  /// - Returns: A new diffing strategy.
-  public static func image(
-    precision: Float = 1,
-    perceptualPrecision: Float = 1,
-    scale: CGFloat = 1
-  ) -> Diffing {
-    .diff(
+  /// - Parameter scale: The scale used to decode the reference image from disk. Defaults to `1`.
+  public static func image(scale: CGFloat = 1) -> SnapshotSerializer {
+    SnapshotSerializer(
       toData: convertToData,
       fromData: { data in
         guard let image = UIImage(data: data, scale: scale) else {
@@ -31,7 +18,27 @@ extension Diffing where Value == UIImage {
         }
         return image
       }
-    ) { old, new in
+    )
+  }
+}
+
+extension SnapshotComparator where Value == UIImage {
+  /// A pixel-diffing comparator for UIImage that requires a 100% match.
+  public static var image: SnapshotComparator { .image() }
+
+  /// A pixel-diffing comparator for UIImage.
+  ///
+  /// - Parameters:
+  ///   - precision: The percentage of pixels that must match.
+  ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
+  ///     match. 98-99% mimics
+  ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
+  ///     human eye.
+  public static func image(
+    precision: Float = 1,
+    perceptualPrecision: Float = 1
+  ) -> SnapshotComparator {
+    SnapshotComparator { old, new in
       try compare(old, new, precision: precision, perceptualPrecision: perceptualPrecision)
         .snapshotFailure {
           try self.artifacts(old, new, diffImage, convertToData)
@@ -62,11 +69,8 @@ extension Snapshotting where Value == UIImage, Format == UIImage {
   ) -> Snapshotting {
     .init(
       pathExtension: "png",
-      diffing: .image(
-        precision: precision,
-        perceptualPrecision: perceptualPrecision,
-        scale: scale
-      )
+      serializer: .image(scale: scale),
+      comparator: .image(precision: precision, perceptualPrecision: perceptualPrecision)
     )
   }
 }

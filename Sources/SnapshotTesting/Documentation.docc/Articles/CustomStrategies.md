@@ -1,8 +1,8 @@
 # Defining custom snapshot strategies
 
 While SnapshotTesting comes with a wide variety of snapshot strategies, it can also be extended with
-custom, user-defined strategies using the ``SnapshotTesting/Snapshotting`` and
-``SnapshotTesting/Diffing`` types.
+custom, user-defined strategies using the ``SnapshotTesting/Snapshotting``,
+``SnapshotTesting/SnapshotSerializer``, and ``SnapshotTesting/SnapshotComparator`` types.
 
 ## Snapshotting
 
@@ -35,8 +35,8 @@ in this case `(UIViewController) -> UIView`.
 ### Creating brand new strategies
 
 Most strategies can be built from existing ones, but if you've defined your own
-``SnapshotTesting/Diffing`` strategy, you may need to create a base ``SnapshotTesting/Snapshotting``
-value alongside it.
+``SnapshotTesting/SnapshotSerializer`` and ``SnapshotTesting/SnapshotComparator``, you can create a
+base ``SnapshotTesting/Snapshotting`` value from them directly.
 
 ### Asynchronous Strategies
 
@@ -75,7 +75,8 @@ asynchronous strategies without going through `asyncPullback`:
 extension Snapshotting where Value == WKWebView, Format == UIImage {
   public static let image = Snapshotting(
     pathExtension: "png",
-    diffing: .image,
+    serializer: .image,
+    comparator: .image,
     snapshot: { @MainActor webView async -> UIImage in
       await withCheckedContinuation { continuation in
         webView.takeSnapshot(with: nil) { image, _ in
@@ -87,42 +88,38 @@ extension Snapshotting where Value == WKWebView, Format == UIImage {
 }
 ```
 
-## Diffing
+## SnapshotSerializer and SnapshotComparator
 
-The ``SnapshotTesting/Diffing`` type represents the ability to compare `Value`s and convert them to
-and from `Data`.
+Two types handle the persistence and comparison concerns of a snapshot format value:
 
-To define a custom diffing strategy, use the ``Diffing/diff(toData:fromData:diffV2:)`` static method
-and return ``DiffAttachment`` values to describe failure artifacts such as reference images, failure
-images, and difference images:
+- ``SnapshotTesting/SnapshotSerializer`` converts a snapshot format value to and from raw `Data` for
+  disk storage.
+- ``SnapshotTesting/SnapshotComparator`` compares two snapshot format values and produces a
+  ``SnapshotTesting/SnapshotFailure`` when they differ.
+
+To define custom serialization and comparison for a type, initialize each with the appropriate
+closure:
 
 ``` swift
-extension Diffing where Value == MyImage {
-  static let myImage = Diffing.diff(
+extension SnapshotSerializer where Value == MyImage {
+  static let myImage = SnapshotSerializer(
     toData: { $0.pngData()! },
     fromData: { MyImage(data: $0)! }
-  ) { old, new in
+  )
+}
+
+extension SnapshotComparator where Value == MyImage {
+  static let myImage = SnapshotComparator { old, new in
     guard old != new else { return nil }
-    return (
-      "Images did not match",
-      [
-        .data(old.pngData()!, name: "reference.png"),
-        .data(new.pngData()!, name: "failure.png"),
+    return SnapshotFailure(
+      reason: "Images did not match",
+      artifacts: [
+        .init(name: "reference", data: old.pngData()!),
+        .init(name: "failure", data: new.pngData()!),
       ]
     )
   }
 }
 ```
 
-``DiffAttachment`` values are surfaced as test attachments in Swift Testing results. The
-``DiffAttachment/data(_:name:)`` case accepts raw `Data` and a file name and is the preferred
-approach for custom strategies.
-
-If you need to access the diff result of an existing ``Diffing`` value directly, use the
-``Diffing/diffV2`` property, which returns `[DiffAttachment]`:
-
-``` swift
-if let (message, attachments) = diffing.diffV2(expected, actual) {
-  // attachments: [DiffAttachment]
-}
-```
+``SnapshotFailure/Artifact`` values are surfaced as test attachments in Swift Testing results.
