@@ -1,4 +1,5 @@
 import Foundation
+@_spi(Internals) import Snapshotting
 import Synchronization
 
 #if canImport(UIKit)
@@ -10,57 +11,6 @@ import AppKit
 #if canImport(Testing)
 import Testing
 #endif
-
-@_spi(Internals)
-public var _diffTool: SnapshotTestingConfiguration.DiffTool {
-  get {
-    #if canImport(Testing)
-    if let test = Test.current {
-      for trait in test.traits.reversed() {
-        if let diffTool = (trait as? _SnapshotsTestTrait)?.configuration.diffTool {
-          return diffTool
-        }
-      }
-    }
-    #endif
-    return __diffTool.withLock { $0 }
-  }
-  set {
-    __diffTool.withLock { $0 = newValue }
-  }
-}
-
-private let __diffTool = Mutex<SnapshotTestingConfiguration.DiffTool>(.default)
-
-@_spi(Internals)
-public var _record: SnapshotTestingConfiguration.Record {
-  get {
-    #if canImport(Testing)
-    if let test = Test.current {
-      for trait in test.traits.reversed() {
-        if let record = (trait as? _SnapshotsTestTrait)?.configuration.record {
-          return record
-        }
-      }
-    }
-    #endif
-    return __record.withLock { $0 }
-  }
-  set {
-    __record.withLock { $0 = newValue }
-  }
-}
-
-private let __record = Mutex<SnapshotTestingConfiguration.Record>(
-  {
-    if let value = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"],
-      let record = SnapshotTestingConfiguration.Record(rawValue: value)
-    {
-      return record
-    }
-    return .missing
-  }()
-)
 
 /// Asserts that a given value matches a reference on disk.
 ///

@@ -1,11 +1,14 @@
-/// Customizes `assertSnapshot` for the duration of an operation.
+import Foundation
+import Synchronization
+
+/// Customizes snapshotting for the duration of an operation.
 ///
-/// Use this operation to customize how the `assertSnapshot` function behaves in a test. It is most
-/// convenient to use in the context of XCTest where you can wrap `invokeTest` of an `XCTestCase`
-/// subclass so that the configuration applies to every test method.
+/// Use this operation to customize how snapshots are recorded, and how failures are reported, for a
+/// scoped region of code. The configuration is stored in a task local, so it applies to every
+/// snapshot taken within `operation`, including nested ones.
 ///
-/// > Note: To customize tests when using Swift's native Testing library, use the
-/// > ``Testing/Trait/snapshots(record:diffTool:)`` trait.
+/// > Note: When using Swift's native Testing library, prefer the `snapshots(record:diffTool:)`
+/// > trait, which applies a configuration to a whole test or suite.
 ///
 /// - Parameters:
 ///   - record: The record mode to use while asserting snapshots.
@@ -19,15 +22,14 @@ public func withSnapshotTesting<R>(
   try SnapshotTestingConfiguration.$current.withValue(
     SnapshotTestingConfiguration(
       record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
-      diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool
-        ?? SnapshotTesting._diffTool
+      diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool
     )
   ) {
     try operation()
   }
 }
 
-/// Customizes `assertSnapshot` for the duration of an asynchronous operation.
+/// Customizes snapshotting for the duration of an asynchronous operation.
 ///
 /// See ``withSnapshotTesting(record:diffTool:operation:)-2kuyr`` for more information.
 public func withSnapshotTesting<R>(
@@ -180,3 +182,36 @@ public struct SnapshotTestingConfiguration: Sendable {
     }
   }
 }
+
+@_spi(Internals)
+public var _diffTool: SnapshotTestingConfiguration.DiffTool {
+  get {
+    __diffTool.withLock { $0 }
+  }
+  set {
+    __diffTool.withLock { $0 = newValue }
+  }
+}
+
+private let __diffTool = Mutex<SnapshotTestingConfiguration.DiffTool>(.default)
+
+@_spi(Internals)
+public var _record: SnapshotTestingConfiguration.Record {
+  get {
+    __record.withLock { $0 }
+  }
+  set {
+    __record.withLock { $0 = newValue }
+  }
+}
+
+private let __record = Mutex<SnapshotTestingConfiguration.Record>(
+  {
+    if let value = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"],
+      let record = SnapshotTestingConfiguration.Record(rawValue: value)
+    {
+      return record
+    }
+    return .missing
+  }()
+)

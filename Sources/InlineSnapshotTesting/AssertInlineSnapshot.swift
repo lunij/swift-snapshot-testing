@@ -3,6 +3,7 @@ import Synchronization
 
 #if canImport(SwiftSyntax509)
 @_spi(Internals) import SnapshotTesting
+@_spi(Internals) import Snapshotting
 import SwiftParser
 import SwiftSyntax
 import SwiftSyntaxBuilder

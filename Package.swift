@@ -27,6 +27,7 @@ let package = Package(
     .testTarget(
       name: "SnapshotTestingTests",
       dependencies: [
+        "Snapshotting",
         "SnapshotTesting"
       ],
       exclude: [
@@ -38,6 +39,7 @@ let package = Package(
     .target(
       name: "InlineSnapshotTesting",
       dependencies: [
+        "Snapshotting",
         "SnapshotTesting",
         "SnapshotTestingCustomDump",
         .product(name: "SwiftParser", package: "swift-syntax"),
