@@ -11,18 +11,10 @@ let package = Package(
     .watchOS(.v11)
   ],
   products: [
-    .library(
-      name: "SnapshotTesting",
-      targets: ["SnapshotTesting"]
-    ),
-    .library(
-      name: "InlineSnapshotTesting",
-      targets: ["InlineSnapshotTesting"]
-    ),
-    .library(
-      name: "SnapshotTestingCustomDump",
-      targets: ["SnapshotTestingCustomDump"]
-    )
+    .library(name: "Snapshotting", targets: ["Snapshotting"]),
+    .library(name: "SnapshotTesting", targets: ["SnapshotTesting"]),
+    .library(name: "InlineSnapshotTesting", targets: ["InlineSnapshotTesting"]),
+    .library(name: "SnapshotTestingCustomDump", targets: ["SnapshotTestingCustomDump"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
@@ -30,9 +22,8 @@ let package = Package(
     .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0")
   ],
   targets: [
-    .target(
-      name: "SnapshotTesting"
-    ),
+    .target(name: "Snapshotting"),
+    .target(name: "SnapshotTesting", dependencies: ["Snapshotting"]),
     .testTarget(
       name: "SnapshotTestingTests",
       dependencies: [
