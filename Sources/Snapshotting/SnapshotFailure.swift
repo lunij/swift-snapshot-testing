@@ -25,5 +25,10 @@ public struct SnapshotFailure: Sendable {
   public struct Artifact: Sendable {
     public let name: String
     public let data: Data
+
+    public init(name: String, data: Data) {
+      self.name = name
+      self.data = data
+    }
   }
 }
