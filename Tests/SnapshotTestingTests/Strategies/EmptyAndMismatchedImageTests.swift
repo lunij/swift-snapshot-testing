@@ -2,6 +2,7 @@
 import Foundation
 import Testing
 @testable import SnapshotTesting
+@testable import Snapshotting
 
 @MainActor
 @Suite(.snapshots(record: .failed, diffTool: .ksdiff))

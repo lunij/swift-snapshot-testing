@@ -515,11 +515,18 @@ private func recordAttachment(
 ) {
   #if !os(Android) && !os(Linux) && !os(Windows)
   #if compiler(>=6.3) && (canImport(UIKit) || canImport(AppKit))
-  if name.hasSuffix(".png"),
-    let image = XImage(data: data)
-  {
-    Attachment.record(image, named: name, as: .png, sourceLocation: sourceLocation)
-    return
+  if name.hasSuffix(".png") {
+    #if os(macOS)
+    let image = NSImage(data: data)
+    #elseif os(iOS) || os(tvOS) || os(visionOS)
+    let image = UIImage(data: data)
+    #else
+    let image: Never? = nil
+    #endif
+    if let image {
+      Attachment.record(image, named: name, as: .png, sourceLocation: sourceLocation)
+      return
+    }
   }
   #endif
   Attachment.record(data, named: name, sourceLocation: sourceLocation)

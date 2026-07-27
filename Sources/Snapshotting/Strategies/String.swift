@@ -22,7 +22,7 @@ extension SnapshotComparator where Value == String {
   public static var lines: SnapshotComparator {
     SnapshotComparator { old, new in
       guard old != new else { return nil }
-      let differences = SnapshotTesting.diff(
+      let differences = Snapshotting.diff(
         old.split(separator: "\n", omittingEmptySubsequences: false).map(String.init),
         new.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
       )

@@ -163,9 +163,9 @@ public struct SnapshotTestingConfiguration: Sendable {
     /// The default diff tool.
     public static let `default` = Self {
       """
-      @\(minus)
+      @−
       "file://\($0)"
-      @\(plus)
+      @+
       "file://\($1)"
 
       To configure output for a custom diff tool, use 'withSnapshotTesting'. For example:

@@ -2,6 +2,7 @@
 import Foundation
 import Testing
 @testable import SnapshotTesting
+@testable import Snapshotting
 
 #if canImport(AppKit)
 import AppKit

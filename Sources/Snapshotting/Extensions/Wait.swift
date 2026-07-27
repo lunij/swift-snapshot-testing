@@ -1,5 +1,4 @@
 import Foundation
-import Snapshotting
 
 extension SnapshotStrategy {
   /// Transforms an existing snapshot strategy into one that waits for some amount of time before

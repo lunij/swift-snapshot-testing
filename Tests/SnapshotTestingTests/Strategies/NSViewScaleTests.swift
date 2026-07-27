@@ -1,7 +1,8 @@
 #if os(macOS)
 import AppKit
 import Testing
-@testable import SnapshotTesting
+import SnapshotTesting
+@testable import Snapshotting
 
 @Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct NSViewScaleTests {
