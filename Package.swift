@@ -26,7 +26,8 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
-    .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0"..<"605.0.0")
+    .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0"..<"605.0.0"),
+    .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0")
   ],
   targets: [
     .target(

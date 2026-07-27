@@ -56,6 +56,26 @@ jobs:
           name: xcresult-ios.zip
           path: .xcresults/xcresult-ios.zip
 
+  documentation:
+    strategy:
+      matrix:
+        xcode:
+          - '26.4'
+
+    name: DocC (Xcode ${{ matrix.xcode }})
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - name: Select Xcode ${{ matrix.xcode }}
+        run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
+      - name: Build documentation
+        run: |
+          swift package generate-documentation \
+            --target SnapshotTesting \
+            --target InlineSnapshotTesting \
+            --target SnapshotTestingCustomDump \
+            --warnings-as-errors
+
   linux:
     strategy:
       matrix:
