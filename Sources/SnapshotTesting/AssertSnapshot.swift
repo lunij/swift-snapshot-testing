@@ -69,9 +69,10 @@ private let __record = Mutex<SnapshotTestingConfiguration.Record>(
 ///   - strategy: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
 ///   - record: The record mode to use while asserting snapshots.
+///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
-///   - file: The file in which failure occurred. Defaults to the file path of the test case in
+///   - filePath: The file in which failure occurred. Defaults to the file path of the test case in
 ///     which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of
 ///     the test case in which this function was called.
@@ -119,10 +120,11 @@ public func assertSnapshot<Value, Format>(
 ///   - value: A value to compare against a reference.
 ///   - strategies: A dictionary of names and strategies for serializing, deserializing, and
 ///     comparing values.
-///   - recording: The record mode to use while asserting snapshots.
+///   - record: The record mode to use while asserting snapshots.
+///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
-///   - file: The file in which failure occurred. Defaults to the file path of the test case in
+///   - filePath: The file in which failure occurred. Defaults to the file path of the test case in
 ///     which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of
 ///     the test case in which this function was called.
@@ -163,9 +165,10 @@ public func assertSnapshots<Value, Format>(
 ///   - value: A value to compare against a reference.
 ///   - strategies: An array of strategies for serializing, deserializing, and comparing values.
 ///   - record: The record mode to use while asserting snapshots.
+///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
-///   - file: The file in which failure occurred. Defaults to the file path of the test case in
+///   - filePath: The file in which failure occurred. Defaults to the file path of the test case in
 ///     which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of
 ///     the test case in which this function was called.
@@ -240,12 +243,17 @@ public func assertSnapshots<Value, Format>(
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
 ///     in a directory with the same name as the test file, and that directory will sit inside a
 ///     directory `__Snapshots__` that sits next to your test file.
-///   - file: The file in which failure occurred. Defaults to the file name of the test case in
+///   - isolation: The actor to isolate to.
+///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
+///     which this function was called.
+///   - filePath: The file in which failure occurred. Defaults to the file path of the test case in
 ///     which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of
 ///     the test case in which this function was called.
 ///   - line: The line number on which failure occurred. Defaults to the line number on which this
 ///     function was called.
+///   - column: The column on which failure occurred. Defaults to the column on which this function
+///     was called.
 /// - Returns: A failure message or, if the value matches, nil.
 public func verifySnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,

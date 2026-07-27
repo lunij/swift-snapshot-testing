@@ -5,7 +5,7 @@
 /// subclass so that the configuration applies to every test method.
 ///
 /// > Note: To customize tests when using Swift's native Testing library, use the
-/// > ``Testing/Trait/snapshots(diffTool:record:)`` trait.
+/// > ``Testing/Trait/snapshots(record:diffTool:)`` trait.
 ///
 /// - Parameters:
 ///   - record: The record mode to use while asserting snapshots.

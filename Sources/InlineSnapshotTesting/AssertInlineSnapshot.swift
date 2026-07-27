@@ -15,16 +15,17 @@ import SwiftSyntaxBuilder
 ///   - value: A value to compare against a snapshot.
 ///   - strategy: A strategy for snapshotting and comparing values.
 ///   - message: An optional description of the assertion, for inclusion in test results.
-///   - isRecording: Whether or not to record a new reference.
+///   - record: Whether or not to record a new reference.
 ///   - syntaxDescriptor: An optional description of where the snapshot is inlined. This parameter
 ///     should be omitted unless you are writing a custom helper that calls this function under
 ///     the hood. See ``InlineSnapshotSyntaxDescriptor`` for more.
 ///   - expected: An optional closure that returns a previously generated snapshot. When omitted,
 ///     the library will automatically write a snapshot into your test file at the call sight of
 ///     the assertion.
+///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
-///   - file: The file in which failure occurred. Defaults to the file path of the test case in
+///   - filePath: The file in which failure occurred. Defaults to the file path of the test case in
 ///     which this function was called.
 ///   - function: The function where the assertion occurs. The default is the name of the test
 ///     method where you call this function.
@@ -242,7 +243,7 @@ public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
   ///   - message: An optional description of the assertion, for inclusion in test results.
   ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case
   ///     in which this function was called.
-  ///   - file: The file in which failure occurred. Defaults to the file path of the test case in
+  ///   - filePath: The file in which failure occurred. Defaults to the file path of the test case in
   ///     which this function was called.
   ///   - line: The line number on which failure occurred. Defaults to the line number on which
   ///     this function was called.

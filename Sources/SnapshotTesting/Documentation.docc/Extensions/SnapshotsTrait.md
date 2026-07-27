@@ -1,4 +1,4 @@
-# ``SnapshotTesting/Testing/Trait/snapshots(diffTool:record:)``
+# ``SnapshotTesting/Testing/Trait/snapshots(record:diffTool:)``
 
 ### Configuration
 
