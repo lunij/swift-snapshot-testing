@@ -40,4 +40,12 @@ format:
 		--recursive \
 		./Package.swift ./Sources ./Tests
 
+docs:
+	swift package generate-documentation \
+		--target Snapshotting \
+		--target SnapshotTesting \
+		--target InlineSnapshotTesting \
+		--target SnapshotTestingCustomDump \
+		--warnings-as-errors
+
 test-all: test-linux test-macos test-ios

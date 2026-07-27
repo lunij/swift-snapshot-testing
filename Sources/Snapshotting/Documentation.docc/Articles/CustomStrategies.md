@@ -1,12 +1,12 @@
 # Defining custom snapshot strategies
 
 While SnapshotTesting comes with a wide variety of snapshot strategies, it can also be extended with
-custom, user-defined strategies using the ``SnapshotTesting/SnapshotStrategy``,
-``SnapshotTesting/SnapshotSerializer``, and ``SnapshotTesting/SnapshotComparator`` types.
+custom, user-defined strategies using the ``Snapshotting/SnapshotStrategy``,
+``Snapshotting/SnapshotSerializer``, and ``Snapshotting/SnapshotComparator`` types.
 
 ## SnapshotStrategy
 
-The ``SnapshotTesting/SnapshotStrategy`` type represents the ability to transform a snapshottable value
+The ``Snapshotting/SnapshotStrategy`` type represents the ability to transform a snapshottable value
 (like a view or data structure) into a diffable format (like an image or text).
 
 ### Transforming existing strategies
@@ -35,12 +35,12 @@ in this case `(UIViewController) -> UIView`.
 ### Creating brand new strategies
 
 Most strategies can be built from existing ones, but if you've defined your own
-``SnapshotTesting/SnapshotSerializer`` and ``SnapshotTesting/SnapshotComparator``, you can create a
-base ``SnapshotTesting/SnapshotStrategy`` value from them directly.
+``Snapshotting/SnapshotSerializer`` and ``Snapshotting/SnapshotComparator``, you can create a
+base ``Snapshotting/SnapshotStrategy`` value from them directly.
 
 ### Asynchronous Strategies
 
-Some types need to be snapshot in an asynchronous fashion. ``SnapshotTesting/SnapshotStrategy``
+Some types need to be snapshot in an asynchronous fashion. ``Snapshotting/SnapshotStrategy``
 supports this natively: the `snapshot` closure and the transform passed to
 ``SnapshotStrategy/asyncPullback(_:)`` are both `async`, so you can `await` anything inside them.
 
@@ -92,10 +92,10 @@ extension SnapshotStrategy where Value == WKWebView, Format == UIImage {
 
 Two types handle the persistence and comparison concerns of a snapshot format value:
 
-- ``SnapshotTesting/SnapshotSerializer`` converts a snapshot format value to and from raw `Data` for
+- ``Snapshotting/SnapshotSerializer`` converts a snapshot format value to and from raw `Data` for
   disk storage.
-- ``SnapshotTesting/SnapshotComparator`` compares two snapshot format values and produces a
-  ``SnapshotTesting/SnapshotFailure`` when they differ.
+- ``Snapshotting/SnapshotComparator`` compares two snapshot format values and produces a
+  ``Snapshotting/SnapshotFailure`` when they differ.
 
 To define custom serialization and comparison for a type, initialize each with the appropriate
 closure:

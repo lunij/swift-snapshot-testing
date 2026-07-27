@@ -69,12 +69,7 @@ jobs:
       - name: Select Xcode ${{ matrix.xcode }}
         run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
       - name: Build documentation
-        run: |
-          swift package generate-documentation \
-            --target SnapshotTesting \
-            --target InlineSnapshotTesting \
-            --target SnapshotTestingCustomDump \
-            --warnings-as-errors
+        run: make docs
 
   linux:
     strategy:
