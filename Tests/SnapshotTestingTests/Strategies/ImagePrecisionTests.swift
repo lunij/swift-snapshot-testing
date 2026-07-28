@@ -25,11 +25,13 @@ struct ImagePrecisionTests {
     await assertSnapshot(of: view, as: .image(precision: 1, perceptualPrecision: 1), named: "\(platform)-modified")
 
     var message = await verifySnapshot(of: view, as: .image(precision: 0.999, perceptualPrecision: 1), named: "\(platform)-original", record: .never)
+      .failure
     let firstLine = message?.split(whereSeparator: \.isNewline).first
     #expect(firstLine == "[\(platform)-original] Image does not match reference (pixel precision 0.995 is less than required 0.999).")
 
     // 10000-100=9900 => 99% precision
     message = await verifySnapshot(of: view, as: .image(precision: 0.99, perceptualPrecision: 1), named: "\(platform)-original", record: .never)
+      .failure
     #expect(message == nil)
   }
 

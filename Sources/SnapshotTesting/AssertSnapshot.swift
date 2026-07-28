@@ -41,7 +41,7 @@ public func assertSnapshot<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) async {
-  let failure = await verifySnapshot(
+  let result = await verifySnapshot(
     of: try value(),
     as: strategy,
     named: name,
@@ -53,7 +53,14 @@ public func assertSnapshot<Value, Format>(
     line: line,
     column: column
   )
-  guard let message = failure else { return }
+  recordAttachments(
+    result.attachments,
+    fileID: fileID,
+    filePath: filePath,
+    line: line,
+    column: column
+  )
+  guard let message = result.failure else { return }
   recordIssue(
     message,
     fileID: fileID,
@@ -154,9 +161,9 @@ public func assertSnapshots<Value, Format>(
 /// Verifies that a given value matches a reference on disk.
 ///
 /// Third party snapshot assert helpers can be built on top of this function. Simply invoke
-/// `verifySnapshot` with your own arguments, and then invoke `XCTFail` with the string returned if
-/// it is non-`nil`. For example, if you want the snapshot directory to be determined by an
-/// environment variable, you can create your own assert helper like so:
+/// `verifySnapshot` with your own arguments, and then report an issue with the returned failure
+/// message if it is non-`nil`. For example, if you want the snapshot directory to be determined by
+/// an environment variable, you can create your own assert helper like so:
 ///
 /// ```swift
 /// public func myAssertSnapshot<Value, Format>(
@@ -170,7 +177,7 @@ public func assertSnapshots<Value, Format>(
 ///   ) async {
 ///
 ///     let snapshotDirectory = ProcessInfo.processInfo.environment["SNAPSHOT_REFERENCE_DIR"]! + "/" + #file
-///     let failure = await verifySnapshot(
+///     let result = await verifySnapshot(
 ///       of: try value(),
 ///       as: strategy,
 ///       named: name,
@@ -179,8 +186,8 @@ public func assertSnapshots<Value, Format>(
 ///       file: file,
 ///       testName: testName
 ///     )
-///     guard let message = failure else { return }
-///     XCTFail(message, file: file, line: line)
+///     guard let message = result.failure else { return }
+///     Issue.record(Comment(rawValue: message))
 /// }
 /// ```
 ///
@@ -203,7 +210,8 @@ public func assertSnapshots<Value, Format>(
 ///     function was called.
 ///   - column: The column on which failure occurred. Defaults to the column on which this function
 ///     was called.
-/// - Returns: A failure message or, if the value matches, nil.
+/// - Returns: The result of the comparison, carrying a failure message if the value did not match
+///   its reference, along with any artifacts worth attaching to the failure.
 public func verifySnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
@@ -216,9 +224,11 @@ public func verifySnapshot<Value, Format>(
   testName: String = #function,
   line: UInt = #line,
   column: UInt = #column
-) async -> String? {
+) async -> SnapshotResult {
   let record = record ?? SnapshotConfiguration.current?.record ?? _record
-  return await withSnapshotConfiguration(record: record, isolation: isolation) { () async -> String? in
+  return await withSnapshotConfiguration(record: record, isolation: isolation) {
+    () async -> SnapshotResult in
+    var attachments: [SnapshotFailure.Artifact] = []
     do {
       let location = SnapshotLocation(
         named: name,
@@ -238,60 +248,56 @@ public func verifySnapshot<Value, Format>(
       let snapshotValue = try value()
       let diffable = await strategy.snapshot(snapshotValue)
 
-      func recordSnapshot(writeToDisk: Bool) async throws {
+      func recordSnapshot(writeToDisk: Bool) throws {
         let snapshotData = try strategy.serializer.toData(diffable)
 
         if writeToDisk {
           try snapshotData.write(to: snapshotURL)
         }
 
-        #if !os(Android) && !os(Linux) && !os(Windows)
-        if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
-          #if compiler(>=6.2)
-          recordAttachment(
-            writeToDisk ? try Data(contentsOf: snapshotURL) : snapshotData,
-            named: snapshotURL.lastPathComponent,
-            sourceLocation: SourceLocation(
-              fileID: fileID.description,
-              filePath: filePath.description,
-              line: Int(line),
-              column: Int(column)
-            )
-          )
-          #endif
-        }
-        #endif
+        attachments.append(
+          SnapshotFailure.Artifact(name: snapshotURL.lastPathComponent, data: snapshotData)
+        )
       }
 
       if record == .all {
-        try await recordSnapshot(writeToDisk: true)
+        try recordSnapshot(writeToDisk: true)
 
-        return """
-          Record mode is on. Automatically recorded snapshot: …
+        return SnapshotResult(
+          failure: """
+            Record mode is on. Automatically recorded snapshot: …
 
-          open "\(snapshotURL.absoluteString)"
+            open "\(snapshotURL.absoluteString)"
 
-          Turn record mode off and re-run "\(location.testName)" to assert against the newly-recorded snapshot
-          """
+            Turn record mode off and re-run "\(location.testName)" to assert against the newly-recorded snapshot
+            """,
+          attachments: attachments
+        )
       }
 
       guard fileManager.fileExists(atPath: snapshotURL.path) else {
         if record == .never {
-          try await recordSnapshot(writeToDisk: false)
+          try recordSnapshot(writeToDisk: false)
 
-          return """
-            No reference was found on disk. New snapshot was not recorded because recording is disabled
-            """
+          return SnapshotResult(
+            failure: """
+              No reference was found on disk. New snapshot was not recorded because recording is disabled
+              """,
+            attachments: attachments
+          )
         } else {
-          try await recordSnapshot(writeToDisk: true)
+          try recordSnapshot(writeToDisk: true)
 
-          return """
-            No reference was found on disk. Automatically recorded snapshot: …
+          return SnapshotResult(
+            failure: """
+              No reference was found on disk. Automatically recorded snapshot: …
 
-            open "\(snapshotURL.absoluteString)"
+              open "\(snapshotURL.absoluteString)"
 
-            Re-run "\(location.testName)" to assert against the newly-recorded snapshot.
-            """
+              Re-run "\(location.testName)" to assert against the newly-recorded snapshot.
+              """,
+            attachments: attachments
+          )
         }
       }
 
@@ -300,19 +306,20 @@ public func verifySnapshot<Value, Format>(
       do {
         reference = try strategy.serializer.fromData(data)
       } catch {
-        return """
-          Couldn't load reference snapshot: \(error.localizedDescription)
+        return SnapshotResult(
+          failure: """
+            Couldn't load reference snapshot: \(error.localizedDescription)
 
-          The reference file may be corrupt. Delete it and re-run the test to record a new one:
+            The reference file may be corrupt. Delete it and re-run the test to record a new one:
 
-          open "\(snapshotURL.absoluteString)"
-          """
+            open "\(snapshotURL.absoluteString)"
+            """
+        )
       }
 
       guard let failure = try strategy.comparator.diff(reference, diffable) else {
-        return nil
+        return SnapshotResult()
       }
-      let artifacts = failure.artifacts
 
       try fileManager.createDirectory(
         at: location.artifactDirectory,
@@ -323,26 +330,7 @@ public func verifySnapshot<Value, Format>(
       )
       try strategy.serializer.toData(diffable).write(to: failedSnapshotURL)
 
-      if !artifacts.isEmpty {
-        #if !os(Linux) && !os(Android) && !os(Windows)
-        if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
-          #if compiler(>=6.2)
-          for artifact in artifacts {
-            recordAttachment(
-              artifact.data,
-              named: artifact.name,
-              sourceLocation: SourceLocation(
-                fileID: fileID.description,
-                filePath: filePath.description,
-                line: Int(line),
-                column: Int(column)
-              )
-            )
-          }
-          #endif
-        }
-        #endif
-      }
+      attachments.append(contentsOf: failure.artifacts)
 
       let diffMessage = (SnapshotConfiguration.current?.diffTool ?? _diffTool)(
         currentFilePath: snapshotURL.path,
@@ -360,7 +348,7 @@ public func verifySnapshot<Value, Format>(
       }
 
       if record == .failed {
-        try await recordSnapshot(writeToDisk: true)
+        try recordSnapshot(writeToDisk: true)
         failureMessage += " A new snapshot was automatically recorded."
       }
 
@@ -370,13 +358,19 @@ public func verifySnapshot<Value, Format>(
         failureMessage += "\n\n\(detail)"
       }
 
-      return """
-        \(failureMessage)
+      return SnapshotResult(
+        failure: """
+          \(failureMessage)
 
-        \(diffMessage)
-        """
+          \(diffMessage)
+          """,
+        attachments: attachments
+      )
     } catch {
-      return "Snapshot test failed: \(error.localizedDescription)"
+      return SnapshotResult(
+        failure: "Snapshot test failed: \(error.localizedDescription)",
+        attachments: attachments
+      )
     }
   }
 }
@@ -390,6 +384,35 @@ func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
   UTType(filenameExtension: pathExtension)?.identifier
 }
 #endif
+
+/// Reports snapshot artifacts to the test harness, so that they show up alongside the failure in
+/// Xcode's test report.
+private func recordAttachments(
+  _ attachments: [SnapshotFailure.Artifact],
+  fileID: StaticString,
+  filePath: StaticString,
+  line: UInt,
+  column: UInt
+) {
+  #if !os(Android) && !os(Linux) && !os(Windows)
+  #if compiler(>=6.2)
+  guard
+    !attachments.isEmpty,
+    ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS")
+  else { return }
+
+  let sourceLocation = SourceLocation(
+    fileID: fileID.description,
+    filePath: filePath.description,
+    line: Int(line),
+    column: Int(column)
+  )
+  for attachment in attachments {
+    recordAttachment(attachment.data, named: attachment.name, sourceLocation: sourceLocation)
+  }
+  #endif
+  #endif
+}
 
 private func recordAttachment(
   _ data: Data,
