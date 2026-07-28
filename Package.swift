@@ -29,6 +29,7 @@ let package = Package(
         "Snapshotting"
       ],
       exclude: [
+        "__Fixtures__",
         "__Snapshots__",
         "Strategies/__Snapshots__"
       ]

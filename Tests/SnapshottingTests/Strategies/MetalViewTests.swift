@@ -1,6 +1,6 @@
 #if os(iOS) || os(macOS) || os(tvOS)
 import Foundation
-import SnapshotTesting
+import Snapshotting
 import Testing
 
 #if canImport(SceneKit)
@@ -11,7 +11,6 @@ import SpriteKit
 #endif
 
 @MainActor
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct MetalViewTests {
   @Test func `scenekit view`() async {
     let scene = SCNScene()
@@ -39,7 +38,7 @@ struct MetalViewTests {
     omniLightNode.position = SCNVector3Make(10, 10, 10)
     scene.rootNode.addChildNode(omniLightNode)
 
-    await assertSnapshot(
+    await expectSnapshot(
       of: scene,
       as: .image(precision: 0.999, size: .init(width: 500, height: 500)),
       named: platform
@@ -53,7 +52,7 @@ struct MetalViewTests {
     node.position = .init(x: 25, y: 25)
     scene.addChild(node)
 
-    await assertSnapshot(
+    await expectSnapshot(
       of: scene,
       as: .image(size: .init(width: 50, height: 50)),
       named: platform
