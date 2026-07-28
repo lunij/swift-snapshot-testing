@@ -1,10 +1,9 @@
 #if os(macOS)
 import AppKit
 import Testing
-import SnapshotTesting
+
 @testable import Snapshotting
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct NSViewScaleTests {
   /// Verifies that `convertToImage(scale:2)` produces a 20×20-pixel image
   /// with a 10×10-point logical size, and that all four corners contain the

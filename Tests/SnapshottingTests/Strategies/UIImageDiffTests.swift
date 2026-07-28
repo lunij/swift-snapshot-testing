@@ -1,9 +1,8 @@
 #if os(iOS) || os(tvOS)
-import SnapshotTesting
+import Snapshotting
 import Testing
 import UIKit
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct UIImageDiffTests {
   /// The diff artifact must be correct regardless of the pixel format ImageIO chooses when
   /// decoding the reference. A grayscale PNG decodes to an 8-bits-per-pixel `CGImage`, and an

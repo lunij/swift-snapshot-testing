@@ -1,9 +1,8 @@
 #if os(macOS)
 import AppKit
-import SnapshotTesting
+import Snapshotting
 import Testing
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct NSImageDiffTests {
   /// The precision comparison must give correct pass/fail results regardless of the pixel format
   /// ImageIO chooses when decoding the reference. A grayscale PNG decodes to an 8-bits-per-pixel
