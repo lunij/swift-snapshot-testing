@@ -42,8 +42,7 @@ let package = Package(
         "SnapshotTesting"
       ],
       exclude: [
-        "__Snapshots__",
-        "Strategies/__Snapshots__"
+        "__Snapshots__"
       ]
     ),
     .target(
