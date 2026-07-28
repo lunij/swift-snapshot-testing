@@ -14,8 +14,8 @@ struct SnapshotFile {
   /// - Parameters:
   ///   - name: The reference file's name, including its path extension.
   ///   - filePath: The file requesting the snapshot.
-  init(_ name: String, filePath: StaticString = #filePath) {
-    let fileURL = URL(fileURLWithPath: "\(filePath)", isDirectory: false)
+  init(_ name: String, filePath: String) {
+    let fileURL = URL(fileURLWithPath: filePath, isDirectory: false)
     let fileName = fileURL.deletingPathExtension().lastPathComponent
 
     self.snapshotURL =

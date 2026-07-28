@@ -29,7 +29,8 @@ let package = Package(
         "Snapshotting"
       ],
       exclude: [
-        "__Snapshots__"
+        "__Snapshots__",
+        "Strategies/__Snapshots__"
       ]
     ),
     .target(name: "SnapshotTesting", dependencies: ["Snapshotting"]),

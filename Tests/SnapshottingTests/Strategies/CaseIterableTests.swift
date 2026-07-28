@@ -1,7 +1,6 @@
-import SnapshotTesting
+import Snapshotting
 import Testing
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct CaseIterableTests {
   @Test func `CaseIterable snapshot`() async {
     enum Direction: String, CaseIterable {
@@ -16,7 +15,7 @@ struct CaseIterableTests {
       }
     }
 
-    await assertSnapshot(
+    await expectSnapshot(
       of: { $0.rotatedLeft },
       as: SnapshotStrategy<Direction, String>.func(into: .description)
     )
