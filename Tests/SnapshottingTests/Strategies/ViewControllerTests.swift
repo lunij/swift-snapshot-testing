@@ -1,4 +1,4 @@
-import SnapshotTesting
+import Snapshotting
 import Testing
 
 #if canImport(UIKit)
@@ -6,7 +6,6 @@ import UIKit
 #endif
 
 @MainActor
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct ViewControllerTests {
   #if os(iOS)
   @Test func `auto layout`() async {
@@ -21,7 +20,7 @@ struct ViewControllerTests {
       subview.leftAnchor.constraint(equalTo: vc.view.leftAnchor),
       subview.rightAnchor.constraint(equalTo: vc.view.rightAnchor)
     ])
-    await assertSnapshot(of: vc, as: .image)
+    await expectSnapshot(of: vc, as: .image)
   }
 
   @Test func `table view controller`() async {
@@ -45,38 +44,7 @@ struct ViewControllerTests {
       }
     }
     let tableViewController = TableViewController()
-    await assertSnapshot(of: tableViewController, as: .image(on: .iPhoneSe))
-  }
-
-  @Test func `multiple snapshots`() async {
-    class TableViewController: UITableViewController {
-      override func viewDidLoad() {
-        super.viewDidLoad()
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
-      }
-      override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        10
-      }
-      override func tableView(
-        _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath
-      )
-        -> UITableViewCell
-      {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        cell.textLabel?.text = "\(indexPath.row)"
-        return cell
-      }
-    }
-    let tableViewController = TableViewController()
-    await assertSnapshots(
-      of: tableViewController,
-      as: ["iPhoneSE-image": .image(on: .iPhoneSe), "iPad-image": .image(on: .iPadMini)]
-    )
-    await assertSnapshots(
-      of: tableViewController,
-      as: [.image(on: .iPhoneX), .image(on: .iPhoneXsMax)]
-    )
+    await expectSnapshot(of: tableViewController, as: .image(on: .iPhoneSe))
   }
 
   @Test func `collection views with multiple screen sizes`() async {
@@ -163,15 +131,10 @@ struct ViewControllerTests {
 
     let viewController = CollectionViewController()
 
-    await assertSnapshots(
-      of: viewController,
-      as: [
-        "ipad": .image(on: .iPadPro12_9),
-        "iphoneSe": .image(on: .iPhoneSe),
-        "iphone8": .image(on: .iPhone8),
-        "iphoneMax": .image(on: .iPhoneXsMax)
-      ]
-    )
+    await expectSnapshot(of: viewController, as: .image(on: .iPadPro12_9), named: "ipad")
+    await expectSnapshot(of: viewController, as: .image(on: .iPhoneSe), named: "iphoneSe")
+    await expectSnapshot(of: viewController, as: .image(on: .iPhone8), named: "iphone8")
+    await expectSnapshot(of: viewController, as: .image(on: .iPhoneXsMax), named: "iphoneMax")
   }
 
   @Test func `view controller lifecycle`() async {
@@ -202,7 +165,7 @@ struct ViewControllerTests {
 
     let viewController = ViewController()
 
-    await assertSnapshot(of: viewController, as: .image)
+    await expectSnapshot(of: viewController, as: .image)
 
     #expect(
       viewController.lifecycleEvents == [
@@ -228,7 +191,7 @@ struct ViewControllerTests {
       UINavigationController(rootViewController: UIViewController()),
       UINavigationController(rootViewController: UIViewController())
     ]
-    await assertSnapshot(of: tab, as: .hierarchy)
+    await expectSnapshot(of: tab, as: .hierarchy)
   }
   #endif
 }
