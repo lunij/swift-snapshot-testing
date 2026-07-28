@@ -1,13 +1,10 @@
 import Foundation
+import Testing
 
 #if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
-#endif
-
-#if canImport(Testing)
-import Testing
 #endif
 
 /// Asserts that a given value matches a reference on disk.

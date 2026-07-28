@@ -1,9 +1,6 @@
 import Foundation
 import Synchronization
-
-#if canImport(Testing)
 import Testing
-#endif
 
 /// The on-disk locations a snapshot assertion reads from and writes to.
 ///
@@ -83,15 +80,11 @@ struct SnapshotLocation {
 // MARK: - Private
 
 private var counter: File.Counter {
-  #if canImport(Testing)
   if Test.current != nil {
     return File.counter
   } else {
     return _counter
   }
-  #else
-  return _counter
-  #endif
 }
 
 private let _counter = File.Counter()

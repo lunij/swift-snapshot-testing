@@ -1,4 +1,3 @@
-#if canImport(Testing)
 import Testing
 
 /// A type representing the configuration of snapshot testing.
@@ -56,4 +55,3 @@ extension _SnapshotsTestTrait: TestScoping {
     }
   }
 }
-#endif
