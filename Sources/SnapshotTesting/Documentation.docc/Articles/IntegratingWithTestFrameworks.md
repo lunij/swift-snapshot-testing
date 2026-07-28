@@ -17,9 +17,8 @@ func testFeature() {
 
 ### Configuring snapshots
 
-Snapshot behavior is controlled by two properties on ``SnapshotTestingConfiguration``:
-``SnapshotTestingConfiguration/diffTool-swift.property`` and
-``SnapshotTestingConfiguration/record-swift.property``.
+Snapshot behavior is controlled by two properties on `SnapshotConfiguration`, defined in the
+`Snapshotting` module: `diffTool` and `record`.
 
 The `diffTool` property lets you customize the command printed in test failure messages for opening
 a diff between two files, such as [Kaleidoscope](http://kaleidoscope.app). The `record` property
@@ -37,12 +36,12 @@ struct FeatureTests {
 ```
 
 You can also override them for the scope of a single operation using
-``withSnapshotTesting(record:diffTool:operation:)-2kuyr``:
+`withSnapshotConfiguration(record:diffTool:operation:)`:
 
 ```swift
 @Test
 func testFeature() {
-  withSnapshotTesting(record: .all, diffTool: .ksdiff) {
+  withSnapshotConfiguration(record: .all, diffTool: .ksdiff) {
     assertSnapshot(…)
   }
 }
@@ -61,12 +60,12 @@ The `record` property accepts one of four modes:
 
 #### Custom diff tools
 
-`diffTool` accepts a [`DiffTool`](<doc:SnapshotTestingConfiguration/DiffTool-swift.struct>) value — a
+`diffTool` accepts a `SnapshotConfiguration.DiffTool` value — a
 function `(String, String) -> String` that receives the paths of the reference and failure snapshot
 files and returns a shell command. You can define your own:
 
 ```swift
-extension SnapshotTestingConfiguration.DiffTool {
+extension SnapshotConfiguration.DiffTool {
   static let compare = Self {
     "compare \"\($0)\" \"\($1)\" png: | open -f -a Preview.app"
   }

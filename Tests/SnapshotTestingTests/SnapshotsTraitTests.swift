@@ -4,15 +4,15 @@ import Testing
 
 /// The diff tool command that the enclosing trait hierarchy resolved to.
 private func resolvedDiffTool() -> String? {
-  SnapshotTestingConfiguration.current?.diffTool?(
+  SnapshotConfiguration.current?.diffTool?(
     currentFilePath: "old.png",
     failedFilePath: "new.png"
   )
 }
 
 /// The record mode that the enclosing trait hierarchy resolved to.
-private func resolvedRecord() -> SnapshotTestingConfiguration.Record? {
-  SnapshotTestingConfiguration.current?.record
+private func resolvedRecord() -> SnapshotConfiguration.Record? {
+  SnapshotConfiguration.current?.record
 }
 
 /// Verifies that nested `.snapshots` traits compose: the innermost value wins, and a value left

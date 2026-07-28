@@ -32,7 +32,7 @@ struct RecordTests {
   @Test func `record set to "never"`() async {
     await withSnapshotURL { snapshotURL in
       await withKnownIssue {
-        await withSnapshotTesting(record: .never) {
+        await withSnapshotConfiguration(record: .never) {
           await assertSnapshot(of: 42, as: .json)
         }
       } matching: { issue in
@@ -45,7 +45,7 @@ struct RecordTests {
   @Test func `record set to "missing" while reference file does not exist`() async throws {
     try await withSnapshotURL { snapshotURL in
       await withKnownIssue {
-        await withSnapshotTesting(record: .missing) {
+        await withSnapshotConfiguration(record: .missing) {
           await assertSnapshot(of: 42, as: .json)
         }
       } matching: { issue in
@@ -60,7 +60,7 @@ struct RecordTests {
     try await withSnapshotURL { snapshotURL in
       try Data("999".utf8).write(to: snapshotURL)
       await withKnownIssue {
-        await withSnapshotTesting(record: .missing) {
+        await withSnapshotConfiguration(record: .missing) {
           await assertSnapshot(of: 42, as: .json)
         }
       } matching: { issue in
@@ -74,7 +74,7 @@ struct RecordTests {
   @Test func `record set to "all" while reference file does not exist`() async throws {
     try await withSnapshotURL { snapshotURL in
       await withKnownIssue {
-        await withSnapshotTesting(record: .all) {
+        await withSnapshotConfiguration(record: .all) {
           await assertSnapshot(of: 42, as: .json)
         }
       } matching: { issue in
@@ -89,7 +89,7 @@ struct RecordTests {
     try await withSnapshotURL { snapshotURL in
       try Data("999".utf8).write(to: snapshotURL)
       await withKnownIssue {
-        await withSnapshotTesting(record: .all) {
+        await withSnapshotConfiguration(record: .all) {
           await assertSnapshot(of: 42, as: .json)
         }
       } matching: { issue in
@@ -104,7 +104,7 @@ struct RecordTests {
     try await withSnapshotURL { snapshotURL in
       try Data("999".utf8).write(to: snapshotURL)
       await withKnownIssue {
-        await withSnapshotTesting(record: .failed) {
+        await withSnapshotConfiguration(record: .failed) {
           await assertSnapshot(of: 42, as: .json)
         }
       } matching: { issue in
@@ -121,7 +121,7 @@ struct RecordTests {
       let modifiedDate =
         try FileManager.default.attributesOfItem(atPath: snapshotURL.path)[.modificationDate]
         as? Date
-      await withSnapshotTesting(record: .failed) {
+      await withSnapshotConfiguration(record: .failed) {
         await assertSnapshot(of: 42, as: .json)
       }
       let content = try String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self)
@@ -136,7 +136,7 @@ struct RecordTests {
   @Test func `record set to "failed" during missing reference file`() async throws {
     try await withSnapshotURL { snapshotURL in
       await withKnownIssue {
-        await withSnapshotTesting(record: .failed) {
+        await withSnapshotConfiguration(record: .failed) {
           await assertSnapshot(of: 42, as: .json)
         }
       } matching: { issue in

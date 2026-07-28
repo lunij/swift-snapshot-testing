@@ -11,6 +11,11 @@ A flexible snapshot engine for transforming values into diffable formats.
 - ``SnapshotSerializer``
 - ``SnapshotComparator``
 
+### Configuration
+
+- ``SnapshotConfiguration``
+- ``withSnapshotConfiguration(record:diffTool:operation:)``
+
 ### Failures
 
 - ``SnapshotFailure``

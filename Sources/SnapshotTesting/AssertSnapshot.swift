@@ -34,7 +34,7 @@ public func assertSnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
-  record: SnapshotTestingConfiguration.Record? = nil,
+  record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
   file filePath: StaticString = #filePath,
@@ -85,7 +85,7 @@ public func assertSnapshot<Value, Format>(
 public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategies: [String: SnapshotStrategy<Value, Format>],
-  record: SnapshotTestingConfiguration.Record? = nil,
+  record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
   file filePath: StaticString = #filePath,
@@ -129,7 +129,7 @@ public func assertSnapshots<Value, Format>(
 public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategies: [SnapshotStrategy<Value, Format>],
-  record: SnapshotTestingConfiguration.Record? = nil,
+  record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
   file filePath: StaticString = #filePath,
@@ -164,7 +164,7 @@ public func assertSnapshots<Value, Format>(
 ///   of value: @autoclosure () throws -> Value,
 ///   as strategy: SnapshotStrategy<Value, Format>,
 ///   named name: String? = nil,
-///   record: SnapshotTestingConfiguration.Record? = nil,
+///   record: SnapshotConfiguration.Record? = nil,
 ///   file: StaticString = #file,
 ///   testName: String = #function,
 ///   line: UInt = #line
@@ -209,7 +209,7 @@ public func verifySnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
-  record: SnapshotTestingConfiguration.Record? = nil,
+  record: SnapshotConfiguration.Record? = nil,
   snapshotDirectory: String? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
@@ -218,8 +218,8 @@ public func verifySnapshot<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) async -> String? {
-  let record = record ?? SnapshotTestingConfiguration.current?.record ?? _record
-  return await withSnapshotTesting(record: record, isolation: isolation) { () async -> String? in
+  let record = record ?? SnapshotConfiguration.current?.record ?? _record
+  return await withSnapshotConfiguration(record: record, isolation: isolation) { () async -> String? in
     do {
       let fileUrl = URL(fileURLWithPath: "\(filePath)", isDirectory: false)
       let fileName = fileUrl.deletingPathExtension().lastPathComponent
@@ -369,7 +369,7 @@ public func verifySnapshot<Value, Format>(
         #endif
       }
 
-      let diffMessage = (SnapshotTestingConfiguration.current?.diffTool ?? _diffTool)(
+      let diffMessage = (SnapshotConfiguration.current?.diffTool ?? _diffTool)(
         currentFilePath: snapshotFileUrl.path,
         failedFilePath: failedSnapshotFileUrl.path
       )

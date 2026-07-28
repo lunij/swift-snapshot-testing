@@ -4,7 +4,7 @@ import Testing
 /// A type representing the configuration of snapshot testing.
 public struct _SnapshotsTestTrait: SuiteTrait, TestTrait {
   public let isRecursive = true
-  let configuration: SnapshotTestingConfiguration
+  let configuration: SnapshotConfiguration
 }
 
 extension Trait where Self == _SnapshotsTestTrait {
@@ -19,11 +19,11 @@ extension Trait where Self == _SnapshotsTestTrait {
   ///   - record: The record mode of the test.
   ///   - diffTool: The diff tool to use in failure messages.
   public static func snapshots(
-    record: SnapshotTestingConfiguration.Record? = nil,
-    diffTool: SnapshotTestingConfiguration.DiffTool? = nil
+    record: SnapshotConfiguration.Record? = nil,
+    diffTool: SnapshotConfiguration.DiffTool? = nil
   ) -> Self {
     _SnapshotsTestTrait(
-      configuration: SnapshotTestingConfiguration(
+      configuration: SnapshotConfiguration(
         record: record,
         diffTool: diffTool
       )
@@ -34,7 +34,7 @@ extension Trait where Self == _SnapshotsTestTrait {
   ///
   /// - Parameter configuration: The configuration to use.
   public static func snapshots(
-    _ configuration: SnapshotTestingConfiguration
+    _ configuration: SnapshotConfiguration
   ) -> Self {
     _SnapshotsTestTrait(configuration: configuration)
   }
@@ -46,7 +46,7 @@ extension _SnapshotsTestTrait: TestScoping {
     testCase: Test.Case?,
     performing function: () async throws -> Void
   ) async throws {
-    try await withSnapshotTesting(
+    try await withSnapshotConfiguration(
       record: configuration.record,
       diffTool: configuration.diffTool
     ) {

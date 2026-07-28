@@ -14,15 +14,15 @@ import Synchronization
 ///   - record: The record mode to use while asserting snapshots.
 ///   - diffTool: The diff tool to use while asserting snapshots.
 ///   - operation: The operation to perform.
-public func withSnapshotTesting<R>(
-  record: SnapshotTestingConfiguration.Record? = nil,
-  diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+public func withSnapshotConfiguration<R>(
+  record: SnapshotConfiguration.Record? = nil,
+  diffTool: SnapshotConfiguration.DiffTool? = nil,
   operation: () throws -> R
 ) rethrows -> R {
-  try SnapshotTestingConfiguration.$current.withValue(
-    SnapshotTestingConfiguration(
-      record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
-      diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool
+  try SnapshotConfiguration.$current.withValue(
+    SnapshotConfiguration(
+      record: record ?? SnapshotConfiguration.current?.record ?? _record,
+      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? _diffTool
     )
   ) {
     try operation()
@@ -31,17 +31,17 @@ public func withSnapshotTesting<R>(
 
 /// Customizes snapshotting for the duration of an asynchronous operation.
 ///
-/// See ``withSnapshotTesting(record:diffTool:operation:)-2kuyr`` for more information.
-public func withSnapshotTesting<R>(
-  record: SnapshotTestingConfiguration.Record? = nil,
-  diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+/// See ``withSnapshotConfiguration(record:diffTool:operation:)`` for more information.
+public func withSnapshotConfiguration<R>(
+  record: SnapshotConfiguration.Record? = nil,
+  diffTool: SnapshotConfiguration.DiffTool? = nil,
   isolation: isolated (any Actor)? = #isolation,
   operation: () async throws -> R
 ) async rethrows -> R {
-  try await SnapshotTestingConfiguration.$current.withValue(
-    SnapshotTestingConfiguration(
-      record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
-      diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool
+  try await SnapshotConfiguration.$current.withValue(
+    SnapshotConfiguration(
+      record: record ?? SnapshotConfiguration.current?.record ?? _record,
+      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? _diffTool
     )
   ) {
     try await operation()
@@ -49,7 +49,7 @@ public func withSnapshotTesting<R>(
 }
 
 /// The configuration for a snapshot test.
-public struct SnapshotTestingConfiguration: Sendable {
+public struct SnapshotConfiguration: Sendable {
   @_spi(Internals)
   @TaskLocal public static var current: Self?
 
@@ -133,7 +133,7 @@ public struct SnapshotTestingConfiguration: Sendable {
   /// could create the following `DiffTool`:
   ///
   /// ```swift
-  /// extension SnapshotTestingConfiguration.DiffTool {
+  /// extension SnapshotConfiguration.DiffTool {
   ///   static let compare = Self {
   ///     "compare \"\($0)\" \"\($1)\" png: | open -f -a Preview.app"
   ///   }
@@ -170,9 +170,9 @@ public struct SnapshotTestingConfiguration: Sendable {
       @+
       "file://\($1)"
 
-      To configure output for a custom diff tool, use 'withSnapshotTesting'. For example:
+      To configure output for a custom diff tool, use 'withSnapshotConfiguration'. For example:
 
-          withSnapshotTesting(diffTool: .ksdiff) {
+          withSnapshotConfiguration(diffTool: .ksdiff) {
             // ...
           }
       """
@@ -184,7 +184,7 @@ public struct SnapshotTestingConfiguration: Sendable {
 }
 
 @_spi(Internals)
-public var _diffTool: SnapshotTestingConfiguration.DiffTool {
+public var _diffTool: SnapshotConfiguration.DiffTool {
   get {
     __diffTool.withLock { $0 }
   }
@@ -193,10 +193,10 @@ public var _diffTool: SnapshotTestingConfiguration.DiffTool {
   }
 }
 
-private let __diffTool = Mutex<SnapshotTestingConfiguration.DiffTool>(.default)
+private let __diffTool = Mutex<SnapshotConfiguration.DiffTool>(.default)
 
 @_spi(Internals)
-public var _record: SnapshotTestingConfiguration.Record {
+public var _record: SnapshotConfiguration.Record {
   get {
     __record.withLock { $0 }
   }
@@ -205,10 +205,10 @@ public var _record: SnapshotTestingConfiguration.Record {
   }
 }
 
-private let __record = Mutex<SnapshotTestingConfiguration.Record>(
+private let __record = Mutex<SnapshotConfiguration.Record>(
   {
     if let value = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"],
-      let record = SnapshotTestingConfiguration.Record(rawValue: value)
+      let record = SnapshotConfiguration.Record(rawValue: value)
     {
       return record
     }

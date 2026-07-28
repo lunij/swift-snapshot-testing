@@ -40,14 +40,14 @@ match, the test will fail and describe the difference. Failures can be inspected
 Navigator or by inspecting the file URLs of the failure.
 
 You can record a new reference by customizing snapshots inline with the assertion, or using the
-`withSnapshotTesting` tool:
+`withSnapshotConfiguration` tool:
 
 ```swift
 // Record just this one snapshot
 assertSnapshot(of: vc, as: .image, record: .all)
 
 // Record all snapshots in a scope:
-withSnapshotTesting(record: .all) {
+withSnapshotConfiguration(record: .all) {
   assertSnapshot(of: vc1, as: .image)
   assertSnapshot(of: vc2, as: .image)
   assertSnapshot(of: vc3, as: .image)
@@ -60,7 +60,7 @@ struct FeatureTests {}
 // Record all snapshot failures in an 'XCTestCase' subclass:
 class FeatureTests: XCTestCase {
   override func invokeTest() {
-    withSnapshotTesting(record: .failed) {
+    withSnapshotConfiguration(record: .failed) {
       super.invokeTest()
     }
   }

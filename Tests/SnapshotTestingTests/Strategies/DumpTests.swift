@@ -11,7 +11,7 @@ struct DumpTests {
   }
 
   @Test func `recursive dump`() async {
-    await withSnapshotTesting {
+    await withSnapshotConfiguration {
       class Father {
         var child: Child?
         init(_ child: Child? = nil) { self.child = child }

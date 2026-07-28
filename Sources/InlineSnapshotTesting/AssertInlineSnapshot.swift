@@ -38,7 +38,7 @@ public func assertInlineSnapshot<Value>(
   of value: @autoclosure () throws -> Value?,
   as strategy: SnapshotStrategy<Value, String>,
   message: @autoclosure () -> String = "",
-  record: SnapshotTestingConfiguration.Record? = nil,
+  record: SnapshotConfiguration.Record? = nil,
   syntaxDescriptor: InlineSnapshotSyntaxDescriptor = InlineSnapshotSyntaxDescriptor(),
   matches expected: (() -> String)? = nil,
   isolation: isolated (any Actor)? = #isolation,
@@ -48,8 +48,8 @@ public func assertInlineSnapshot<Value>(
   line: UInt = #line,
   column: UInt = #column
 ) async {
-  let record = record ?? SnapshotTestingConfiguration.current?.record ?? _record
-  await withSnapshotTesting(record: record, isolation: isolation) {
+  let record = record ?? SnapshotConfiguration.current?.record ?? _record
+  await withSnapshotConfiguration(record: record, isolation: isolation) {
     let _: Void = installTestObserver
     do {
       var actual: String?
