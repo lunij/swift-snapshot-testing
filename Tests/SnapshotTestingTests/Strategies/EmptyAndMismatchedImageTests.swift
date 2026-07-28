@@ -11,20 +11,20 @@ struct EmptyAndMismatchedImageTests {
     let size = CGSize(width: 350, height: 0)
     let view = XView(frame: .init(origin: .zero, size: size))
     let message = await verifySnapshot(of: view, as: .image).failure
-    #expect(message == "Snapshot test failed: Snapshot is empty")
+    #expect(message == "Snapshot failed: Snapshot is empty")
   }
 
   @Test func `image with zero width`() async {
     let size = CGSize(width: 0, height: 350)
     let view = XView(frame: .init(origin: .zero, size: size))
     let message = await verifySnapshot(of: view, as: .image).failure
-    #expect(message == "Snapshot test failed: Snapshot is empty")
+    #expect(message == "Snapshot failed: Snapshot is empty")
   }
 
   @Test func `image with zero size`() async {
     let view = XView(frame: .zero)
     let message = await verifySnapshot(of: view, as: .image).failure
-    #expect(message == "Snapshot test failed: Snapshot is empty")
+    #expect(message == "Snapshot failed: Snapshot is empty")
   }
 
   @Test func `image with size mismatch`() async {

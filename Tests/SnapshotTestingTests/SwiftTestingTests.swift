@@ -146,11 +146,8 @@ private func verifyImageSnapshotting(
       named: "pixel",
       record: .missing,
       snapshotDirectory: snapshotDirectory.path,
-      fileID: fileID,
       file: filePath,
-      testName: testName,
-      line: line,
-      column: column
+      testName: testName
     ).failure
   }
 

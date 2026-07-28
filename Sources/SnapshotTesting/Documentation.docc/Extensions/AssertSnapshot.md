@@ -9,4 +9,4 @@
 
 ### Custom assertions
 
-- ``verifySnapshot(of:as:named:record:snapshotDirectory:isolation:fileID:file:testName:line:column:)``
+- ``verifySnapshot(of:as:named:record:snapshotDirectory:isolation:file:testName:)``

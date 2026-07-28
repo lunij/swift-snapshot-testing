@@ -1,5 +1,4 @@
 import Foundation
-@_spi(Internals) import Snapshotting
 
 #if canImport(UIKit)
 import UIKit
@@ -47,11 +46,8 @@ public func assertSnapshot<Value, Format>(
     named: name,
     record: record,
     isolation: isolation,
-    fileID: fileID,
     file: filePath,
-    testName: testName,
-    line: line,
-    column: column
+    testName: testName
   )
   recordAttachments(
     result.attachments,
@@ -200,16 +196,10 @@ public func assertSnapshots<Value, Format>(
 ///     in a directory with the same name as the test file, and that directory will sit inside a
 ///     directory `__Snapshots__` that sits next to your test file.
 ///   - isolation: The actor to isolate to.
-///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
-///     which this function was called.
-///   - filePath: The file in which failure occurred. Defaults to the file path of the test case in
-///     which this function was called.
-///   - testName: The name of the test in which failure occurred. Defaults to the function name of
+///   - filePath: The file the snapshot directory is derived from. Defaults to the file path of the
+///     test case in which this function was called.
+///   - testName: The name of the test the snapshot is named after. Defaults to the function name of
 ///     the test case in which this function was called.
-///   - line: The line number on which failure occurred. Defaults to the line number on which this
-///     function was called.
-///   - column: The column on which failure occurred. Defaults to the column on which this function
-///     was called.
 /// - Returns: The result of the comparison, carrying a failure message if the value did not match
 ///   its reference, along with any artifacts worth attaching to the failure.
 public func verifySnapshot<Value, Format>(
@@ -219,171 +209,28 @@ public func verifySnapshot<Value, Format>(
   record: SnapshotConfiguration.Record? = nil,
   snapshotDirectory: String? = nil,
   isolation: isolated (any Actor)? = #isolation,
-  fileID: StaticString = #fileID,
   file filePath: StaticString = #filePath,
-  testName: String = #function,
-  line: UInt = #line,
-  column: UInt = #column
+  testName: String = #function
 ) async -> SnapshotResult {
-  let record = record ?? SnapshotConfiguration.current?.record ?? _record
-  return await withSnapshotConfiguration(record: record, isolation: isolation) {
-    () async -> SnapshotResult in
-    var attachments: [SnapshotFailure.Artifact] = []
-    do {
-      let location = SnapshotLocation(
-        named: name,
-        pathExtension: strategy.pathExtension,
-        snapshotDirectory: snapshotDirectory,
-        filePath: filePath,
-        testName: testName
-      )
-      let snapshotURL = location.snapshotURL
-
-      let fileManager = FileManager.default
-      try fileManager.createDirectory(
-        at: snapshotURL.deletingLastPathComponent(),
-        withIntermediateDirectories: true
-      )
-
-      let snapshotValue = try value()
-      let diffable = await strategy.snapshot(snapshotValue)
-
-      func recordSnapshot(writeToDisk: Bool) throws {
-        let snapshotData = try strategy.serializer.toData(diffable)
-
-        if writeToDisk {
-          try snapshotData.write(to: snapshotURL)
-        }
-
-        attachments.append(
-          SnapshotFailure.Artifact(name: snapshotURL.lastPathComponent, data: snapshotData)
-        )
-      }
-
-      if record == .all {
-        try recordSnapshot(writeToDisk: true)
-
-        return SnapshotResult(
-          failure: """
-            Record mode is on. Automatically recorded snapshot: …
-
-            open "\(snapshotURL.absoluteString)"
-
-            Turn record mode off and re-run "\(location.testName)" to assert against the newly-recorded snapshot
-            """,
-          attachments: attachments
-        )
-      }
-
-      guard fileManager.fileExists(atPath: snapshotURL.path) else {
-        if record == .never {
-          try recordSnapshot(writeToDisk: false)
-
-          return SnapshotResult(
-            failure: """
-              No reference was found on disk. New snapshot was not recorded because recording is disabled
-              """,
-            attachments: attachments
-          )
-        } else {
-          try recordSnapshot(writeToDisk: true)
-
-          return SnapshotResult(
-            failure: """
-              No reference was found on disk. Automatically recorded snapshot: …
-
-              open "\(snapshotURL.absoluteString)"
-
-              Re-run "\(location.testName)" to assert against the newly-recorded snapshot.
-              """,
-            attachments: attachments
-          )
-        }
-      }
-
-      let data = try Data(contentsOf: snapshotURL)
-      let reference: Format
-      do {
-        reference = try strategy.serializer.fromData(data)
-      } catch {
-        return SnapshotResult(
-          failure: """
-            Couldn't load reference snapshot: \(error.localizedDescription)
-
-            The reference file may be corrupt. Delete it and re-run the test to record a new one:
-
-            open "\(snapshotURL.absoluteString)"
-            """
-        )
-      }
-
-      guard let failure = try strategy.comparator.diff(reference, diffable) else {
-        return SnapshotResult()
-      }
-
-      try fileManager.createDirectory(
-        at: location.artifactDirectory,
-        withIntermediateDirectories: true
-      )
-      let failedSnapshotURL = location.artifactDirectory.appendingPathComponent(
-        snapshotURL.lastPathComponent
-      )
-      try strategy.serializer.toData(diffable).write(to: failedSnapshotURL)
-
-      attachments.append(contentsOf: failure.artifacts)
-
-      let diffMessage = (SnapshotConfiguration.current?.diffTool ?? _diffTool)(
-        currentFilePath: snapshotURL.path,
-        failedFilePath: failedSnapshotURL.path
-      )
-
-      // The first line is the only line Xcode shows in the issue navigator, so it must carry the
-      // specific reason. Everything below it is ordered by decreasing usefulness: failure detail,
-      // then file URLs / diff tool command.
-      var failureMessage: String
-      if let name {
-        failureMessage = "[\(name)] \(failure.reason)"
-      } else {
-        failureMessage = failure.reason
-      }
-
-      if record == .failed {
-        try recordSnapshot(writeToDisk: true)
-        failureMessage += " A new snapshot was automatically recorded."
-      }
-
-      if let detail = failure.detail?.trimmingCharacters(in: .whitespacesAndNewlines),
-        !detail.isEmpty
-      {
-        failureMessage += "\n\n\(detail)"
-      }
-
-      return SnapshotResult(
-        failure: """
-          \(failureMessage)
-
-          \(diffMessage)
-          """,
-        attachments: attachments
-      )
-    } catch {
-      return SnapshotResult(
-        failure: "Snapshot test failed: \(error.localizedDescription)",
-        attachments: attachments
-      )
-    }
-  }
+  let location = SnapshotLocation(
+    named: name,
+    pathExtension: strategy.pathExtension,
+    snapshotDirectory: snapshotDirectory,
+    filePath: filePath,
+    testName: testName
+  )
+  return await compareSnapshot(
+    of: try value(),
+    as: strategy,
+    against: location.snapshotURL,
+    artifactDirectory: location.artifactDirectory,
+    named: name,
+    record: record,
+    isolation: isolation
+  )
 }
 
 // MARK: - Private
-
-#if !os(Android) && !os(Linux) && !os(Windows)
-import UniformTypeIdentifiers
-
-func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
-  UTType(filenameExtension: pathExtension)?.identifier
-}
-#endif
 
 /// Reports snapshot artifacts to the test harness, so that they show up alongside the failure in
 /// Xcode's test report.
