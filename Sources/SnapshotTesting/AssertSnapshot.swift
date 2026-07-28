@@ -1,6 +1,5 @@
 import Foundation
 @_spi(Internals) import Snapshotting
-import Synchronization
 
 #if canImport(UIKit)
 import UIKit
@@ -221,41 +220,20 @@ public func verifySnapshot<Value, Format>(
   let record = record ?? SnapshotConfiguration.current?.record ?? _record
   return await withSnapshotConfiguration(record: record, isolation: isolation) { () async -> String? in
     do {
-      let fileUrl = URL(fileURLWithPath: "\(filePath)", isDirectory: false)
-      let fileName = fileUrl.deletingPathExtension().lastPathComponent
-
-      #if os(Android)
-      // When running tests on Android, the CI script copies the Tests/SnapshotTestingTests/__Snapshots__ up to the temporary folder
-      let snapshotsBaseUrl = URL(
-        fileURLWithPath: "/data/local/tmp/android-xctest",
-        isDirectory: true
+      let location = SnapshotLocation(
+        named: name,
+        pathExtension: strategy.pathExtension,
+        snapshotDirectory: snapshotDirectory,
+        filePath: filePath,
+        testName: testName
       )
-      #else
-      let snapshotsBaseUrl = fileUrl.deletingLastPathComponent()
-      #endif
+      let snapshotURL = location.snapshotURL
 
-      let snapshotDirectoryUrl =
-        snapshotDirectory.map { URL(fileURLWithPath: $0, isDirectory: true) }
-        ?? snapshotsBaseUrl.appendingPathComponent("__Snapshots__").appendingPathComponent(fileName)
-
-      let identifier: String
-      if let name = name {
-        identifier = sanitizePathComponent(name)
-      } else {
-        identifier = String(
-          counter.next(for: snapshotDirectoryUrl.appendingPathComponent(testName).absoluteString)
-        )
-      }
-
-      let testName = sanitizePathComponent(testName)
-      var snapshotFileUrl =
-        snapshotDirectoryUrl
-        .appendingPathComponent("\(testName).\(identifier)")
-      if let ext = strategy.pathExtension {
-        snapshotFileUrl = snapshotFileUrl.appendingPathExtension(ext)
-      }
       let fileManager = FileManager.default
-      try fileManager.createDirectory(at: snapshotDirectoryUrl, withIntermediateDirectories: true)
+      try fileManager.createDirectory(
+        at: snapshotURL.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+      )
 
       let snapshotValue = try value()
       let diffable = await strategy.snapshot(snapshotValue)
@@ -264,15 +242,15 @@ public func verifySnapshot<Value, Format>(
         let snapshotData = try strategy.serializer.toData(diffable)
 
         if writeToDisk {
-          try snapshotData.write(to: snapshotFileUrl)
+          try snapshotData.write(to: snapshotURL)
         }
 
         #if !os(Android) && !os(Linux) && !os(Windows)
         if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
           #if compiler(>=6.2)
           recordAttachment(
-            writeToDisk ? try Data(contentsOf: snapshotFileUrl) : snapshotData,
-            named: snapshotFileUrl.lastPathComponent,
+            writeToDisk ? try Data(contentsOf: snapshotURL) : snapshotData,
+            named: snapshotURL.lastPathComponent,
             sourceLocation: SourceLocation(
               fileID: fileID.description,
               filePath: filePath.description,
@@ -291,13 +269,13 @@ public func verifySnapshot<Value, Format>(
         return """
           Record mode is on. Automatically recorded snapshot: …
 
-          open "\(snapshotFileUrl.absoluteString)"
+          open "\(snapshotURL.absoluteString)"
 
-          Turn record mode off and re-run "\(testName)" to assert against the newly-recorded snapshot
+          Turn record mode off and re-run "\(location.testName)" to assert against the newly-recorded snapshot
           """
       }
 
-      guard fileManager.fileExists(atPath: snapshotFileUrl.path) else {
+      guard fileManager.fileExists(atPath: snapshotURL.path) else {
         if record == .never {
           try await recordSnapshot(writeToDisk: false)
 
@@ -310,14 +288,14 @@ public func verifySnapshot<Value, Format>(
           return """
             No reference was found on disk. Automatically recorded snapshot: …
 
-            open "\(snapshotFileUrl.absoluteString)"
+            open "\(snapshotURL.absoluteString)"
 
-            Re-run "\(testName)" to assert against the newly-recorded snapshot.
+            Re-run "\(location.testName)" to assert against the newly-recorded snapshot.
             """
         }
       }
 
-      let data = try Data(contentsOf: snapshotFileUrl)
+      let data = try Data(contentsOf: snapshotURL)
       let reference: Format
       do {
         reference = try strategy.serializer.fromData(data)
@@ -327,7 +305,7 @@ public func verifySnapshot<Value, Format>(
 
           The reference file may be corrupt. Delete it and re-run the test to record a new one:
 
-          open "\(snapshotFileUrl.absoluteString)"
+          open "\(snapshotURL.absoluteString)"
           """
       }
 
@@ -336,17 +314,14 @@ public func verifySnapshot<Value, Format>(
       }
       let artifacts = failure.artifacts
 
-      let artifactsUrl = URL(
-        fileURLWithPath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
-          ?? NSTemporaryDirectory(),
-        isDirectory: true
+      try fileManager.createDirectory(
+        at: location.artifactDirectory,
+        withIntermediateDirectories: true
       )
-      let artifactsSubUrl = artifactsUrl.appendingPathComponent(fileName)
-      try fileManager.createDirectory(at: artifactsSubUrl, withIntermediateDirectories: true)
-      let failedSnapshotFileUrl = artifactsSubUrl.appendingPathComponent(
-        snapshotFileUrl.lastPathComponent
+      let failedSnapshotURL = location.artifactDirectory.appendingPathComponent(
+        snapshotURL.lastPathComponent
       )
-      try strategy.serializer.toData(diffable).write(to: failedSnapshotFileUrl)
+      try strategy.serializer.toData(diffable).write(to: failedSnapshotURL)
 
       if !artifacts.isEmpty {
         #if !os(Linux) && !os(Android) && !os(Windows)
@@ -370,8 +345,8 @@ public func verifySnapshot<Value, Format>(
       }
 
       let diffMessage = (SnapshotConfiguration.current?.diffTool ?? _diffTool)(
-        currentFilePath: snapshotFileUrl.path,
-        failedFilePath: failedSnapshotFileUrl.path
+        currentFilePath: snapshotURL.path,
+        failedFilePath: failedSnapshotURL.path
       )
 
       // The first line is the only line Xcode shows in the issue navigator, so it must carry the
@@ -408,27 +383,6 @@ public func verifySnapshot<Value, Format>(
 
 // MARK: - Private
 
-private var counter: File.Counter {
-  #if canImport(Testing)
-  if Test.current != nil {
-    return File.counter
-  } else {
-    return _counter
-  }
-  #else
-  return _counter
-  #endif
-}
-
-private let _counter = File.Counter()
-
-func sanitizePathComponent(_ string: String) -> String {
-
-  string
-    .replacingOccurrences(of: "\\W+", with: "-", options: .regularExpression)
-    .replacingOccurrences(of: "^-|-$", with: "", options: .regularExpression)
-}
-
 #if !os(Android) && !os(Linux) && !os(Windows)
 import UniformTypeIdentifiers
 
@@ -436,27 +390,6 @@ func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
   UTType(filenameExtension: pathExtension)?.identifier
 }
 #endif
-
-enum File {
-  @TaskLocal static var counter = Counter()
-
-  final class Counter: Sendable {
-    private let counts = Mutex<[String: Int]>([:])
-
-    init() {}
-
-    func next(for key: String) -> Int {
-      counts.withLock {
-        $0[key, default: 0] += 1
-        return $0[key]!
-      }
-    }
-
-    func reset() {
-      counts.withLock { $0.removeAll() }
-    }
-  }
-}
 
 private func recordAttachment(
   _ data: Data,
