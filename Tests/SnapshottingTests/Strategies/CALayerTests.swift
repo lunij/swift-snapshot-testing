@@ -1,9 +1,8 @@
 #if os(iOS)
-import SnapshotTesting
+import Snapshotting
 import Testing
 import UIKit
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct CALayerTests {
   @Test func `CALayer with colors`() async {
     let layer = CALayer()
@@ -11,7 +10,7 @@ struct CALayerTests {
     layer.backgroundColor = UIColor.red.cgColor
     layer.borderWidth = 4.0
     layer.borderColor = UIColor.black.cgColor
-    await assertSnapshot(of: layer, as: .image)
+    await expectSnapshot(of: layer, as: .image)
   }
 
   @Test func `CALayer with gradient`() async {
@@ -21,7 +20,7 @@ struct CALayerTests {
     gradientLayer.colors = [UIColor.red.cgColor, UIColor.yellow.cgColor]
     gradientLayer.frame = baseLayer.frame
     baseLayer.addSublayer(gradientLayer)
-    await assertSnapshot(of: baseLayer, as: .image)
+    await expectSnapshot(of: baseLayer, as: .image)
   }
 }
 #endif
