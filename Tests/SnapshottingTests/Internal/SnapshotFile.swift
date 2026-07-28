@@ -15,16 +15,16 @@ struct SnapshotFile {
   ///   - name: The reference file's name, including its path extension.
   ///   - filePath: The file requesting the snapshot.
   init(_ name: String, filePath: String) {
-    let fileURL = URL(fileURLWithPath: filePath, isDirectory: false)
+    let fileURL = URL(filePath: filePath, directoryHint: .isDirectory)
     let fileName = fileURL.deletingPathExtension().lastPathComponent
 
     self.snapshotURL =
       fileURL
       .deletingLastPathComponent()
-      .appendingPathComponent("__Snapshots__")
-      .appendingPathComponent(fileName)
-      .appendingPathComponent(name)
-    self.artifactDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-      .appendingPathComponent(fileName)
+      .appending(path: "__Snapshots__")
+      .appending(path: fileName)
+      .appending(path: name)
+    self.artifactDirectory = URL(filePath: NSTemporaryDirectory(), directoryHint: .isDirectory)
+      .appending(path: fileName)
   }
 }

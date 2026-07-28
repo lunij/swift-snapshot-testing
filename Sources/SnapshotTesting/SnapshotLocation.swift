@@ -37,48 +37,45 @@ struct SnapshotLocation {
     filePath: StaticString,
     testName: String
   ) {
-    let fileURL = URL(fileURLWithPath: "\(filePath)", isDirectory: false)
+    let fileURL = URL(filePath: "\(filePath)")
     let fileName = fileURL.deletingPathExtension().lastPathComponent
 
     #if os(Android)
     // When running tests on Android, the CI script copies the Tests/SnapshotTestingTests/__Snapshots__ up to the temporary folder
-    let snapshotsBaseURL = URL(
-      fileURLWithPath: "/data/local/tmp/android-xctest",
-      isDirectory: true
-    )
+    let snapshotsBaseURL = URL(filePath: "/data/local/tmp/android-xctest", directoryHint: .isDirectory)
     #else
     let snapshotsBaseURL = fileURL.deletingLastPathComponent()
     #endif
 
     let snapshotDirectoryURL =
-      snapshotDirectory.map { URL(fileURLWithPath: $0, isDirectory: true) }
-      ?? snapshotsBaseURL.appendingPathComponent("__Snapshots__").appendingPathComponent(fileName)
+      snapshotDirectory.map { URL(filePath: $0, directoryHint: .isDirectory) }
+      ?? snapshotsBaseURL.appending(path: "__Snapshots__").appending(path: fileName)
 
     let identifier: String
     if let name {
       identifier = sanitizePathComponent(name)
     } else {
       identifier = String(
-        counter.next(for: snapshotDirectoryURL.appendingPathComponent(testName).absoluteString)
+        counter.next(for: snapshotDirectoryURL.appending(path: testName).absoluteString)
       )
     }
 
     let sanitizedTestName = sanitizePathComponent(testName)
     var snapshotURL =
       snapshotDirectoryURL
-      .appendingPathComponent("\(sanitizedTestName).\(identifier)")
+      .appending(path: "\(sanitizedTestName).\(identifier)")
     if let pathExtension {
       snapshotURL = snapshotURL.appendingPathExtension(pathExtension)
     }
 
     let artifactsBaseURL = URL(
-      fileURLWithPath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
+      filePath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
         ?? NSTemporaryDirectory(),
-      isDirectory: true
+      directoryHint: .isDirectory
     )
 
     self.snapshotURL = snapshotURL
-    self.artifactDirectory = artifactsBaseURL.appendingPathComponent(fileName)
+    self.artifactDirectory = artifactsBaseURL.appending(path: fileName)
     self.testName = sanitizedTestName
   }
 }

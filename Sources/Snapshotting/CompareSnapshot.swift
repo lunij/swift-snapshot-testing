@@ -117,9 +117,7 @@ public func compareSnapshot<Value, Format>(
       }
 
       try fileManager.createDirectory(at: artifactDirectory, withIntermediateDirectories: true)
-      let failedSnapshotURL = artifactDirectory.appendingPathComponent(
-        snapshotURL.lastPathComponent
-      )
+      let failedSnapshotURL = artifactDirectory.appending(path: snapshotURL.lastPathComponent)
       try strategy.serializer.toData(diffable).write(to: failedSnapshotURL)
 
       attachments.append(contentsOf: failure.artifacts)

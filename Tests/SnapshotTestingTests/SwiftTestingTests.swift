@@ -71,7 +71,7 @@ struct SwiftTestingTests {
   // readable message, not crash the test process.
   @Test func testCorruptImageReference() async throws {
     let snapshotDirectory = FileManager.default.temporaryDirectory
-      .appendingPathComponent("SwiftTestingTests-\(UUID().uuidString)", isDirectory: true)
+      .appending(path: "SwiftTestingTests-\(UUID().uuidString)", directoryHint: .isDirectory)
     defer { try? FileManager.default.removeItem(at: snapshotDirectory) }
 
     func verify() async -> String? {
@@ -136,7 +136,7 @@ private func verifyImageSnapshotting(
   column: UInt = #column
 ) async throws {
   let snapshotDirectory = FileManager.default.temporaryDirectory
-    .appendingPathComponent("SwiftTestingTests-\(UUID().uuidString)", isDirectory: true)
+    .appending(path: "SwiftTestingTests-\(UUID().uuidString)", directoryHint: .isDirectory)
   defer { try? FileManager.default.removeItem(at: snapshotDirectory) }
 
   func verify(_ image: XImage) async -> String? {
