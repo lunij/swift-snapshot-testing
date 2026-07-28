@@ -14,8 +14,8 @@ extension SnapshotStrategy where Value == UIView, Format == UIImage {
   ///
   /// - Parameters:
   ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
-  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
-  ///     tests and will _not_ work for framework test targets.
+  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host
+  ///     application and will _not_ work in a plain framework bundle.
   ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
   ///     pixel to match within `perceptualPrecision`.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
@@ -56,16 +56,8 @@ extension SnapshotStrategy where Value == UIView, Format == String {
   /// A snapshot strategy for comparing views based on a recursive description of their properties
   /// and hierarchies.
   ///
-  /// ``` swift
-  /// s// Layout on the current device.
-  /// assertSnapshot(of: view, as: .recursiveDescription)
-  ///
-  /// // Layout with a certain size.
-  /// assertSnapshot(of: view, as: .recursiveDescription(size: .init(width: 22, height: 22)))
-  ///
-  /// // Layout with a certain trait collection.
-  /// assertSnapshot(of: view, as: .recursiveDescription(traits: { $0.horizontalSizeClass = .regular }))
-  /// ```
+  /// The view is laid out on the current device by default; pass `size:` to lay it out at a
+  /// certain size, or `traits:` to lay it out with a certain trait collection.
   ///
   /// Records:
   ///

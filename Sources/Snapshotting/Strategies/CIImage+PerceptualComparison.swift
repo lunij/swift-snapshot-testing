@@ -48,7 +48,7 @@ func perceptuallyCompare(
     // We must do 2D iteration of the vImage_Buffer in order to avoid loading the padding garbage bytes at the end of each row.
     //
     // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
-    //     compiler doesn't have optimizations enabled, like in test targets, a `while` loop is
+    //     compiler doesn't have optimizations enabled, a `while` loop is
     //     significantly faster than a `for` loop for iterating through the elements of a memory
     //     buffer. Details can be found in [SR-6983](https://github.com/apple/swift/issues/49531)
     let componentStride = MemoryLayout<Float>.stride

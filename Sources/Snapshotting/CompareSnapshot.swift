@@ -4,8 +4,8 @@ import Foundation
 ///
 /// This is the heart of snapshotting: it renders `value` with `strategy`, compares the result
 /// against the reference at `snapshotURL`, and — depending on `record` — writes a new reference.
-/// It reports nothing on its own; the returned ``SnapshotResult`` is the only output, which is what
-/// makes it usable outside of a test harness.
+/// It reports nothing on its own; the returned ``SnapshotResult`` is the only output, which leaves
+/// the caller free to decide how a mismatch should surface.
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
@@ -64,7 +64,7 @@ public func compareSnapshot<Value, Format>(
 
             open "\(snapshotURL.absoluteString)"
 
-            Turn record mode off and re-run to assert against the newly-recorded snapshot
+            Turn record mode off and re-run to compare against the newly-recorded snapshot
             """,
           attachments: attachments
         )
@@ -89,7 +89,7 @@ public func compareSnapshot<Value, Format>(
 
               open "\(snapshotURL.absoluteString)"
 
-              Re-run to assert against the newly-recorded snapshot.
+              Re-run to compare against the newly-recorded snapshot.
               """,
             attachments: attachments
           )

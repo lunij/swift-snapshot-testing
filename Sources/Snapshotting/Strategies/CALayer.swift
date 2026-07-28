@@ -6,13 +6,8 @@ import QuartzCore
 extension SnapshotStrategy where Value == CALayer, Format == NSImage {
   /// A snapshot strategy for comparing layers based on pixel equality.
   ///
-  /// ``` swift
-  /// // Match reference perfectly.
-  /// assertSnapshot(of: layer, as: .image)
-  ///
-  /// // Allow for a 1% pixel difference.
-  /// assertSnapshot(of: layer, as: .image(precision: 0.99))
-  /// ```
+  /// Every pixel must match the reference. Use `image(precision:perceptualPrecision:)` to tolerate
+  /// a percentage of differing pixels.
   public static var image: SnapshotStrategy {
     .image(precision: 1)
   }

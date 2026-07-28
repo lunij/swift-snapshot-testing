@@ -1,6 +1,6 @@
 # Defining custom snapshot strategies
 
-While SnapshotTesting comes with a wide variety of snapshot strategies, it can also be extended with
+While Snapshotting comes with a wide variety of snapshot strategies, it can also be extended with
 custom, user-defined strategies using the ``Snapshotting/SnapshotStrategy``,
 ``Snapshotting/SnapshotSerializer``, and ``Snapshotting/SnapshotComparator`` types.
 
@@ -122,4 +122,5 @@ extension SnapshotComparator where Value == MyImage {
 }
 ```
 
-``SnapshotFailure/Artifact`` values are surfaced as test attachments in Swift Testing results.
+``SnapshotFailure/Artifact`` values are handed back on ``SnapshotResult/attachments``, for the
+caller to surface however it reports failures.

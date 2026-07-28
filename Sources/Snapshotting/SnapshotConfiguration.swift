@@ -7,12 +7,9 @@ import Synchronization
 /// scoped region of code. The configuration is stored in a task local, so it applies to every
 /// snapshot taken within `operation`, including nested ones.
 ///
-/// > Note: When using Swift's native Testing library, prefer the `snapshots(record:diffTool:)`
-/// > trait, which applies a configuration to a whole test or suite.
-///
 /// - Parameters:
-///   - record: The record mode to use while asserting snapshots.
-///   - diffTool: The diff tool to use while asserting snapshots.
+///   - record: The record mode to use while taking snapshots.
+///   - diffTool: The diff tool to use while taking snapshots.
 ///   - operation: The operation to perform.
 public func withSnapshotConfiguration<R>(
   record: SnapshotConfiguration.Record? = nil,
@@ -48,17 +45,17 @@ public func withSnapshotConfiguration<R>(
   }
 }
 
-/// The configuration for a snapshot test.
+/// The configuration for snapshotting.
 public struct SnapshotConfiguration: Sendable {
   @_spi(Internals)
   @TaskLocal public static var current: Self?
 
-  /// The diff tool use to print helpful test failure messages.
+  /// The diff tool use to print helpful failure messages.
   ///
   /// See ``DiffTool-swift.struct`` for more information.
   public var diffTool: DiffTool?
 
-  /// The recording strategy to use while running snapshot tests.
+  /// The recording strategy to use while taking snapshots.
   ///
   /// See ``Record-swift.struct`` for more information.
   public var record: Record?
@@ -71,7 +68,7 @@ public struct SnapshotConfiguration: Sendable {
     self.record = record
   }
 
-  /// The record mode of the snapshot test.
+  /// The record mode to snapshot with.
   ///
   /// There are 4 primary strategies for recording: ``Record-swift.struct/all``,
   /// ``Record-swift.struct/missing``, ``Record-swift.struct/never`` and
@@ -97,17 +94,17 @@ public struct SnapshotConfiguration: Sendable {
     /// Records all snapshots to disk, no matter what.
     public static let all = Self(storage: .all)
 
-    /// Records snapshots for assertions that fail. This can be useful for tests that use precision
-    /// thresholds so that passing tests do not re-record snapshots that are subtly different but
-    /// still within the threshold.
+    /// Records snapshots for comparisons that fail. This is useful with precision thresholds, so
+    /// that successful comparisons do not re-record snapshots that are subtly different but still
+    /// within the threshold.
     public static let failed = Self(storage: .failed)
 
     /// Records only the snapshots that are missing from disk.
     public static let missing = Self(storage: .missing)
 
-    /// Does not record any snapshots. If a snapshot is missing a test failure will be raised. This
-    /// option is appropriate when running tests on CI so that re-tries of tests do not
-    /// surprisingly pass after snapshots are unexpectedly generated.
+    /// Does not record any snapshots. If a snapshot is missing, a failure is reported. This option
+    /// is appropriate on CI, so that a re-run does not surprisingly succeed after snapshots were
+    /// unexpectedly generated.
     public static let never = Self(storage: .never)
 
     private init(storage: Storage) {
@@ -142,8 +139,7 @@ public struct SnapshotConfiguration: Sendable {
   ///
   /// `DiffTool` also comes with two values: ``DiffTool-swift.struct/ksdiff`` for printing a
   /// command for opening [Kaleidoscope](https://kaleidoscope.app), and
-  /// ``DiffTool-swift.struct/default`` for simply printing the two URLs to the test failure
-  /// message.
+  /// ``DiffTool-swift.struct/default`` for simply printing the two URLs to the failure message.
   public struct DiffTool: Sendable, ExpressibleByStringLiteral {
     var tool: @Sendable (_ currentFilePath: String, _ failedFilePath: String) -> String
 

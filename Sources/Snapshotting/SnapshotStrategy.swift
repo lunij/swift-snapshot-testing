@@ -1,7 +1,7 @@
 import Foundation
 
 /// A type representing the ability to transform a snapshottable value into a diffable format (like
-/// text or an image) for snapshot testing.
+/// text or an image) for snapshotting.
 public struct SnapshotStrategy<Value, Format> {
   /// The path extension applied to references saved to disk.
   public var pathExtension: String?

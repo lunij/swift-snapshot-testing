@@ -3,10 +3,6 @@ import Foundation
 extension SnapshotStrategy where Value: Encodable, Format == String {
   /// A snapshot strategy for comparing encodable structures based on their JSON representation.
   ///
-  /// ```swift
-  /// assertSnapshot(of: user, as: .json)
-  /// ```
-  ///
   /// Records:
   ///
   /// ```json
@@ -36,10 +32,6 @@ extension SnapshotStrategy where Value: Encodable, Format == String {
 
   /// A snapshot strategy for comparing encodable structures based on their property list
   /// representation.
-  ///
-  /// ```swift
-  /// assertSnapshot(of: user, as: .plist)
-  /// ```
   ///
   /// Records:
   ///

@@ -10,14 +10,6 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == NSImage {
 
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   ///
-  ///``` swift
-  /// // Match reference perfectly.
-  /// assertSnapshot(of: path, as: .image)
-  ///
-  /// // Allow for a 1% pixel difference.
-  /// assertSnapshot(of: path, as: .image(precision: 0.99))
-  /// ```
-  ///
   /// - Parameters:
   ///   - precision: The percentage of pixels that must match.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a

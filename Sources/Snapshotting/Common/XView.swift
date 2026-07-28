@@ -187,7 +187,7 @@ func prepareView(
   let window: UIWindow
   if drawHierarchyInKeyWindow {
     guard let keyWindow = getKeyWindow() else {
-      fatalError("'drawHierarchyInKeyWindow' requires tests to be run in a host application")
+      fatalError("'drawHierarchyInKeyWindow' requires running in a host application")
     }
     window = keyWindow
     window.frame.size = size

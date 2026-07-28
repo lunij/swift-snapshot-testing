@@ -15,8 +15,8 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   /// - Parameters:
   ///   - config: A set of device configuration settings.
   ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
-  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
-  ///     tests and will _not_ work for framework test targets.
+  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host
+  ///     application and will _not_ work in a plain framework bundle.
   ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
   ///     pixel to match within `perceptualPrecision`.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
@@ -55,8 +55,8 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///
   /// - Parameters:
   ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
-  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
-  ///     tests and will _not_ work for framework test targets.
+  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host
+  ///     application and will _not_ work in a plain framework bundle.
   ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
   ///     pixel to match within `perceptualPrecision`.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
@@ -96,10 +96,6 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
 extension SnapshotStrategy where Value == UIViewController, Format == String {
   /// A snapshot strategy for comparing view controllers based on their embedded controller
   /// hierarchy.
-  ///
-  /// ``` swift
-  /// assertSnapshot(of: vc, as: .hierarchy)
-  /// ```
   ///
   /// Records:
   ///

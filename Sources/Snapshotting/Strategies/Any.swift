@@ -4,10 +4,6 @@ extension SnapshotStrategy where Format == String {
   /// A snapshot strategy that captures a value's textual description from `String`'s
   /// `init(describing:)` initializer.
   ///
-  /// ``` swift
-  /// assertSnapshot(of: user, as: .description)
-  /// ```
-  ///
   /// Records:
   ///
   /// ```
@@ -28,10 +24,6 @@ extension SnapshotStrategy where Format == String {
   /// You can hook into how an instance of a type is rendered in this strategy by conforming to the
   /// ``AnySnapshotStringConvertible`` protocol and defining the
   /// ``AnySnapshotStringConvertible/snapshotDescription` property.
-  ///
-  /// ```swift
-  /// assertSnapshot(of: user, as: .dump)
-  /// ```
   ///
   /// Records:
   ///

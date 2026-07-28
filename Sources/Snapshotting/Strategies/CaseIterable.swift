@@ -18,14 +18,9 @@ extension SnapshotStrategy where Value: CaseIterable, Format == String {
   ///     }
   ///   }
   /// }
-  ///
-  /// assertSnapshot(
-  ///   of: \Direction.rotatedLeft,
-  ///   as: .func(into: .description)
-  /// )
   /// ```
   ///
-  /// Records:
+  /// Snapshotting `\Direction.rotatedLeft` with `.func(into: .description)` records:
   ///
   /// ```csv
   /// "up","left"

@@ -49,10 +49,6 @@ extension SnapshotStrategy where Value == NSView, Format == String {
   /// A snapshot strategy for comparing views based on a recursive description of their properties
   /// and hierarchies.
   ///
-  /// ``` swift
-  /// assertSnapshot(of: view, as: .recursiveDescription)
-  /// ```
-  ///
   /// Records:
   ///
   /// ```

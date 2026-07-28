@@ -8,10 +8,6 @@ import FoundationNetworking
 extension SnapshotStrategy where Value == URLRequest, Format == String {
   /// A snapshot strategy for comparing requests based on raw equality.
   ///
-  /// ``` swift
-  /// assertSnapshot(of: request, as: .raw)
-  /// ```
-  ///
   /// Records:
   ///
   /// ```
@@ -69,10 +65,6 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
 
   /// A snapshot strategy for comparing requests based on a cURL representation.
   ///
-  // ``` swift
-  // assertSnapshot(of: request, as: .curl)
-  // ```
-  //
   // Records:
   //
   // ```
