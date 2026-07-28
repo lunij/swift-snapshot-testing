@@ -1,5 +1,5 @@
 import Foundation
-import SnapshotTesting
+import Snapshotting
 import Testing
 
 #if canImport(FoundationNetworking)
@@ -15,13 +15,12 @@ import UIKit.UIView
 #endif
 
 @MainActor
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct WKWebViewTests {
   #if os(iOS) || os(macOS)
   @Test func `web view`() async throws {
     let webView = WKWebView()
     webView.load(.init(url: .htmlFixture))
-    await assertSnapshot(
+    await expectSnapshot(
       of: webView,
       as: .image(
         precision: 0.98,
@@ -51,7 +50,7 @@ struct WKWebViewTests {
     let webView = WKWebView()
     webView.navigationDelegate = manipulatingWKWebViewNavigationDelegate
     webView.load(.init(url: .htmlFixture))
-    await assertSnapshot(
+    await expectSnapshot(
       of: webView,
       as: .image(
         precision: 0.98,
@@ -78,7 +77,7 @@ struct WKWebViewTests {
     let webView = WKWebView()
     webView.navigationDelegate = cancellingWKWebViewNavigationDelegate
     webView.load(.init(url: .htmlFixture))
-    await assertSnapshot(
+    await expectSnapshot(
       of: webView,
       as: .image(size: .init(width: 800, height: 600)),
       named: platform
@@ -99,7 +98,7 @@ struct WKWebViewTests {
     let stackView = UIStackView(arrangedSubviews: [label, webView])
     stackView.axis = .vertical
 
-    await assertSnapshot(
+    await expectSnapshot(
       of: stackView,
       as: .image(precision: 0.99, perceptualPrecision: 0.99, size: .init(width: 800, height: 600)),
       named: platform
