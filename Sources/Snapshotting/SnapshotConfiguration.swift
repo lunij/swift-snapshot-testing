@@ -73,6 +73,10 @@ public struct SnapshotConfiguration: Sendable {
   /// There are 4 primary strategies for recording: ``Record-swift.struct/all``,
   /// ``Record-swift.struct/missing``, ``Record-swift.struct/never`` and
   /// ``Record-swift.struct/failed``
+  ///
+  /// The default for a whole process can be set with the `SNAPSHOTTING_RECORD` environment
+  /// variable, whose value is one of `all`, `failed`, `missing` or `never`. An unrecognized value
+  /// is ignored, leaving the default of ``Record-swift.struct/missing``.
   public struct Record: Equatable, Sendable {
     private let storage: Storage
 
@@ -203,7 +207,7 @@ public var _record: SnapshotConfiguration.Record {
 
 private let __record = Mutex<SnapshotConfiguration.Record>(
   {
-    if let value = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"],
+    if let value = ProcessInfo.processInfo.environment["SNAPSHOTTING_RECORD"],
       let record = SnapshotConfiguration.Record(rawValue: value)
     {
       return record
