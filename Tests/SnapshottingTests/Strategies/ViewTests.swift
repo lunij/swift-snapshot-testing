@@ -1,5 +1,5 @@
 #if os(iOS) || os(macOS)
-import SnapshotTesting
+import Snapshotting
 import Testing
 
 #if os(iOS)
@@ -9,7 +9,6 @@ import AppKit
 #endif
 
 @MainActor
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
 struct ViewTests {
   #if os(macOS)
   @Test func `nsview`() async {
@@ -17,8 +16,8 @@ struct ViewTests {
     button.bezelStyle = .rounded
     button.title = "Push Me"
     button.sizeToFit()
-    await assertSnapshot(of: button, as: .image, named: "\(platform)\(osVersion.majorVersion)")
-    await assertSnapshot(of: button, as: .recursiveDescription, named: "\(platform)\(osVersion.majorVersion)")
+    await expectSnapshot(of: button, as: .image, named: "\(platform)\(osVersion.majorVersion)")
+    await expectSnapshot(of: button, as: .recursiveDescription, named: "\(platform)\(osVersion.majorVersion)")
   }
 
   @Test func `nsview with layer`() async {
@@ -27,16 +26,16 @@ struct ViewTests {
     view.wantsLayer = true
     view.layer?.backgroundColor = NSColor.green.cgColor
     view.layer?.cornerRadius = 5
-    await assertSnapshot(of: view, as: .image, named: "\(platform)\(osVersion.majorVersion)")
-    await assertSnapshot(of: view, as: .recursiveDescription, named: platform)
+    await expectSnapshot(of: view, as: .image, named: "\(platform)\(osVersion.majorVersion)")
+    await expectSnapshot(of: view, as: .recursiveDescription, named: platform)
   }
   #endif
 
   #if os(iOS)
   @Test func `uiview`() async {
     let view = UIButton(type: .contactAdd)
-    await assertSnapshot(of: view, as: .image)
-    await assertSnapshot(of: view, as: .recursiveDescription)
+    await expectSnapshot(of: view, as: .image)
+    await expectSnapshot(of: view, as: .recursiveDescription)
   }
   #endif
 }
