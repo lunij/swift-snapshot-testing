@@ -23,6 +23,12 @@ let package = Package(
   ],
   targets: [
     .target(name: "Snapshotting"),
+    .testTarget(
+      name: "SnapshottingTests",
+      dependencies: [
+        "Snapshotting"
+      ]
+    ),
     .target(name: "SnapshotTesting", dependencies: ["Snapshotting"]),
     .testTarget(
       name: "SnapshotTestingTests",

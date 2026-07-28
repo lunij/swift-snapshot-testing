@@ -1,6 +1,5 @@
+@_spi(Internals) import Snapshotting
 import Testing
-
-@_spi(Internals) @testable import SnapshotTesting
 
 struct WithSnapshotConfigurationTests {
   @Test func nesting() {
