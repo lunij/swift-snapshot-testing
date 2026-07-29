@@ -9,36 +9,36 @@ struct EmptyAndMismatchedImageTests {
   @Test func `image with zero height`() async {
     let size = CGSize(width: 350, height: 0)
     let view = XView(frame: .init(origin: .zero, size: size))
-    let message = await snapshotResult(of: view, as: .image).failureMessage
-    #expect(message == "Snapshot failed: Snapshot is empty")
+    let result = await snapshotResult(of: view, as: .image)
+    #expect(result.outcome == .errored("Snapshot is empty"))
   }
 
   @Test func `image with zero width`() async {
     let size = CGSize(width: 0, height: 350)
     let view = XView(frame: .init(origin: .zero, size: size))
-    let message = await snapshotResult(of: view, as: .image).failureMessage
-    #expect(message == "Snapshot failed: Snapshot is empty")
+    let result = await snapshotResult(of: view, as: .image)
+    #expect(result.outcome == .errored("Snapshot is empty"))
   }
 
   @Test func `image with zero size`() async {
     let view = XView(frame: .zero)
-    let message = await snapshotResult(of: view, as: .image).failureMessage
-    #expect(message == "Snapshot failed: Snapshot is empty")
+    let result = await snapshotResult(of: view, as: .image)
+    #expect(result.outcome == .errored("Snapshot is empty"))
   }
 
   @Test func `image with size mismatch`() async {
     let size = CGSize(width: 100, height: 100)
     let view = XView(frame: .init(origin: .zero, size: size))
-    var message = await snapshotResult(of: view, as: .image, named: platform).failureMessage
-    #expect(message == nil)
+    var result = await snapshotResult(of: view, as: .image, named: platform)
+    #expect(result.outcome == .matched)
     let newSize = CGSize(width: 123, height: 123)
     view.frame = .init(origin: .zero, size: newSize)
-    message = await snapshotResult(of: view, as: .image, named: platform, record: .never).failureMessage
-    let firstLine = message?.split(whereSeparator: \.isNewline).first
+    result = await snapshotResult(of: view, as: .image, named: platform, record: .never)
+    #expect(result.name == platform)
     #if os(macOS)
-    #expect(firstLine == "[macos] Image size 123×123 does not match reference size 100×100.")
+    #expect(result.outcome.mismatch?.reason == "Image size 123×123 does not match reference size 100×100.")
     #else
-    #expect(firstLine == "[\(platform)] Image size 246×246 does not match reference size 200×200.")
+    #expect(result.outcome.mismatch?.reason == "Image size 246×246 does not match reference size 200×200.")
     #endif
   }
 }

@@ -73,6 +73,17 @@ func snapshotResult<Value, Format>(
   )
 }
 
+extension SnapshotResult.Outcome {
+  /// The comparator's failure, or `nil` if the value matched or never reached comparison.
+  ///
+  /// Lets a test assert on the reason alone, without spelling out the detail and artifacts that
+  /// come with a whole `SnapshotFailure`.
+  var mismatch: SnapshotFailure? {
+    guard case .mismatched(let failure) = self else { return nil }
+    return failure
+  }
+}
+
 /// Reduces a test or snapshot name to something usable as a file name, turning `#function`'s
 /// `"Encodable snapshot()"` into `"Encodable-snapshot"`.
 private func sanitizePathComponent(_ string: String) -> String {

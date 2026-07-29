@@ -31,23 +31,23 @@ struct ImagePrecisionTests {
       named: "\(platform)-modified"
     )
 
-    var message = await snapshotResult(
+    var result = await snapshotResult(
       of: view,
       as: .image(precision: 0.999, perceptualPrecision: 1),
       named: "\(platform)-original",
       record: .never
-    ).failureMessage
-    let firstLine = message?.split(whereSeparator: \.isNewline).first
-    #expect(firstLine == "[\(platform)-original] Image does not match reference (pixel precision 0.995 is less than required 0.999).")
+    )
+    #expect(result.name == "\(platform)-original")
+    #expect(result.outcome.mismatch?.reason == "Image does not match reference (pixel precision 0.995 is less than required 0.999).")
 
     // 10000-100=9900 => 99% precision
-    message = await snapshotResult(
+    result = await snapshotResult(
       of: view,
       as: .image(precision: 0.99, perceptualPrecision: 1),
       named: "\(platform)-original",
       record: .never
-    ).failureMessage
-    #expect(message == nil)
+    )
+    #expect(result.outcome == .matched)
   }
 
   @Test func `perceptual precision snapshot`() async {
