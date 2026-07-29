@@ -15,19 +15,19 @@ struct AssertInlineSnapshotTests {
     }
   }
 
-  @Test(.snapshots(record: .missing))
-  func inlineSnapshotFailure() async {
-    await withKnownIssue {
-      await assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
+  @Test func inlineSnapshotFailure() async throws {
+    let issues = await captureIssues {
+      await assertInlineSnapshot(of: ["Hello", "World"], as: .dump, record: .missing) {
         """
         ▿ 2 elements
           - "Hello"
 
         """
       }
-    } matching: { issue in
-      issue.description.hasSuffix(
-        """
+    }
+    #expect(issues.count == 1)
+    #expect(
+      issues.first?.message == """
         Snapshot did not match. Difference: …
 
           @@ −1,3 +1,4 @@
@@ -36,8 +36,7 @@ struct AssertInlineSnapshotTests {
           +  - "World"
            
         """
-      )
-    }
+    )
   }
 
   @Test func inlineSnapshot_NamedTrailingClosure() async {
@@ -316,15 +315,16 @@ struct AssertInlineSnapshotTests {
       let initialInlineSnapshotState = inlineSnapshotState.withLock { $0 }
       defer { inlineSnapshotState.withLock { $0 = initialInlineSnapshotState } }
 
-      await withKnownIssue {
+      let issues = await captureIssues {
         await assertInlineSnapshot(of: 42, as: .json) {
           """
           4
           """
         }
-      } matching: { issue in
-        issue.description.hasSuffix(
-          """
+      }
+      #expect(issues.count == 1)
+      #expect(
+        issues.first?.message == """
           Snapshot did not match. Difference: …
 
             @@ −1,1 +1,1 @@
@@ -333,8 +333,7 @@ struct AssertInlineSnapshotTests {
 
           A new snapshot was automatically recorded.
           """
-        )
-      }
+      )
 
       inlineSnapshotState.withLock { inlineSnapshotState in
         #expect(inlineSnapshotState.count == 1)
@@ -349,11 +348,12 @@ struct AssertInlineSnapshotTests {
       let initialInlineSnapshotState = inlineSnapshotState.withLock { $0 }
       defer { inlineSnapshotState.withLock { $0 = initialInlineSnapshotState } }
 
-      await withKnownIssue {
+      let issues = await captureIssues {
         await assertInlineSnapshot(of: 42, as: .json)
-      } matching: { issue in
-        issue.description.hasSuffix(
-          """
+      }
+      #expect(issues.count == 1)
+      #expect(
+        issues.first?.message == """
           Automatically recorded a new snapshot. Difference: …
 
             @@ −1,1 +1,1 @@
@@ -362,8 +362,7 @@ struct AssertInlineSnapshotTests {
 
           Re-run "recordFailed_MissingExpectation()" to assert against the newly-recorded snapshot.
           """
-        )
-      }
+      )
 
       inlineSnapshotState.withLock { inlineSnapshotState in
         #expect(inlineSnapshotState.count == 1)

@@ -54,7 +54,7 @@ public func assertSnapshot<Value, Format>(
     column: column
   )
   guard let message = result.failureMessage else { return }
-  recordIssue(
+  reportIssue(
     message,
     fileID: fileID,
     filePath: filePath,

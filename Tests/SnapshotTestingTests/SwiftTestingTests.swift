@@ -12,16 +12,14 @@ import UIKit
 
 @Suite(.serialized, .snapshots(record: .missing, diffTool: .ksdiff))
 struct SwiftTestingTests {
-  // A mismatch must surface as a recorded 'Issue' carrying the reason it failed. 'withKnownIssue'
-  // is the only way to intercept an issue from inside the framework, so this is the one test that
-  // uses it. What the reason says is asserted against the comparator itself, not through here.
-  @Test func testSnapshot() async {
-    await assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
-    await withKnownIssue {
+  @Test func `reports on mismatch`() async {
+    let issues = await captureIssues {
+      await assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
       await assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
-    } matching: { issue in
-      issue.description.contains("Text does not match reference")
     }
+    #expect(issues.count == 1)
+    #expect(issues.first?.message.hasPrefix("[snap] Text does not match reference") == true)
+    #expect(issues.first?.sourceLocation.fileID == #fileID)
   }
 
   #if canImport(UIKit)

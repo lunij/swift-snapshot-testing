@@ -93,7 +93,7 @@ public func assertInlineSnapshot<Value>(
           let difference = diffFailure.detail ?? diffFailure.reason
           failure += " Difference: …\n\n\(difference.indenting(by: 2))"
         }
-        recordIssue(
+        reportIssue(
           """
           \(failure)
 
@@ -109,7 +109,7 @@ public func assertInlineSnapshot<Value>(
 
       guard let expected
       else {
-        recordIssue(
+        reportIssue(
           """
           No expected value to assert against.
           """,
@@ -145,7 +145,7 @@ public func assertInlineSnapshot<Value>(
         column: column
       )
     } catch {
-      recordIssue(
+      reportIssue(
         "Threw error: \(error)",
         fileID: fileID,
         filePath: filePath,
@@ -269,7 +269,7 @@ public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
       visitor.walk(testSource.sourceFile)
       return visitor.trailingClosureLine
     }
-    recordIssue(
+    reportIssue(
       message(),
       fileID: fileID,
       filePath: filePath,
