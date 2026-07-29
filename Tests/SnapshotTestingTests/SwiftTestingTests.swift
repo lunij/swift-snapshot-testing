@@ -12,25 +12,15 @@ import UIKit
 
 @Suite(.serialized, .snapshots(record: .missing, diffTool: .ksdiff))
 struct SwiftTestingTests {
-  // Verifies that a snapshot mismatch inside a Swift Testing test surfaces as a recorded
-  // 'Issue' (and not a silently dropped 'XCTFail'). 'withKnownIssue' is the only way to
-  // intercept that issue in-framework, so this is the one test that uses it.
+  // A mismatch must surface as a recorded 'Issue' carrying the reason it failed. 'withKnownIssue'
+  // is the only way to intercept an issue from inside the framework, so this is the one test that
+  // uses it. What the reason says is asserted against the comparator itself, not through here.
   @Test func testSnapshot() async {
     await assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
     await withKnownIssue {
       await assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
     } matching: { issue in
-      // The library's diff output prefixes context lines with U+2007 figure spaces, written
-      // as explicit escapes here because they are indistinguishable from regular spaces.
-      issue.description.contains(
-        """
-        @@ −1,4 +1,4 @@
-        \u{2007}▿ 2 elements
-        −  - "Hello"
-        +  - "Goodbye"
-        \u{2007}  - "World"
-        """
-      )
+      issue.description.contains("Text does not match reference")
     }
   }
 
