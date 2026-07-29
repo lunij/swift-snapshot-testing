@@ -1,15 +1,11 @@
 import CustomDump
-import SnapshotTesting
+import Snapshotting
 
 extension SnapshotStrategy where Format == String {
   /// A snapshot strategy for comparing any structure based on a
   /// [custom dump](https://github.com/pointfreeco/swift-custom-dump).
   ///
-  /// ```swift
-  /// assertSnapshot(of: user, as: .customDump)
-  /// ```
-  ///
-  /// Records:
+  /// Records a structure as:
   ///
   /// ```
   /// User(

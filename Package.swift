@@ -65,7 +65,7 @@ let package = Package(
     .target(
       name: "SnapshotTestingCustomDump",
       dependencies: [
-        "SnapshotTesting",
+        "Snapshotting",
         .product(name: "CustomDump", package: "swift-custom-dump")
       ]
     )
