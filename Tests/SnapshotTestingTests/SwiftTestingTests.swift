@@ -81,7 +81,7 @@ struct SwiftTestingTests {
         named: "pixel",
         record: .missing,
         snapshotDirectory: snapshotDirectory.path
-      ).failure
+      ).failureMessage
     }
 
     let recordMessage = try #require(await verify())
@@ -148,7 +148,7 @@ private func verifyImageSnapshotting(
       snapshotDirectory: snapshotDirectory.path,
       file: filePath,
       testName: testName
-    ).failure
+    ).failureMessage
   }
 
   let recordMessage = try #require(await verify(reference))

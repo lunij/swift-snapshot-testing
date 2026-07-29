@@ -59,13 +59,10 @@ public func compareSnapshot<Value, Format>(
         try recordSnapshot(writeToDisk: true)
 
         return SnapshotResult(
-          failure: """
-            Record mode is on. Automatically recorded snapshot: …
-
-            open "\(snapshotURL.absoluteString)"
-
-            Turn record mode off and re-run to compare against the newly-recorded snapshot
-            """,
+          outcome: .recordModeOn,
+          snapshotURL: snapshotURL,
+          name: name,
+          recorded: true,
           attachments: attachments
         )
       }
@@ -75,22 +72,19 @@ public func compareSnapshot<Value, Format>(
           try recordSnapshot(writeToDisk: false)
 
           return SnapshotResult(
-            failure: """
-              No reference was found on disk. New snapshot was not recorded because recording is disabled
-              """,
+            outcome: .referenceMissing,
+            snapshotURL: snapshotURL,
+            name: name,
             attachments: attachments
           )
         } else {
           try recordSnapshot(writeToDisk: true)
 
           return SnapshotResult(
-            failure: """
-              No reference was found on disk. Automatically recorded snapshot: …
-
-              open "\(snapshotURL.absoluteString)"
-
-              Re-run to compare against the newly-recorded snapshot.
-              """,
+            outcome: .referenceRecorded,
+            snapshotURL: snapshotURL,
+            name: name,
+            recorded: true,
             attachments: attachments
           )
         }
@@ -102,18 +96,14 @@ public func compareSnapshot<Value, Format>(
         reference = try strategy.serializer.fromData(data)
       } catch {
         return SnapshotResult(
-          failure: """
-            Couldn't load reference snapshot: \(error.localizedDescription)
-
-            The reference file may be corrupt. Delete it and re-run to record a new one:
-
-            open "\(snapshotURL.absoluteString)"
-            """
+          outcome: .referenceUnreadable(error.localizedDescription),
+          snapshotURL: snapshotURL,
+          name: name
         )
       }
 
       guard let failure = try strategy.comparator.diff(reference, diffable) else {
-        return SnapshotResult()
+        return SnapshotResult(outcome: .matched, snapshotURL: snapshotURL, name: name)
       }
 
       try fileManager.createDirectory(at: artifactDirectory, withIntermediateDirectories: true)
@@ -122,43 +112,31 @@ public func compareSnapshot<Value, Format>(
 
       attachments.append(contentsOf: failure.artifacts)
 
-      let diffMessage = (SnapshotConfiguration.current?.diffTool ?? _diffTool)(
+      // Resolved here rather than when the message is rendered: the diff tool comes from a task
+      // local that has gone out of scope by the time the caller reads the result.
+      let diffCommand = (SnapshotConfiguration.current?.diffTool ?? _diffTool)(
         currentFilePath: snapshotURL.path,
         failedFilePath: failedSnapshotURL.path
       )
 
-      // The first line is the only line Xcode shows in the issue navigator, so it must carry the
-      // specific reason. Everything below it is ordered by decreasing usefulness: failure detail,
-      // then file URLs / diff tool command.
-      var failureMessage: String
-      if let name {
-        failureMessage = "[\(name)] \(failure.reason)"
-      } else {
-        failureMessage = failure.reason
-      }
-
       if record == .failed {
         try recordSnapshot(writeToDisk: true)
-        failureMessage += " A new snapshot was automatically recorded."
-      }
-
-      if let detail = failure.detail?.trimmingCharacters(in: .whitespacesAndNewlines),
-        !detail.isEmpty
-      {
-        failureMessage += "\n\n\(detail)"
       }
 
       return SnapshotResult(
-        failure: """
-          \(failureMessage)
-
-          \(diffMessage)
-          """,
+        outcome: .mismatched(failure),
+        snapshotURL: snapshotURL,
+        artifactURL: failedSnapshotURL,
+        name: name,
+        recorded: record == .failed,
+        diffCommand: diffCommand,
         attachments: attachments
       )
     } catch {
       return SnapshotResult(
-        failure: "Snapshot failed: \(error.localizedDescription)",
+        outcome: .errored(error.localizedDescription),
+        snapshotURL: snapshotURL,
+        name: name,
         attachments: attachments
       )
     }

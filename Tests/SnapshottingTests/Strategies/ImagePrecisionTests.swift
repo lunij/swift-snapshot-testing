@@ -36,7 +36,7 @@ struct ImagePrecisionTests {
       as: .image(precision: 0.999, perceptualPrecision: 1),
       named: "\(platform)-original",
       record: .never
-    ).failure
+    ).failureMessage
     let firstLine = message?.split(whereSeparator: \.isNewline).first
     #expect(firstLine == "[\(platform)-original] Image does not match reference (pixel precision 0.995 is less than required 0.999).")
 
@@ -46,7 +46,7 @@ struct ImagePrecisionTests {
       as: .image(precision: 0.99, perceptualPrecision: 1),
       named: "\(platform)-original",
       record: .never
-    ).failure
+    ).failureMessage
     #expect(message == nil)
   }
 

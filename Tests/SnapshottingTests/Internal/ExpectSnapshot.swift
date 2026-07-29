@@ -33,7 +33,7 @@ func expectSnapshot<Value, Format>(
     isolation: isolation
   )
 
-  if let failure = result.failure {
+  if let failure = result.failureMessage {
     Issue.record(Comment(rawValue: failure), sourceLocation: sourceLocation)
   }
 }

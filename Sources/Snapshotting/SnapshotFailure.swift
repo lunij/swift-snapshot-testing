@@ -1,7 +1,7 @@
 import Foundation
 
 /// A failure produced by a ``SnapshotComparator`` when two snapshot values do not match.
-public struct SnapshotFailure: Sendable {
+public struct SnapshotFailure: Sendable, Equatable {
   /// A short, single-sentence description of what specifically failed.
   ///
   /// This becomes the first line of the failure message, which is the only line visible in Xcode's
@@ -22,7 +22,7 @@ public struct SnapshotFailure: Sendable {
     self.artifacts = artifacts
   }
 
-  public struct Artifact: Sendable {
+  public struct Artifact: Sendable, Equatable {
     public let name: String
     public let data: Data
 

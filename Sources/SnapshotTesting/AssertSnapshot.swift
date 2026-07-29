@@ -53,7 +53,7 @@ public func assertSnapshot<Value, Format>(
     line: line,
     column: column
   )
-  guard let message = result.failure else { return }
+  guard let message = result.failureMessage else { return }
   recordIssue(
     message,
     fileID: fileID,
@@ -179,7 +179,7 @@ public func assertSnapshots<Value, Format>(
 ///       file: file,
 ///       testName: testName
 ///     )
-///     guard let message = result.failure else { return }
+///     guard let message = result.failureMessage else { return }
 ///     Issue.record(Comment(rawValue: message))
 /// }
 /// ```
