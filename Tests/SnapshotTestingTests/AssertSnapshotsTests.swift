@@ -7,7 +7,7 @@ import UIKit
 // equivalent. The array overload is also the only remaining exercise of the per-test counter that
 // names unnamed snapshots '.1', '.2', … in the order they are taken.
 @MainActor
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+@Suite(.snapshotRecord(.failed), .snapshotDiffTool(.ksdiff))
 struct AssertSnapshotsTests {
   @Test func `multiple snapshots`() async {
     class TableViewController: UITableViewController {

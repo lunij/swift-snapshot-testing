@@ -13,34 +13,34 @@ private func resolvedConfiguration() -> (diffTool: String?, record: SnapshotConf
   )
 }
 
-/// Verifies that nested `.snapshots` traits compose: the innermost value wins, and a value left
-/// unspecified is inherited from the enclosing scope.
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
-struct SnapshotsTraitTests {
+/// Verifies that snapshot configuration traits compose: siblings combine, the innermost value wins,
+/// and a value left unspecified is inherited from the enclosing scope.
+@Suite(.snapshotRecord(.failed), .snapshotDiffTool(.ksdiff))
+struct SnapshotConfigurationTraitTests {
   @Test
-  func `suite trait applies to its tests`() {
+  func `sibling traits on a suite combine`() {
     let configuration = resolvedConfiguration()
     #expect(configuration.diffTool == "ksdiff \"old.png\" \"new.png\"")
     #expect(configuration.record == .failed)
   }
 
-  @Test(.snapshots(diffTool: "ksdiff"))
+  @Test(.snapshotDiffTool("ksdiff"))
   func `test trait overrides the diff tool and inherits the record mode`() {
     let configuration = resolvedConfiguration()
     #expect(configuration.diffTool == "ksdiff old.png new.png")
     #expect(configuration.record == .failed)
   }
 
-  @Suite(.snapshots(diffTool: "ksdiff"))
+  @Suite(.snapshotDiffTool("ksdiff"))
   struct OverrideDiffTool {
-    @Test(.snapshots(diffTool: "difftool"))
+    @Test(.snapshotDiffTool("difftool"))
     func `innermost diff tool wins`() {
       let configuration = resolvedConfiguration()
       #expect(configuration.diffTool == "difftool old.png new.png")
       #expect(configuration.record == .failed)
     }
 
-    @Suite(.snapshots(record: .all))
+    @Suite(.snapshotRecord(.all))
     struct OverrideRecord {
       @Test
       func `record mode overrides while the diff tool is inherited`() {
@@ -49,7 +49,7 @@ struct SnapshotsTraitTests {
         #expect(configuration.record == .all)
       }
 
-      @Suite(.snapshots(record: .failed, diffTool: "diff"))
+      @Suite(.snapshotRecord(.failed), .snapshotDiffTool("diff"))
       struct OverrideDiffToolAndRecord {
         @Test
         func `both values override together`() {
@@ -58,6 +58,26 @@ struct SnapshotsTraitTests {
           #expect(configuration.record == .failed)
         }
       }
+    }
+  }
+
+  @Suite(.snapshotDiffTool("reversed"), .snapshotRecord(.never))
+  struct ReversedSiblingOrder {
+    @Test
+    func `sibling order does not change the resolved configuration`() {
+      let configuration = resolvedConfiguration()
+      #expect(configuration.diffTool == "reversed old.png new.png")
+      #expect(configuration.record == .never)
+    }
+  }
+
+  @Suite(.snapshotRecord(.all))
+  struct SiblingTraitsSplitAcrossScopes {
+    @Test(.snapshotDiffTool("split"))
+    func `a suite trait and a test trait combine`() {
+      let configuration = resolvedConfiguration()
+      #expect(configuration.diffTool == "split old.png new.png")
+      #expect(configuration.record == .all)
     }
   }
 }

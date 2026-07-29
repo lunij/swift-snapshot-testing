@@ -2,7 +2,7 @@ import InlineSnapshotTesting
 import SnapshottingCustomDump
 import Testing
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+@Suite(.snapshotRecord(.failed), .snapshotDiffTool(.ksdiff))
 struct CustomDumpSnapshotTests {
   @Test func basics() async {
     struct User { let id: Int, name: String, bio: String }

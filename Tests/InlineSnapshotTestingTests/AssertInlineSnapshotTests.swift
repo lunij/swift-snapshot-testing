@@ -2,7 +2,7 @@
 import SnapshotTesting
 import Testing
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+@Suite(.snapshotRecord(.failed), .snapshotDiffTool(.ksdiff))
 struct AssertInlineSnapshotTests {
   @Test func inlineSnapshot() async {
     await assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {

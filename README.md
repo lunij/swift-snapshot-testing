@@ -54,7 +54,7 @@ withSnapshotConfiguration(record: .all) {
 }
 
 // Record all snapshot failures in a Swift Testing suite:
-@Suite(.snapshots(record: .failed))
+@Suite(.snapshotRecord(.failed))
 struct FeatureTests {}
 
 // Record all snapshot failures in an 'XCTestCase' subclass:

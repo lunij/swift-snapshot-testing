@@ -24,16 +24,21 @@ The `diffTool` property lets you customize the command printed in test failure m
 a diff between two files, such as [Kaleidoscope](http://kaleidoscope.app). The `record` property
 controls when snapshots are generated and saved to disk.
 
-Apply the ``Testing/Trait/snapshots`` trait to a test or suite to override these properties:
+Apply the ``Testing/Trait/snapshotRecord(_:)`` and ``Testing/Trait/snapshotDiffTool(_:)`` traits to a
+test or suite to override these properties. Each trait sets one property, so apply them side by side
+to set both:
 
 ```swift
 import SnapshotTesting
 
-@Suite(.snapshots(record: .failed, diffTool: .ksdiff))
+@Suite(.snapshotRecord(.failed), .snapshotDiffTool(.ksdiff))
 struct FeatureTests {
   …
 }
 ```
+
+A property a trait leaves unspecified is inherited from the enclosing scope, so an inner suite or
+test can override one property while keeping the other.
 
 You can also override them for the scope of a single operation using
 `withSnapshotConfiguration(record:diffTool:operation:)`:

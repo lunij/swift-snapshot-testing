@@ -10,7 +10,7 @@ import AppKit
 import UIKit
 #endif
 
-@Suite(.serialized, .snapshots(record: .missing, diffTool: .ksdiff))
+@Suite(.serialized, .snapshotRecord(.missing), .snapshotDiffTool(.ksdiff))
 struct SwiftTestingTests {
   @Test func `reports on mismatch`() async {
     let issues = await captureIssues {
