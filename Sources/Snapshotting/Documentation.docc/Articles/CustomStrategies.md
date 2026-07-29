@@ -124,3 +124,7 @@ extension SnapshotComparator where Value == MyImage {
 
 ``SnapshotFailure/Artifact`` values are handed back on ``SnapshotResult/attachments``, for the
 caller to surface however it reports failures.
+
+The `SnapshotFailure` itself reaches the caller intact, as ``SnapshotResult/Outcome/mismatched(_:)``.
+Prefer switching over ``SnapshotResult/outcome`` to matching on ``SnapshotResult/failureMessage``,
+which renders the outcome for a human and is free to change its wording.

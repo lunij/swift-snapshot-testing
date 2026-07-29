@@ -4,6 +4,10 @@ A flexible snapshot engine for transforming values into diffable formats.
 
 ## Topics
 
+### Comparing
+
+- ``compareSnapshot(of:as:against:artifactDirectory:named:record:isolation:)``
+
 ### Strategies
 
 - <doc:CustomStrategies>
@@ -16,7 +20,8 @@ A flexible snapshot engine for transforming values into diffable formats.
 - ``SnapshotConfiguration``
 - ``withSnapshotConfiguration(record:diffTool:operation:)``
 
-### Failures
+### Results and failures
 
+- ``SnapshotResult``
 - ``SnapshotFailure``
 

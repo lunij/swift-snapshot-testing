@@ -4,9 +4,9 @@ import Foundation
 public struct SnapshotFailure: Sendable, Equatable {
   /// A short, single-sentence description of what specifically failed.
   ///
-  /// This becomes the first line of the failure message, which is the only line visible in Xcode's
-  /// issue navigator and inline failure banner. It should state the concrete reason
-  /// (e.g. a size mismatch or precision shortfall), not a generic "snapshot failed".
+  /// This becomes the first line of the rendered failure message, and hosts that surface only one
+  /// line of a failure show that one. It should state the concrete reason (e.g. a size mismatch or
+  /// precision shortfall), not a generic "snapshot failed".
   public let reason: String
 
   /// Optional multi-line detail describing the failure, such as a text diff or a precision
