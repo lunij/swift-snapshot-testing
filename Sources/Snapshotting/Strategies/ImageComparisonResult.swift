@@ -20,7 +20,7 @@ enum ImageComparisonResult {
 extension ImageComparisonResult {
   /// Maps a comparison result to a snapshot failure, or `nil` for a match. The artifacts
   /// closure is only invoked for results where a visual diff is meaningful.
-  func snapshotFailure(artifacts: () throws -> [SnapshotFailure.Artifact]) throws -> SnapshotFailure? {
+  func snapshotFailure(artifacts: () throws -> [SnapshotArtifact]) throws -> SnapshotFailure? {
     switch self {
     case .isMatching:
       return nil

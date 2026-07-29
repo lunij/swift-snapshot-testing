@@ -32,7 +32,7 @@ public func compareSnapshot<Value, Format>(
   let record = record ?? SnapshotConfiguration.current?.record ?? _record
   return await withSnapshotConfiguration(record: record, isolation: isolation) {
     () async -> SnapshotResult in
-    var attachments: [SnapshotFailure.Artifact] = []
+    var artifacts: [SnapshotArtifact] = []
     do {
       let fileManager = FileManager.default
       try fileManager.createDirectory(
@@ -50,8 +50,8 @@ public func compareSnapshot<Value, Format>(
           try snapshotData.write(to: snapshotURL)
         }
 
-        attachments.append(
-          SnapshotFailure.Artifact(name: snapshotURL.lastPathComponent, data: snapshotData)
+        artifacts.append(
+          SnapshotArtifact(name: snapshotURL.lastPathComponent, data: snapshotData)
         )
       }
 
@@ -63,7 +63,7 @@ public func compareSnapshot<Value, Format>(
           snapshotURL: snapshotURL,
           name: name,
           recorded: true,
-          attachments: attachments
+          artifacts: artifacts
         )
       }
 
@@ -75,7 +75,7 @@ public func compareSnapshot<Value, Format>(
             outcome: .referenceMissing,
             snapshotURL: snapshotURL,
             name: name,
-            attachments: attachments
+            artifacts: artifacts
           )
         } else {
           try recordSnapshot(writeToDisk: true)
@@ -85,7 +85,7 @@ public func compareSnapshot<Value, Format>(
             snapshotURL: snapshotURL,
             name: name,
             recorded: true,
-            attachments: attachments
+            artifacts: artifacts
           )
         }
       }
@@ -110,7 +110,7 @@ public func compareSnapshot<Value, Format>(
       let failedSnapshotURL = artifactDirectory.appending(path: snapshotURL.lastPathComponent)
       try strategy.serializer.toData(diffable).write(to: failedSnapshotURL)
 
-      attachments.append(contentsOf: failure.artifacts)
+      artifacts.append(contentsOf: failure.artifacts)
 
       // Resolved here rather than when the message is rendered: the diff tool comes from a task
       // local that has gone out of scope by the time the caller reads the result.
@@ -130,14 +130,14 @@ public func compareSnapshot<Value, Format>(
         name: name,
         recorded: record == .failed,
         diffCommand: diffCommand,
-        attachments: attachments
+        artifacts: artifacts
       )
     } catch {
       return SnapshotResult(
         outcome: .errored(error.localizedDescription),
         snapshotURL: snapshotURL,
         name: name,
-        attachments: attachments
+        artifacts: artifacts
       )
     }
   }

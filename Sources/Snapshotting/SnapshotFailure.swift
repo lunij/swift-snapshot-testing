@@ -14,21 +14,11 @@ public struct SnapshotFailure: Sendable, Equatable {
   public let detail: String?
 
   /// Artifacts describing the failure.
-  public let artifacts: [Artifact]
+  public let artifacts: [SnapshotArtifact]
 
-  public init(reason: String, detail: String? = nil, artifacts: [Artifact] = []) {
+  public init(reason: String, detail: String? = nil, artifacts: [SnapshotArtifact] = []) {
     self.reason = reason
     self.detail = detail
     self.artifacts = artifacts
-  }
-
-  public struct Artifact: Sendable, Equatable {
-    public let name: String
-    public let data: Data
-
-    public init(name: String, data: Data) {
-      self.name = name
-      self.data = data
-    }
   }
 }

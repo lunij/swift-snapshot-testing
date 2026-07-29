@@ -47,7 +47,7 @@ public func assertSnapshot<Value, Format>(
     testName: testName
   )
   recordAttachments(
-    result.attachments,
+    result.artifacts,
     fileID: fileID,
     filePath: filePath,
     line: line,
@@ -229,10 +229,10 @@ public func verifySnapshot<Value, Format>(
 
 // MARK: - Private
 
-/// Reports snapshot artifacts to the test harness, so that they show up alongside the failure in
+/// Records snapshot artifacts as test attachments, so that they show up alongside the failure in
 /// Xcode's test report.
 private func recordAttachments(
-  _ attachments: [SnapshotFailure.Artifact],
+  _ artifacts: [SnapshotArtifact],
   fileID: StaticString,
   filePath: StaticString,
   line: UInt,
@@ -241,7 +241,7 @@ private func recordAttachments(
   #if !os(Android) && !os(Linux) && !os(Windows)
   #if compiler(>=6.2)
   guard
-    !attachments.isEmpty,
+    !artifacts.isEmpty,
     ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS")
   else { return }
 
@@ -251,8 +251,8 @@ private func recordAttachments(
     line: Int(line),
     column: Int(column)
   )
-  for attachment in attachments {
-    recordAttachment(attachment.data, named: attachment.name, sourceLocation: sourceLocation)
+  for artifact in artifacts {
+    recordAttachment(artifact.data, named: artifact.name, sourceLocation: sourceLocation)
   }
   #endif
   #endif

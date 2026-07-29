@@ -60,8 +60,9 @@ public struct SnapshotResult: Sendable {
   /// rendering of the difference.
   ///
   /// These are returned rather than reported directly so that the comparison itself stays free of
-  /// side effects.
-  public let attachments: [SnapshotFailure.Artifact]
+  /// side effects. They are produced whether or not the value matched — recording a reference yields
+  /// one even though nothing failed.
+  public let artifacts: [SnapshotArtifact]
 
   public init(
     outcome: Outcome,
@@ -70,7 +71,7 @@ public struct SnapshotResult: Sendable {
     name: String? = nil,
     recorded: Bool = false,
     diffCommand: String? = nil,
-    attachments: [SnapshotFailure.Artifact] = []
+    artifacts: [SnapshotArtifact] = []
   ) {
     self.outcome = outcome
     self.snapshotURL = snapshotURL
@@ -78,7 +79,7 @@ public struct SnapshotResult: Sendable {
     self.name = name
     self.recorded = recorded
     self.diffCommand = diffCommand
-    self.attachments = attachments
+    self.artifacts = artifacts
   }
 
   /// The outcome rendered for a human, or `nil` if the value matched its reference.

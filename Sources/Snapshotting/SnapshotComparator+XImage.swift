@@ -7,7 +7,7 @@ extension SnapshotComparator where Value == XImage {
     _ new: Value,
     _ toDiffImage: @escaping (Value, Value) -> Value,
     _ toData: (Value) throws -> Data
-  ) throws -> [SnapshotFailure.Artifact] {
+  ) throws -> [SnapshotArtifact] {
     let diff = toDiffImage(old, new)
     return [
       .init(name: "old", data: try toData(old)),

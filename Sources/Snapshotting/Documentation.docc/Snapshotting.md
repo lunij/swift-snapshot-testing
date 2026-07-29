@@ -24,4 +24,5 @@ A flexible snapshot engine for transforming values into diffable formats.
 
 - ``SnapshotResult``
 - ``SnapshotFailure``
+- ``SnapshotArtifact``
 
