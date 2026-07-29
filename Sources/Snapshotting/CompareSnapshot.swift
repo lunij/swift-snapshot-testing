@@ -114,7 +114,7 @@ public func compareSnapshot<Value, Format>(
 
       // Resolved here rather than when the message is rendered: the diff tool comes from a task
       // local that has gone out of scope by the time the caller reads the result.
-      let diffCommand = (SnapshotConfiguration.current?.diffTool ?? _diffTool)(
+      let diffCommand = (SnapshotConfiguration.current?.diffTool ?? .default)(
         currentFilePath: snapshotURL.path,
         failedFilePath: failedSnapshotURL.path
       )

@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 
 /// Customizes snapshotting for the duration of an operation.
 ///
@@ -19,7 +18,7 @@ public func withSnapshotConfiguration<R>(
   try SnapshotConfiguration.$current.withValue(
     SnapshotConfiguration(
       record: record ?? SnapshotConfiguration.current?.record ?? _record,
-      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? _diffTool
+      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? .default
     )
   ) {
     try operation()
@@ -38,7 +37,7 @@ public func withSnapshotConfiguration<R>(
   try await SnapshotConfiguration.$current.withValue(
     SnapshotConfiguration(
       record: record ?? SnapshotConfiguration.current?.record ?? _record,
-      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? _diffTool
+      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? .default
     )
   ) {
     try await operation()
@@ -183,35 +182,16 @@ public struct SnapshotConfiguration: Sendable {
   }
 }
 
+/// The record mode for the whole process, read from the `SNAPSHOTTING_RECORD` environment variable.
+///
+/// This is the last resort: it applies only where neither an explicit argument nor an enclosing
+/// ``withSnapshotConfiguration(record:diffTool:operation:)`` scope names a mode.
 @_spi(Internals)
-public var _diffTool: SnapshotConfiguration.DiffTool {
-  get {
-    __diffTool.withLock { $0 }
-  }
-  set {
-    __diffTool.withLock { $0 = newValue }
-  }
-}
-
-private let __diffTool = Mutex<SnapshotConfiguration.DiffTool>(.default)
-
-@_spi(Internals)
-public var _record: SnapshotConfiguration.Record {
-  get {
-    __record.withLock { $0 }
-  }
-  set {
-    __record.withLock { $0 = newValue }
-  }
-}
-
-private let __record = Mutex<SnapshotConfiguration.Record>(
+public let _record: SnapshotConfiguration.Record = {
+  if let value = ProcessInfo.processInfo.environment["SNAPSHOTTING_RECORD"],
+    let record = SnapshotConfiguration.Record(rawValue: value)
   {
-    if let value = ProcessInfo.processInfo.environment["SNAPSHOTTING_RECORD"],
-      let record = SnapshotConfiguration.Record(rawValue: value)
-    {
-      return record
-    }
-    return .missing
-  }()
-)
+    return record
+  }
+  return .missing
+}()
