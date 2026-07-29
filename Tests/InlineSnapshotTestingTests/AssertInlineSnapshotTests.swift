@@ -1,3 +1,5 @@
+// swift-format-ignore-file: OnlyOneTrailingClosureArgument
+
 @_spi(Internals) import InlineSnapshotTesting
 import SnapshotTesting
 import Testing

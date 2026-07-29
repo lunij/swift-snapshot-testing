@@ -40,6 +40,9 @@ format:
 		--recursive \
 		./Package.swift ./Sources ./Tests
 
+lint:
+	swift format lint --recursive Sources Tests
+
 docs:
 	swift package generate-documentation \
 		--target Snapshotting \

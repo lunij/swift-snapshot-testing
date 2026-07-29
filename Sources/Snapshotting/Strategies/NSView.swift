@@ -38,7 +38,7 @@ extension SnapshotStrategy where Value == NSView, Format == NSImage {
       }
       let views = await addImagesForRenderedViews(view)
       let image = view.convertToImage(scale: scale)
-      views.forEach { $0.removeFromSuperview() }
+      for view in views { view.removeFromSuperview() }
       view.frame.size = initialSize
       return image
     }

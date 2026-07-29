@@ -71,6 +71,22 @@ jobs:
       - name: Build documentation
         run: make docs
 
+  lint:
+    strategy:
+      matrix:
+        swift:
+          - '6.3'
+
+    container: swift:${{ matrix.swift }}
+    name: Lint (Swift ${{ matrix.swift }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: |
+          apt-get update
+          apt-get install -y make
+      - run: make lint
+
   linux:
     strategy:
       matrix:

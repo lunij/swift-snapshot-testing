@@ -240,7 +240,7 @@ func snapshotView(
     traits: traits,
     drawHierarchyInKeyWindow: drawHierarchyInKeyWindow
   )
-  views.forEach { $0.removeFromSuperview() }
+  for view in views { view.removeFromSuperview() }
   view.frame = initialFrame
   dispose()
   return image

@@ -13,7 +13,9 @@ struct Difference<A> {
 
 func diff<A: Hashable>(_ fst: [A], _ snd: [A]) -> [Difference<A>] {
   var idxsOf = [A: [Int]]()
-  fst.enumerated().forEach { idxsOf[$1, default: []].append($0) }
+  for (offset, value) in fst.enumerated() {
+    idxsOf[value, default: []].append(offset)
+  }
 
   let sub =
     snd
