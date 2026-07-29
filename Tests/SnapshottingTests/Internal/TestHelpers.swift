@@ -2,8 +2,6 @@ import Foundation
 
 let osVersion = ProcessInfo.processInfo.operatingSystemVersion
 
-// NOTE: `platform` is duplicated in SnapshotTestingTests until the last of its consumers there moves
-// over; at that point that copy goes away. See the goal 8 step 6c notes.
 #if os(iOS)
 let platform = "ios"
 #elseif os(macOS)
