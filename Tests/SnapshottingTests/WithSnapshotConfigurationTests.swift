@@ -5,8 +5,8 @@ struct WithSnapshotConfigurationTests {
   @Test func nesting() {
     withSnapshotConfiguration(record: .all) {
       #expect(
-        SnapshotConfiguration.current?
-          .diffTool?(currentFilePath: "old.png", failedFilePath: "new.png") == """
+        SnapshotConfiguration.current
+          .diffTool(currentFilePath: "old.png", failedFilePath: "new.png") == """
             @−
             "file://old.png"
             @+
@@ -19,12 +19,12 @@ struct WithSnapshotConfigurationTests {
                 }
             """
       )
-      #expect(SnapshotConfiguration.current?.record == .all)
+      #expect(SnapshotConfiguration.current.record == .all)
       withSnapshotConfiguration(diffTool: "ksdiff") {
-        let command = SnapshotConfiguration.current?
-          .diffTool?(currentFilePath: "old.png", failedFilePath: "new.png")
+        let command = SnapshotConfiguration.current
+          .diffTool(currentFilePath: "old.png", failedFilePath: "new.png")
         #expect(command == "ksdiff old.png new.png")
-        #expect(SnapshotConfiguration.current?.record == .all)
+        #expect(SnapshotConfiguration.current.record == .all)
       }
     }
   }

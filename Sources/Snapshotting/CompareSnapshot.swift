@@ -29,7 +29,7 @@ public func compareSnapshot<Value, Format>(
   record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation
 ) async -> SnapshotResult {
-  let record = record ?? SnapshotConfiguration.current?.record ?? _record
+  let record = record ?? SnapshotConfiguration.current.record
   return await withSnapshotConfiguration(record: record, isolation: isolation) {
     () async -> SnapshotResult in
     var artifacts: [SnapshotArtifact] = []
@@ -114,7 +114,7 @@ public func compareSnapshot<Value, Format>(
 
       // Resolved here rather than when the message is rendered: the diff tool comes from a task
       // local that has gone out of scope by the time the caller reads the result.
-      let diffCommand = (SnapshotConfiguration.current?.diffTool ?? .default)(
+      let diffCommand = SnapshotConfiguration.current.diffTool(
         currentFilePath: snapshotURL.path,
         failedFilePath: failedSnapshotURL.path
       )

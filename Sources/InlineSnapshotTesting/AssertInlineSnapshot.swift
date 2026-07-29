@@ -48,7 +48,7 @@ public func assertInlineSnapshot<Value>(
   line: UInt = #line,
   column: UInt = #column
 ) async {
-  let record = record ?? SnapshotConfiguration.current?.record ?? _record
+  let record = record ?? SnapshotConfiguration.current.record
   await withSnapshotConfiguration(record: record, isolation: isolation) {
     let _: Void = installTestObserver
     do {

@@ -5,11 +5,11 @@ import Testing
 /// The configuration that the enclosing trait hierarchy resolved to.
 ///
 /// The diff tool is rendered against placeholder paths so that a test can compare it as a string.
-private func resolvedConfiguration() -> (diffTool: String?, record: SnapshotConfiguration.Record?) {
+private func resolvedConfiguration() -> (diffTool: String, record: SnapshotConfiguration.Record) {
   let configuration = SnapshotConfiguration.current
   return (
-    configuration?.diffTool?(currentFilePath: "old.png", failedFilePath: "new.png"),
-    configuration?.record
+    configuration.diffTool(currentFilePath: "old.png", failedFilePath: "new.png"),
+    configuration.record
   )
 }
 

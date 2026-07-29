@@ -7,7 +7,12 @@ import Testing
 @_documentation(visibility: internal)
 public struct SnapshotConfigurationTrait: SuiteTrait, TestTrait {
   public let isRecursive = true
-  let configuration: SnapshotConfiguration
+
+  /// The record mode to apply, or `nil` to inherit it from the enclosing scope.
+  let record: SnapshotConfiguration.Record?
+
+  /// The diff tool to apply, or `nil` to inherit it from the enclosing scope.
+  let diffTool: SnapshotConfiguration.DiffTool?
 }
 
 extension Trait where Self == SnapshotConfigurationTrait {
@@ -20,9 +25,7 @@ extension Trait where Self == SnapshotConfigurationTrait {
   ///
   /// - Parameter record: The recording strategy to use while taking snapshots.
   public static func snapshotRecord(_ record: SnapshotConfiguration.Record) -> Self {
-    SnapshotConfigurationTrait(
-      configuration: SnapshotConfiguration(record: record, diffTool: nil)
-    )
+    SnapshotConfigurationTrait(record: record, diffTool: nil)
   }
 
   /// Sets the diff tool of a suite or test.
@@ -34,9 +37,7 @@ extension Trait where Self == SnapshotConfigurationTrait {
   ///
   /// - Parameter diffTool: The diff tool to use in failure messages.
   public static func snapshotDiffTool(_ diffTool: SnapshotConfiguration.DiffTool) -> Self {
-    SnapshotConfigurationTrait(
-      configuration: SnapshotConfiguration(record: nil, diffTool: diffTool)
-    )
+    SnapshotConfigurationTrait(record: nil, diffTool: diffTool)
   }
 }
 
@@ -46,10 +47,7 @@ extension SnapshotConfigurationTrait: TestScoping {
     testCase: Test.Case?,
     performing function: () async throws -> Void
   ) async throws {
-    try await withSnapshotConfiguration(
-      record: configuration.record,
-      diffTool: configuration.diffTool
-    ) {
+    try await withSnapshotConfiguration(record: record, diffTool: diffTool) {
       try await File.$counter.withValue(File.Counter()) {
         try await function()
       }

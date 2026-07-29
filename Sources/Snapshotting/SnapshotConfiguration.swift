@@ -17,8 +17,8 @@ public func withSnapshotConfiguration<R>(
 ) rethrows -> R {
   try SnapshotConfiguration.$current.withValue(
     SnapshotConfiguration(
-      record: record ?? SnapshotConfiguration.current?.record ?? _record,
-      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? .default
+      record: record ?? SnapshotConfiguration.current.record,
+      diffTool: diffTool ?? SnapshotConfiguration.current.diffTool
     )
   ) {
     try operation()
@@ -36,32 +36,35 @@ public func withSnapshotConfiguration<R>(
 ) async rethrows -> R {
   try await SnapshotConfiguration.$current.withValue(
     SnapshotConfiguration(
-      record: record ?? SnapshotConfiguration.current?.record ?? _record,
-      diffTool: diffTool ?? SnapshotConfiguration.current?.diffTool ?? .default
+      record: record ?? SnapshotConfiguration.current.record,
+      diffTool: diffTool ?? SnapshotConfiguration.current.diffTool
     )
   ) {
     try await operation()
   }
 }
 
-/// The configuration for snapshotting.
+/// The configuration for snapshotting, when to record a snapshot and what diff tool to use for snapshot comparison.
 public struct SnapshotConfiguration: Sendable {
   @_spi(Internals)
-  @TaskLocal public static var current: Self?
+  @TaskLocal public static var current = SnapshotConfiguration(
+    record: processRecord,
+    diffTool: .default
+  )
 
   /// The diff tool use to print helpful failure messages.
   ///
   /// See ``DiffTool-swift.struct`` for more information.
-  public var diffTool: DiffTool?
+  public var diffTool: DiffTool
 
   /// The recording strategy to use while taking snapshots.
   ///
   /// See ``Record-swift.struct`` for more information.
-  public var record: Record?
+  public var record: Record
 
   public init(
-    record: Record?,
-    diffTool: DiffTool?
+    record: Record,
+    diffTool: DiffTool
   ) {
     self.diffTool = diffTool
     self.record = record
@@ -184,14 +187,13 @@ public struct SnapshotConfiguration: Sendable {
 
 /// The record mode for the whole process, read from the `SNAPSHOTTING_RECORD` environment variable.
 ///
-/// This is the last resort: it applies only where neither an explicit argument nor an enclosing
-/// ``withSnapshotConfiguration(record:diffTool:operation:)`` scope names a mode.
-@_spi(Internals)
-public let _record: SnapshotConfiguration.Record = {
+/// This seeds ``SnapshotConfiguration/current``, so it applies wherever neither an explicit argument
+/// nor an enclosing ``withSnapshotConfiguration(record:diffTool:operation:)`` scope names a mode.
+private let processRecord: SnapshotConfiguration.Record = {
   if let value = ProcessInfo.processInfo.environment["SNAPSHOTTING_RECORD"],
     let record = SnapshotConfiguration.Record(rawValue: value)
   {
     return record
   }
-  return .missing
+  return .failed
 }()
