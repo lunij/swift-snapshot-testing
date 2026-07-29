@@ -36,22 +36,22 @@ extension SnapshotStrategy where Format == String {
   @available(
     iOS,
     deprecated: 9999,
-    message: "Use '.customDump' from the 'SnapshotTestingCustomDump' module, instead."
+    message: "Use '.customDump' from the 'SnapshottingCustomDump' module, instead."
   )
   @available(
     macOS,
     deprecated: 9999,
-    message: "Use '.customDump' from the 'SnapshotTestingCustomDump' module, instead."
+    message: "Use '.customDump' from the 'SnapshottingCustomDump' module, instead."
   )
   @available(
     tvOS,
     deprecated: 9999,
-    message: "Use '.customDump' from the 'SnapshotTestingCustomDump' module, instead."
+    message: "Use '.customDump' from the 'SnapshottingCustomDump' module, instead."
   )
   @available(
     watchOS,
     deprecated: 9999,
-    message: "Use '.customDump' from the 'SnapshotTestingCustomDump' module, instead."
+    message: "Use '.customDump' from the 'SnapshottingCustomDump' module, instead."
   )
   public static var dump: SnapshotStrategy {
     DirectSnapshotStrategy.lines.pullback { snap($0) }

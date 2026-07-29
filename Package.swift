@@ -14,7 +14,7 @@ let package = Package(
     .library(name: "Snapshotting", targets: ["Snapshotting"]),
     .library(name: "SnapshotTesting", targets: ["SnapshotTesting"]),
     .library(name: "InlineSnapshotTesting", targets: ["InlineSnapshotTesting"]),
-    .library(name: "SnapshotTestingCustomDump", targets: ["SnapshotTestingCustomDump"])
+    .library(name: "SnapshottingCustomDump", targets: ["SnapshottingCustomDump"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
@@ -50,7 +50,7 @@ let package = Package(
       dependencies: [
         "Snapshotting",
         "SnapshotTesting",
-        "SnapshotTestingCustomDump",
+        "SnapshottingCustomDump",
         .product(name: "SwiftParser", package: "swift-syntax"),
         .product(name: "SwiftSyntax", package: "swift-syntax"),
         .product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
@@ -63,7 +63,7 @@ let package = Package(
       ]
     ),
     .target(
-      name: "SnapshotTestingCustomDump",
+      name: "SnapshottingCustomDump",
       dependencies: [
         "Snapshotting",
         .product(name: "CustomDump", package: "swift-custom-dump")

@@ -1,5 +1,5 @@
 import InlineSnapshotTesting
-import SnapshotTestingCustomDump
+import SnapshottingCustomDump
 import Testing
 
 @Suite(.snapshots(record: .failed, diffTool: .ksdiff))

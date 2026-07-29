@@ -45,7 +45,7 @@ docs:
 		--target Snapshotting \
 		--target SnapshotTesting \
 		--target InlineSnapshotTesting \
-		--target SnapshotTestingCustomDump \
+		--target SnapshottingCustomDump \
 		--warnings-as-errors
 
 test-all: test-linux test-macos test-ios
