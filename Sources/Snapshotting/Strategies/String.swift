@@ -22,15 +22,15 @@ extension SnapshotComparator where Value == String {
   public static var lines: SnapshotComparator {
     SnapshotComparator { old, new in
       guard old != new else { return nil }
-      let differences = Snapshotting.diff(
+      let runs = lineDiff(
         old.split(separator: "\n", omittingEmptySubsequences: false).map(String.init),
         new.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
       )
-      let removed = differences.filter { $0.which == .first }.reduce(0) { $0 + $1.elements.count }
-      let added = differences.filter { $0.which == .second }.reduce(0) { $0 + $1.elements.count }
+      let removed = runs.filter { $0.kind == .removed }.reduce(0) { $0 + $1.lines.count }
+      let added = runs.filter { $0.kind == .added }.reduce(0) { $0 + $1.lines.count }
       let patch =
-        chunk(diff: differences)
-        .flatMap { [$0.patchMark] + $0.lines }
+        hunks(of: runs)
+        .flatMap { [$0.patchMark] + $0.patchLines }
         .joined(separator: "\n")
       return SnapshotFailure(
         reason: "Text does not match reference (+\(added) −\(removed) lines).",
