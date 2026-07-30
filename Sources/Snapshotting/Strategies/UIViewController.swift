@@ -13,7 +13,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   /// A snapshot strategy for comparing view controller views based on pixel equality.
   ///
   /// - Parameters:
-  ///   - config: A set of device configuration settings.
+  ///   - profile: The device the view controller's view is laid out and rendered on.
   ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
   ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host
   ///     application and will _not_ work in a plain framework bundle.
@@ -26,7 +26,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///   - size: A view size override.
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
-    on config: ViewImageConfig,
+    on profile: DeviceProfile,
     drawHierarchyInKeyWindow: Bool = false,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
@@ -38,11 +38,11 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
     DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
-      scale: config.scale
+      scale: profile.scale
     ).asyncPullback { @MainActor (viewController: UIViewController) async -> UIImage in
       await snapshotView(
-        config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
-          ?? config,
+        profile: size.map { .init(safeArea: profile.safeArea, size: $0, traits: profile.traits) }
+          ?? profile,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         traits: traits,
         view: viewController.view,
@@ -83,7 +83,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       scale: scale
     ).asyncPullback { @MainActor (viewController: UIViewController) async -> UIImage in
       await snapshotView(
-        config: .init(safeArea: .zero, size: size, traits: traits),
+        profile: .init(safeArea: .zero, size: size, traits: traits),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         traits: traits,
         view: viewController.view,
@@ -116,7 +116,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   public static var hierarchy: SnapshotStrategy {
     SnapshotStrategy<String, String>.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
-        config: .init(),
+        profile: .init(),
         drawHierarchyInKeyWindow: false,
         traits: { _ in },
         view: viewController.view,
@@ -140,11 +140,11 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   /// their properties and hierarchies.
   ///
   /// - Parameters:
-  ///   - config: A set of device configuration settings.
+  ///   - profile: The device the view controller's view is laid out on.
   ///   - size: A view size override.
   ///   - traits: Trait overrides to apply when rendering.
   public static func recursiveDescription(
-    on config: ViewImageConfig = .init(),
+    on profile: DeviceProfile = .init(),
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
@@ -152,10 +152,10 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   {
     DirectSnapshotStrategy.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
-        config: .init(
-          safeArea: config.safeArea,
-          size: size ?? config.size,
-          traits: config.traits
+        profile: .init(
+          safeArea: profile.safeArea,
+          size: size ?? profile.size,
+          traits: profile.traits
         ),
         drawHierarchyInKeyWindow: false,
         traits: traits,

@@ -1,7 +1,7 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-extension ViewImageConfig {
+extension DeviceProfile {
   #if os(iOS)
   private static func iPhoneTraits(
     _ orientation: Orientation,

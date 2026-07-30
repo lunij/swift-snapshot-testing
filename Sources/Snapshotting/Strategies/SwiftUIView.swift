@@ -8,8 +8,8 @@ import Foundation
 /// The size constraint for a snapshot (similar to `PreviewLayout`).
 public enum SwiftUISnapshotLayout: Sendable {
   #if os(iOS) || os(tvOS)
-  /// Center the view in a device container described by`config`.
-  case device(config: ViewImageConfig)
+  /// Center the view in a device container described by `profile`.
+  case device(profile: DeviceProfile)
   #endif
   /// Center the view in a fixed size container.
   case fixed(width: CGFloat, height: CGFloat)
@@ -55,18 +55,18 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
   )
     -> SnapshotStrategy
   {
-    let config: ViewImageConfig
+    let profile: DeviceProfile
 
     switch layout {
     #if os(iOS) || os(tvOS)
-    case let .device(config: deviceConfig):
-      config = deviceConfig
+    case let .device(profile: deviceProfile):
+      profile = deviceProfile
     #endif
     case .sizeThatFits:
-      config = .init(safeArea: .zero, scale: scale, size: nil, traits: traits)
+      profile = .init(safeArea: .zero, scale: scale, size: nil, traits: traits)
     case let .fixed(width: width, height: height):
       let size = CGSize(width: width, height: height)
-      config = .init(safeArea: .zero, scale: scale, size: size, traits: traits)
+      profile = .init(safeArea: .zero, scale: scale, size: size, traits: traits)
     }
 
     return DirectSnapshotStrategy.image(
@@ -74,20 +74,20 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
       perceptualPrecision: perceptualPrecision,
       scale: scale
     ).asyncPullback { @MainActor (view: Value) async -> UIImage in
-      var config = config
+      var profile = profile
       let controller: UIViewController
 
-      if config.size != nil {
+      if profile.size != nil {
         controller = UIHostingController(rootView: view)
       } else {
         let hostingController = UIHostingController(rootView: view)
         let maxSize = CGSize(width: 0.0, height: 0.0)
-        config.size = hostingController.sizeThatFits(in: maxSize)
+        profile.size = hostingController.sizeThatFits(in: maxSize)
         controller = hostingController
       }
 
       return await snapshotView(
-        config: config,
+        profile: profile,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         traits: traits,
         view: controller.view,

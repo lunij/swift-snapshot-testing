@@ -33,7 +33,7 @@ struct SwiftUIViewTests {
     )
     await expectSnapshot(
       of: view,
-      as: .image(layout: .device(config: .iPhoneSe), traits: { $0.userInterfaceStyle = .light }),
+      as: .image(layout: .device(profile: .iPhoneSe), traits: { $0.userInterfaceStyle = .light }),
       named: "\(platform)-device"
     )
     #endif
@@ -64,7 +64,7 @@ struct SwiftUIViewTests {
     )
     await expectSnapshot(
       of: view,
-      as: .image(layout: .device(config: .tv)),
+      as: .image(layout: .device(profile: .tv)),
       named: "\(platform)-device"
     )
     #endif

@@ -42,7 +42,7 @@ extension SnapshotStrategy where Value == UIView, Format == UIImage {
       scale: scale
     ).asyncPullback { @MainActor (view: UIView) async -> UIImage in
       await snapshotView(
-        config: .init(safeArea: .zero, scale: scale, size: size ?? view.frame.size),
+        profile: .init(safeArea: .zero, scale: scale, size: size ?? view.frame.size),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         traits: traits,
         view: view,
@@ -79,7 +79,7 @@ extension SnapshotStrategy where Value == UIView, Format == String {
   {
     DirectSnapshotStrategy.lines.asyncPullback { @MainActor (view: UIView) async -> String in
       let dispose = prepareView(
-        config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
+        profile: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
         drawHierarchyInKeyWindow: false,
         traits: { _ in },
         view: view,

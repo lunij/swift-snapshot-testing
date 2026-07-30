@@ -5,23 +5,23 @@ import UIKit
 
 @MainActor
 func prepareView(
-  config: ViewImageConfig,
+  profile: DeviceProfile,
   drawHierarchyInKeyWindow: Bool,
   traits: @escaping TraitMutations,
   view: UIView,
   viewController: UIViewController
 ) -> () -> Void {
-  let size = config.size ?? viewController.view.frame.size
+  let size = profile.size ?? viewController.view.frame.size
   view.frame.size = size
   if view != viewController.view {
     viewController.view.bounds = view.bounds
     viewController.view.addSubview(view)
   }
-  // Mutations run in order, so the passed-in traits override the config's,
+  // Mutations run in order, so the passed-in traits override the profile's,
   // mirroring the merge semantics of the old `UITraitCollection(traitsFrom:)`.
-  let configTraits = config.traits
+  let profileTraits = profile.traits
   let traits: TraitMutations = { mutableTraits in
-    configTraits(&mutableTraits)
+    profileTraits(&mutableTraits)
     traits(&mutableTraits)
   }
   let window: UIWindow
@@ -33,7 +33,7 @@ func prepareView(
     window.frame.size = size
   } else {
     window = Window(
-      config: .init(safeArea: config.safeArea, size: config.size ?? size, traits: traits),
+      profile: .init(safeArea: profile.safeArea, size: profile.size ?? size, traits: traits),
       viewController: viewController
     )
   }
@@ -51,7 +51,7 @@ func prepareView(
 
 @MainActor
 func snapshotView(
-  config: ViewImageConfig,
+  profile: DeviceProfile,
   drawHierarchyInKeyWindow: Bool,
   traits: @escaping TraitMutations,
   view: UIView,
@@ -59,7 +59,7 @@ func snapshotView(
 ) async -> UIImage {
   let initialFrame = view.frame
   let dispose = prepareView(
-    config: config,
+    profile: profile,
     drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
     traits: traits,
     view: view,
@@ -76,7 +76,7 @@ func snapshotView(
   }
   let views = await addImagesForRenderedViews(view)
   let image = view.convertToImage(
-    scale: config.scale,
+    scale: profile.scale,
     traits: traits,
     drawHierarchyInKeyWindow: drawHierarchyInKeyWindow
   )
@@ -169,24 +169,24 @@ private func getKeyWindow() -> UIWindow? {
 }
 
 private final class Window: UIWindow {
-  var config: ViewImageConfig
+  var profile: DeviceProfile
 
-  init(config: ViewImageConfig, viewController: UIViewController) {
-    let size = config.size ?? viewController.view.bounds.size
-    self.config = config
+  init(profile: DeviceProfile, viewController: UIViewController) {
+    let size = profile.size ?? viewController.view.bounds.size
+    self.profile = profile
     super.init(frame: .init(origin: .zero, size: size))
 
     // NB: Safe area renders inaccurately for UI{Navigation,TabBar}Controller.
     // Fixes welcome!
     if viewController is UINavigationController {
-      self.frame.size.height -= self.config.safeArea.top
-      self.config.safeArea.top = 0
+      self.frame.size.height -= self.profile.safeArea.top
+      self.profile.safeArea.top = 0
     } else if let viewController = viewController as? UITabBarController {
-      self.frame.size.height -= self.config.safeArea.bottom
-      self.config.safeArea.bottom = 0
+      self.frame.size.height -= self.profile.safeArea.bottom
+      self.profile.safeArea.bottom = 0
       if viewController.selectedViewController is UINavigationController {
-        self.frame.size.height -= self.config.safeArea.top
-        self.config.safeArea.top = 0
+        self.frame.size.height -= self.profile.safeArea.top
+        self.profile.safeArea.top = 0
       }
     }
     self.isHidden = false
@@ -199,11 +199,11 @@ private final class Window: UIWindow {
   override var safeAreaInsets: UIEdgeInsets {
     #if os(iOS)
     let removeTopInset =
-      self.config.safeArea == .init(top: 20, left: 0, bottom: 0, right: 0)
+      self.profile.safeArea == .init(top: 20, left: 0, bottom: 0, right: 0)
       && self.rootViewController?.prefersStatusBarHidden ?? false
     if removeTopInset { return .zero }
     #endif
-    return self.config.safeArea
+    return self.profile.safeArea
   }
 }
 #endif

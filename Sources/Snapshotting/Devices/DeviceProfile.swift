@@ -1,12 +1,12 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-/// A closure that mutates a set of UI traits.
+/// The screen a view is laid out and rendered on.
 ///
-/// The `Sendable` counterpart of `UITraitCollection.TraitMutations`.
-public typealias TraitMutations = @Sendable (inout any UIMutableTraits) -> Void
-
-public struct ViewImageConfig: Sendable {
+/// A profile describes a device: the size of its screen in points, the insets its safe area
+/// reserves, the scale it renders at, and the traits it reports — its idiom, its size classes, and
+/// its input capabilities.
+public struct DeviceProfile: Sendable {
   public enum Orientation: Sendable {
     case landscape
     case portrait
@@ -45,9 +45,9 @@ public struct ViewImageConfig: Sendable {
   }
 
   #if os(iOS)
-  public static let iPhoneSe = ViewImageConfig.iPhoneSe(.portrait)
+  public static let iPhoneSe = DeviceProfile.iPhoneSe(.portrait)
 
-  public static func iPhoneSe(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhoneSe(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -61,9 +61,9 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhoneSeTraits(orientation))
   }
 
-  public static let iPhone8 = ViewImageConfig.iPhone8(.portrait)
+  public static let iPhone8 = DeviceProfile.iPhone8(.portrait)
 
-  public static func iPhone8(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone8(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -77,9 +77,9 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhone8Traits(orientation))
   }
 
-  public static let iPhone8Plus = ViewImageConfig.iPhone8Plus(.portrait)
+  public static let iPhone8Plus = DeviceProfile.iPhone8Plus(.portrait)
 
-  public static func iPhone8Plus(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone8Plus(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -93,9 +93,9 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhone8PlusTraits(orientation))
   }
 
-  public static let iPhoneX = ViewImageConfig.iPhoneX(.portrait)
+  public static let iPhoneX = DeviceProfile.iPhoneX(.portrait)
 
-  public static func iPhoneX(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhoneX(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -109,9 +109,9 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhoneXTraits(orientation))
   }
 
-  public static let iPhoneXsMax = ViewImageConfig.iPhoneXsMax(.portrait)
+  public static let iPhoneXsMax = DeviceProfile.iPhoneXsMax(.portrait)
 
-  public static func iPhoneXsMax(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhoneXsMax(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -126,10 +126,10 @@ public struct ViewImageConfig: Sendable {
   }
 
   @available(iOS 11.0, *)
-  public static let iPhoneXr = ViewImageConfig.iPhoneXr(.portrait)
+  public static let iPhoneXr = DeviceProfile.iPhoneXr(.portrait)
 
   @available(iOS 11.0, *)
-  public static func iPhoneXr(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhoneXr(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -143,9 +143,9 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhoneXrTraits(orientation))
   }
 
-  public static let iPhone12 = ViewImageConfig.iPhone12(.portrait)
+  public static let iPhone12 = DeviceProfile.iPhone12(.portrait)
 
-  public static func iPhone12(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone12(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -159,15 +159,15 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhone12Traits(orientation))
   }
 
-  public static let iPhone12Pro = ViewImageConfig.iPhone12Pro(.portrait)
+  public static let iPhone12Pro = DeviceProfile.iPhone12Pro(.portrait)
 
-  public static func iPhone12Pro(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone12Pro(_ orientation: Orientation) -> DeviceProfile {
     .iPhone12(orientation)
   }
 
-  public static let iPhone12ProMax = ViewImageConfig.iPhone12ProMax(.portrait)
+  public static let iPhone12ProMax = DeviceProfile.iPhone12ProMax(.portrait)
 
-  public static func iPhone12ProMax(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone12ProMax(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -181,9 +181,9 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhone12ProMaxTraits(orientation))
   }
 
-  public static let iPhone13 = ViewImageConfig.iPhone13(.portrait)
+  public static let iPhone13 = DeviceProfile.iPhone13(.portrait)
 
-  public static func iPhone13(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone13(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -202,9 +202,9 @@ public struct ViewImageConfig: Sendable {
     )
   }
 
-  public static let iPhone13Mini = ViewImageConfig.iPhone13Mini(.portrait)
+  public static let iPhone13Mini = DeviceProfile.iPhone13Mini(.portrait)
 
-  public static func iPhone13Mini(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone13Mini(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -219,15 +219,15 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhone13Traits(orientation))
   }
 
-  public static let iPhone13Pro = ViewImageConfig.iPhone13Pro(.portrait)
+  public static let iPhone13Pro = DeviceProfile.iPhone13Pro(.portrait)
 
-  public static func iPhone13Pro(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone13Pro(_ orientation: Orientation) -> DeviceProfile {
     .iPhone13(orientation)
   }
 
-  public static let iPhone13ProMax = ViewImageConfig.iPhone13ProMax(.portrait)
+  public static let iPhone13ProMax = DeviceProfile.iPhone13ProMax(.portrait)
 
-  public static func iPhone13ProMax(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPhone13ProMax(_ orientation: Orientation) -> DeviceProfile {
     let safeArea: UIEdgeInsets
     let size: CGSize
     switch orientation {
@@ -242,18 +242,18 @@ public struct ViewImageConfig: Sendable {
     return .init(safeArea: safeArea, size: size, traits: iPhone13ProMaxTraits(orientation))
   }
 
-  public static let iPadMini = ViewImageConfig.iPadMini(.landscape)
+  public static let iPadMini = DeviceProfile.iPadMini(.landscape)
 
-  public static func iPadMini(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPadMini(_ orientation: Orientation) -> DeviceProfile {
     switch orientation {
     case .landscape:
-      return ViewImageConfig.iPadMini(.landscape(splitView: .full))
+      return DeviceProfile.iPadMini(.landscape(splitView: .full))
     case .portrait:
-      return ViewImageConfig.iPadMini(.portrait(splitView: .full))
+      return DeviceProfile.iPadMini(.portrait(splitView: .full))
     }
   }
 
-  public static func iPadMini(_ orientation: TabletOrientation) -> ViewImageConfig {
+  public static func iPadMini(_ orientation: TabletOrientation) -> DeviceProfile {
     let size: CGSize
     let traits: TraitMutations
     switch orientation {
@@ -294,26 +294,26 @@ public struct ViewImageConfig: Sendable {
 
   public static let iPad9_7 = iPadMini
 
-  public static func iPad9_7(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPad9_7(_ orientation: Orientation) -> DeviceProfile {
     iPadMini(orientation)
   }
 
-  public static func iPad9_7(_ orientation: TabletOrientation) -> ViewImageConfig {
+  public static func iPad9_7(_ orientation: TabletOrientation) -> DeviceProfile {
     iPadMini(orientation)
   }
 
-  public static let iPad10_2 = ViewImageConfig.iPad10_2(.landscape)
+  public static let iPad10_2 = DeviceProfile.iPad10_2(.landscape)
 
-  public static func iPad10_2(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPad10_2(_ orientation: Orientation) -> DeviceProfile {
     switch orientation {
     case .landscape:
-      return ViewImageConfig.iPad10_2(.landscape(splitView: .full))
+      return DeviceProfile.iPad10_2(.landscape(splitView: .full))
     case .portrait:
-      return ViewImageConfig.iPad10_2(.portrait(splitView: .full))
+      return DeviceProfile.iPad10_2(.portrait(splitView: .full))
     }
   }
 
-  public static func iPad10_2(_ orientation: TabletOrientation) -> ViewImageConfig {
+  public static func iPad10_2(_ orientation: TabletOrientation) -> DeviceProfile {
     let size: CGSize
     let traits: TraitMutations
     switch orientation {
@@ -352,18 +352,18 @@ public struct ViewImageConfig: Sendable {
     )
   }
 
-  public static let iPadPro10_5 = ViewImageConfig.iPadPro10_5(.landscape)
+  public static let iPadPro10_5 = DeviceProfile.iPadPro10_5(.landscape)
 
-  public static func iPadPro10_5(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPadPro10_5(_ orientation: Orientation) -> DeviceProfile {
     switch orientation {
     case .landscape:
-      return ViewImageConfig.iPadPro10_5(.landscape(splitView: .full))
+      return DeviceProfile.iPadPro10_5(.landscape(splitView: .full))
     case .portrait:
-      return ViewImageConfig.iPadPro10_5(.portrait(splitView: .full))
+      return DeviceProfile.iPadPro10_5(.portrait(splitView: .full))
     }
   }
 
-  public static func iPadPro10_5(_ orientation: TabletOrientation) -> ViewImageConfig {
+  public static func iPadPro10_5(_ orientation: TabletOrientation) -> DeviceProfile {
     let size: CGSize
     let traits: TraitMutations
     switch orientation {
@@ -402,18 +402,18 @@ public struct ViewImageConfig: Sendable {
     )
   }
 
-  public static let iPadPro11 = ViewImageConfig.iPadPro11(.landscape)
+  public static let iPadPro11 = DeviceProfile.iPadPro11(.landscape)
 
-  public static func iPadPro11(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPadPro11(_ orientation: Orientation) -> DeviceProfile {
     switch orientation {
     case .landscape:
-      return ViewImageConfig.iPadPro11(.landscape(splitView: .full))
+      return DeviceProfile.iPadPro11(.landscape(splitView: .full))
     case .portrait:
-      return ViewImageConfig.iPadPro11(.portrait(splitView: .full))
+      return DeviceProfile.iPadPro11(.portrait(splitView: .full))
     }
   }
 
-  public static func iPadPro11(_ orientation: TabletOrientation) -> ViewImageConfig {
+  public static func iPadPro11(_ orientation: TabletOrientation) -> DeviceProfile {
     let size: CGSize
     let traits: TraitMutations
     switch orientation {
@@ -452,18 +452,18 @@ public struct ViewImageConfig: Sendable {
     )
   }
 
-  public static let iPadPro12_9 = ViewImageConfig.iPadPro12_9(.landscape)
+  public static let iPadPro12_9 = DeviceProfile.iPadPro12_9(.landscape)
 
-  public static func iPadPro12_9(_ orientation: Orientation) -> ViewImageConfig {
+  public static func iPadPro12_9(_ orientation: Orientation) -> DeviceProfile {
     switch orientation {
     case .landscape:
-      return ViewImageConfig.iPadPro12_9(.landscape(splitView: .full))
+      return DeviceProfile.iPadPro12_9(.landscape(splitView: .full))
     case .portrait:
-      return ViewImageConfig.iPadPro12_9(.portrait(splitView: .full))
+      return DeviceProfile.iPadPro12_9(.portrait(splitView: .full))
     }
   }
 
-  public static func iPadPro12_9(_ orientation: TabletOrientation) -> ViewImageConfig {
+  public static func iPadPro12_9(_ orientation: TabletOrientation) -> DeviceProfile {
     let size: CGSize
     let traits: TraitMutations
     switch orientation {
@@ -504,11 +504,11 @@ public struct ViewImageConfig: Sendable {
     )
   }
   #elseif os(tvOS)
-  public static let tv = ViewImageConfig(
+  public static let tv = DeviceProfile(
     safeArea: .init(top: 60, left: 90, bottom: 60, right: 90),
     size: .init(width: 1920, height: 1080)
   )
-  public static let tv4K = ViewImageConfig(
+  public static let tv4K = DeviceProfile(
     safeArea: .init(top: 120, left: 180, bottom: 120, right: 180),
     size: .init(width: 3840, height: 2160)
   )
