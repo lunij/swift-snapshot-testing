@@ -32,11 +32,11 @@ struct AssertSnapshotsTests {
     let tableViewController = TableViewController()
     await assertSnapshots(
       of: tableViewController,
-      as: ["iPhoneSE-image": .image(on: .iPhoneSe), "iPad-image": .image(on: .iPadMini)]
+      as: ["iPhoneSE-image": .image(on: .iPhone(.year2012)), "iPad-image": .image(on: .iPad(.year2010))]
     )
     await assertSnapshots(
       of: tableViewController,
-      as: [.image(on: .iPhoneX), .image(on: .iPhoneXsMax)]
+      as: [.image(on: .iPhone(.year2017)), .image(on: .iPhone(.year2018))]
     )
   }
 }

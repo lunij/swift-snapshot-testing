@@ -117,17 +117,17 @@ View testing is highly configurable. You can override trait collections (for spe
 and content size categories) and generate device-agnostic snapshots, all from a single simulator.
 
 ``` swift
-await assertSnapshot(of: vc, as: .image(on: .iPhoneSe))
-await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhoneSe))
+await assertSnapshot(of: vc, as: .image(on: .iPhone(.year2012)))
+await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhone(.year2012)))
 
-await assertSnapshot(of: vc, as: .image(on: .iPhoneSe(.landscape)))
-await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhoneSe(.landscape)))
+await assertSnapshot(of: vc, as: .image(on: .iPhone(.year2012, .landscape)))
+await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhone(.year2012, .landscape)))
 
-await assertSnapshot(of: vc, as: .image(on: .iPhoneX))
-await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhoneX))
+await assertSnapshot(of: vc, as: .image(on: .iPhone(.year2017)))
+await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPhone(.year2017)))
 
-await assertSnapshot(of: vc, as: .image(on: .iPadMini(.portrait)))
-await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPadMini(.portrait)))
+await assertSnapshot(of: vc, as: .image(on: .iPad(.year2010, .portrait)))
+await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPad(.year2010, .portrait)))
 ```
 
 > **Warning**
