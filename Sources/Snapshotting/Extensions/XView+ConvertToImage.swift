@@ -39,13 +39,6 @@ extension XView {
 import UIKit
 
 extension XView {
-  @MainActor func asImage() -> XImage {
-    let renderer = UIGraphicsImageRenderer(bounds: bounds)
-    return renderer.image { rendererContext in
-      layer.render(in: rendererContext.cgContext)
-    }
-  }
-
   @MainActor func convertToImage(scale: CGFloat, traits: @escaping TraitMutations, drawHierarchyInKeyWindow: Bool) -> XImage {
     renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
       if drawHierarchyInKeyWindow {
