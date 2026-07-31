@@ -40,6 +40,12 @@ extension DeviceProfile {
 
     /// 1376 × 1032 pt — iPad Pro 13" (M4, M5).
     case year2024Large
+
+    /// The family, then the models that ship its screen, a line each.
+    ///
+    /// Deliberately not a `CustomStringConvertible` conformance: `String(describing:)` has to keep
+    /// returning the bare case name, which is what a test names a reference file after.
+    public var description: String { self.screen.description }
   }
 
   /// A profile for an iPad screen.
@@ -72,8 +78,11 @@ extension DeviceProfile {
   }
 }
 
-/// The measurements of an iPad screen. An iPad is regular in both dimensions in either orientation.
+/// An iPad screen: the models that ship it, and the measurements they share. An iPad is regular in
+/// both dimensions in either orientation.
 private struct TabletScreen {
+  /// The family, then the models that ship this screen, a line each.
+  var description: String
   /// The height of the screen in landscape, which is its width in portrait.
   var shortSide: CGFloat
   /// The width of the screen in landscape, which is its height in portrait.
@@ -86,25 +95,105 @@ extension DeviceProfile.TabletGeneration {
   fileprivate var screen: TabletScreen {
     switch self {
     case .year2010:
-      TabletScreen(shortSide: 768, longSide: 1024, safeArea: .homeButton)
+      TabletScreen(
+        description: """
+          iPad .year2010
+          iPad (1st–6th generation), iPad 9.7", iPad Air, Air 2, iPad mini (1st–5th generation)
+          """,
+        shortSide: 768,
+        longSide: 1024,
+        safeArea: .homeButton
+      )
     case .year2015:
-      TabletScreen(shortSide: 1024, longSide: 1366, safeArea: .homeButton)
+      TabletScreen(
+        description: """
+          iPad .year2015
+          iPad Pro 12.9" (1st, 2nd generation)
+          """,
+        shortSide: 1024,
+        longSide: 1366,
+        safeArea: .homeButton
+      )
     case .year2017:
-      TabletScreen(shortSide: 834, longSide: 1112, safeArea: .homeButton)
+      TabletScreen(
+        description: """
+          iPad .year2017
+          iPad Pro 10.5", iPad Air (3rd generation)
+          """,
+        shortSide: 834,
+        longSide: 1112,
+        safeArea: .homeButton
+      )
     case .year2018:
-      TabletScreen(shortSide: 834, longSide: 1194, safeArea: .homeIndicator)
+      TabletScreen(
+        description: """
+          iPad .year2018
+          iPad Pro 11" (1st–4th generation)
+          """,
+        shortSide: 834,
+        longSide: 1194,
+        safeArea: .homeIndicator
+      )
     case .year2018Large:
-      TabletScreen(shortSide: 1024, longSide: 1366, safeArea: .homeIndicator)
+      TabletScreen(
+        description: """
+          iPad .year2018Large
+          iPad Pro 12.9" (3rd–6th generation), iPad Air 13" (M2, M3, M4)
+          """,
+        shortSide: 1024,
+        longSide: 1366,
+        safeArea: .homeIndicator
+      )
     case .year2019:
-      TabletScreen(shortSide: 810, longSide: 1080, safeArea: .homeButton)
+      TabletScreen(
+        description: """
+          iPad .year2019
+          iPad (7th, 8th, 9th generation), iPad 10.2"
+          """,
+        shortSide: 810,
+        longSide: 1080,
+        safeArea: .homeButton
+      )
     case .year2020:
-      TabletScreen(shortSide: 820, longSide: 1180, safeArea: .homeIndicator)
+      TabletScreen(
+        description: """
+          iPad .year2020
+          iPad Air 10.9" (4th, 5th generation), iPad (10th generation), iPad (A16), iPad Air 11" (M2, M3, M4)
+          """,
+        shortSide: 820,
+        longSide: 1180,
+        safeArea: .homeIndicator
+      )
     case .year2021:
-      TabletScreen(shortSide: 744, longSide: 1133, safeArea: .homeIndicator)
+      TabletScreen(
+        description: """
+          iPad .year2021
+          iPad mini (6th generation), iPad mini (A17 Pro)
+          """,
+        shortSide: 744,
+        longSide: 1133,
+        safeArea: .homeIndicator
+      )
     case .year2024:
-      TabletScreen(shortSide: 834, longSide: 1210, safeArea: .homeIndicator)
+      TabletScreen(
+        description: """
+          iPad .year2024
+          iPad Pro 11" (M4, M5)
+          """,
+        shortSide: 834,
+        longSide: 1210,
+        safeArea: .homeIndicator
+      )
     case .year2024Large:
-      TabletScreen(shortSide: 1032, longSide: 1376, safeArea: .homeIndicator)
+      TabletScreen(
+        description: """
+          iPad .year2024Large
+          iPad Pro 13" (M4, M5)
+          """,
+        shortSide: 1032,
+        longSide: 1376,
+        safeArea: .homeIndicator
+      )
     }
   }
 }
