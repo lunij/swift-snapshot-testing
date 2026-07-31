@@ -1,0 +1,7 @@
+<UIView; frame = (0 0; 430 932); autoresize = W+H; backgroundColor = UIExtendedSRGBColorSpace 0.96 0.72 0.26 1; layer = <CALayer>>
+   | <UIView; frame = (0 59; 430 839); clipsToBounds = YES; backgroundColor = UIExtendedSRGBColorSpace 1 1 1 1; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (199 807; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (0 403.667; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (398 403.667; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (199 0; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <UILabel; frame = (40 399.333; 350 40.3333); text = 'iPhone .year2022Max iPhon...'; userInteractionEnabled = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <_UILabelLayer>>

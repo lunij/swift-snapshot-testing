@@ -1,0 +1,7 @@
+<UIView; frame = (0 0; 1376 1032); autoresize = W+H; backgroundColor = UIExtendedSRGBColorSpace 0.96 0.72 0.26 1; layer = <CALayer>>
+   | <UIView; frame = (0 32; 1376 975); clipsToBounds = YES; backgroundColor = UIExtendedSRGBColorSpace 1 1 1 1; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (672 943; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (0 471.667; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (1344 471.667; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <_TtC17SnapshottingTestsP33_482012624AE2B6BBBEFDE43F95841D629ArrowView; frame = (672 0; 32 32); opaque = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <CALayer>>
+   |    | <UILabel; frame = (40 466.333; 1296 42.3333); text = 'iPad .year2024Large iPad ...'; userInteractionEnabled = NO; backgroundColor = UIExtendedGrayColorSpace 0 0; layer = <_UILabelLayer>>
