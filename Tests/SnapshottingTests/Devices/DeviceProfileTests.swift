@@ -106,7 +106,7 @@ struct DeviceProfileTests {
       (.year2019, CGSize(width: 1080, height: 810))
     ]
   )
-  func `a tablet fills the screen unless it is sharing it`(
+  func `a tablet is its landscape size, transposed in portrait`(
     generation: DeviceProfile.TabletGeneration,
     landscapeSize: CGSize
   ) {
@@ -115,33 +115,41 @@ struct DeviceProfileTests {
       DeviceProfile.iPad(generation, .portrait).size
         == CGSize(width: landscapeSize.height, height: landscapeSize.width)
     )
-    let oneThird = DeviceProfile.iPad(generation, .landscape(splitView: .oneThird))
-    #expect(oneThird.size?.width ?? 0 < landscapeSize.width)
-    #expect(oneThird.size?.height == landscapeSize.height)
   }
 
-  @Test func `a tablet is horizontally regular until a split view narrows it`() {
+  @Test func `a tablet is regular in both dimensions`() {
     #expect(DeviceProfile.iPad(.year2010).traitCollection.horizontalSizeClass == .regular)
-    #expect(
-      DeviceProfile.iPad(.year2010, .landscape(splitView: .oneThird))
-        .traitCollection.horizontalSizeClass == .compact
-    )
+    #expect(DeviceProfile.iPad(.year2010).traitCollection.verticalSizeClass == .regular)
     #expect(DeviceProfile.iPad(.year2010).traitCollection.userInterfaceIdiom == .pad)
   }
 
-  /// The 12.9" is the only iPad wide enough to keep both halves regular in a 50:50 landscape split.
-  @Test func `only the largest tablet stays regular in a half split`() {
+  // MARK: - Windows
+
+  @Test func `a window keeps the height and the insets of its screen`() {
+    let screen = DeviceProfile.iPad(.year2015)
+    let window = screen.windowed(width: 375)
+    #expect(window.size == CGSize(width: 375, height: 1024))
+    #expect(window.safeArea == screen.safeArea)
+    #expect(window.scale == screen.scale)
+    #expect(window.traitCollection.userInterfaceIdiom == .pad)
+  }
+
+  @Test(arguments: [320, 375, 438, 507, 592, 639])
+  func `a window narrower than 640 points is horizontally compact`(width: CGFloat) {
     #expect(
-      DeviceProfile.iPad(.year2015, .landscape(splitView: .oneHalf))
-        .traitCollection.horizontalSizeClass == .regular
+      DeviceProfile.iPad(.year2015).windowed(width: width)
+        .traitCollection.horizontalSizeClass == .compact,
+      "\(width)"
     )
-    for generation in [DeviceProfile.TabletGeneration.year2010, .year2017, .year2018, .year2019] {
-      #expect(
-        DeviceProfile.iPad(generation, .landscape(splitView: .oneHalf))
-          .traitCollection.horizontalSizeClass == .compact,
-        "\(generation)"
-      )
-    }
+  }
+
+  @Test(arguments: [640, 678, 694, 782, 981])
+  func `a window 640 points across or wider is horizontally regular`(width: CGFloat) {
+    #expect(
+      DeviceProfile.iPad(.year2015).windowed(width: width)
+        .traitCollection.horizontalSizeClass == .regular,
+      "\(width)"
+    )
   }
 }
 

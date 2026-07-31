@@ -10,34 +10,10 @@ import UIKit
 /// Profiles come from the device families — ``iPhone(_:_:)``, ``iPad(_:_:)``, ``tv`` and
 /// ``tv4K`` — or from ``init(safeArea:scale:size:traits:)`` for a screen no device has.
 public struct DeviceProfile: Sendable {
-  /// The orientation a phone is held in.
+  /// The orientation a device is held in.
   public enum Orientation: Sendable {
     case landscape
     case portrait
-  }
-
-  /// The orientation a tablet is held in, and the share of the screen the view occupies while
-  /// another app is on screen beside it.
-  public enum TabletOrientation: Sendable {
-    public enum PortraitSplits: Sendable {
-      case oneThird
-      case twoThirds
-      case full
-    }
-    public enum LandscapeSplits: Sendable {
-      case oneThird
-      case oneHalf
-      case twoThirds
-      case full
-    }
-    case landscape(splitView: LandscapeSplits)
-    case portrait(splitView: PortraitSplits)
-
-    /// Landscape, occupying the whole screen.
-    public static var landscape: Self { .landscape(splitView: .full) }
-
-    /// Portrait, occupying the whole screen.
-    public static var portrait: Self { .portrait(splitView: .full) }
   }
 
   public var safeArea: UIEdgeInsets
@@ -56,5 +32,26 @@ public struct DeviceProfile: Sendable {
     self.size = size
     self.traits = traits
   }
+
+  /// The same screen, with the view in a window that spans only part of its width.
+  ///
+  /// A window reports a regular horizontal size class from ``regularWidth`` points across, and a
+  /// compact one below it, whatever screen it sits on. The window keeps the height and the insets
+  /// of the screen it came from.
+  ///
+  /// - Parameter width: The width of the window, in points.
+  public func windowed(width: CGFloat) -> Self {
+    var profile = self
+    profile.size?.width = width
+    let screenTraits = self.traits
+    profile.traits = { traits in
+      screenTraits(&traits)
+      traits.horizontalSizeClass = width < Self.regularWidth ? .compact : .regular
+    }
+    return profile
+  }
+
+  /// The width, in points, from which a window is horizontally regular.
+  public static let regularWidth: CGFloat = 640
 }
 #endif

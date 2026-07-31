@@ -24,39 +24,27 @@ extension DeviceProfile {
 
   /// A profile for an iPad screen.
   ///
+  /// Narrow the profile with ``windowed(width:)`` to lay the view out in a window that spans only
+  /// part of the screen.
+  ///
   /// - Parameters:
   ///   - generation: The family of iPads to lay the view out on.
-  ///   - orientation: The orientation the tablet is held in, and the share of the screen the view
-  ///     occupies. Defaults to landscape, occupying the whole screen.
+  ///   - orientation: The orientation the tablet is held in. Defaults to landscape.
   public static func iPad(
     _ generation: TabletGeneration,
-    _ orientation: TabletOrientation = .landscape
+    _ orientation: Orientation = .landscape
   ) -> Self {
     let screen = generation.screen
     let size: CGSize
-    let split: SplitView
     switch orientation {
-    case .landscape(let splitView):
-      switch splitView {
-      case .oneThird: split = screen.landscape.oneThird
-      case .oneHalf: split = screen.landscape.oneHalf
-      case .twoThirds: split = screen.landscape.twoThirds
-      case .full: split = .regular(screen.longSide)
-      }
-      size = CGSize(width: split.width, height: screen.shortSide)
-    case .portrait(let splitView):
-      switch splitView {
-      case .oneThird: split = screen.portrait.oneThird
-      case .twoThirds: split = screen.portrait.twoThirds
-      case .full: split = .regular(screen.shortSide)
-      }
-      size = CGSize(width: split.width, height: screen.longSide)
+    case .landscape: size = CGSize(width: screen.longSide, height: screen.shortSide)
+    case .portrait: size = CGSize(width: screen.shortSide, height: screen.longSide)
     }
     return Self(
       safeArea: screen.safeArea,
       size: size,
       traits: { traits in
-        traits.horizontalSizeClass = split.horizontalSizeClass
+        traits.horizontalSizeClass = .regular
         traits.verticalSizeClass = .regular
         traits.userInterfaceIdiom = .pad
       }
@@ -64,31 +52,13 @@ extension DeviceProfile {
   }
 }
 
-/// The width of one split-view arrangement, and the horizontal size class the app reports at that
-/// width.
-private struct SplitView {
-  var width: CGFloat
-  var horizontalSizeClass: UIUserInterfaceSizeClass
-
-  static func compact(_ width: CGFloat) -> Self {
-    Self(width: width, horizontalSizeClass: .compact)
-  }
-
-  static func regular(_ width: CGFloat) -> Self {
-    Self(width: width, horizontalSizeClass: .regular)
-  }
-}
-
-/// The measurements of an iPad screen. An iPad is vertically regular in either orientation, so only
-/// the width of a split view varies.
+/// The measurements of an iPad screen. An iPad is regular in both dimensions in either orientation.
 private struct TabletScreen {
   /// The height of the screen in landscape, which is its width in portrait.
   var shortSide: CGFloat
   /// The width of the screen in landscape, which is its height in portrait.
   var longSide: CGFloat
   var safeArea: UIEdgeInsets
-  var landscape: (oneThird: SplitView, oneHalf: SplitView, twoThirds: SplitView)
-  var portrait: (oneThird: SplitView, twoThirds: SplitView)
 }
 
 extension DeviceProfile.TabletGeneration {
@@ -98,41 +68,31 @@ extension DeviceProfile.TabletGeneration {
       TabletScreen(
         shortSide: 768,
         longSide: 1024,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
-        landscape: (.compact(320), .compact(507), .regular(694)),
-        portrait: (.compact(320), .compact(438))
+        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
       )
     case .year2015:
       TabletScreen(
         shortSide: 1024,
         longSide: 1366,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
-        landscape: (.compact(375), .regular(678), .regular(981)),
-        portrait: (.compact(375), .compact(639))
+        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
       )
     case .year2017:
       TabletScreen(
         shortSide: 834,
         longSide: 1112,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
-        landscape: (.compact(320), .compact(551), .regular(782)),
-        portrait: (.compact(320), .compact(504))
+        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
       )
     case .year2018:
       TabletScreen(
         shortSide: 834,
         longSide: 1194,
-        safeArea: UIEdgeInsets(top: 24, left: 0, bottom: 20, right: 0),
-        landscape: (.compact(375), .compact(592), .regular(809)),
-        portrait: (.compact(320), .compact(504))
+        safeArea: UIEdgeInsets(top: 24, left: 0, bottom: 20, right: 0)
       )
     case .year2019:
       TabletScreen(
         shortSide: 810,
         longSide: 1080,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
-        landscape: (.compact(320), .compact(535), .regular(750)),
-        portrait: (.compact(320), .compact(480))
+        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
       )
     }
   }
