@@ -1,7 +1,17 @@
+import Foundation
 import Snapshotting
 import Testing
 
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 /// Compares a value against a reference snapshot on disk, failing the current test on a mismatch.
+///
+/// A mismatch also attaches what was rendered to the test report, so the failure can be inspected
+/// from the `.xcresult` alone.
 ///
 /// Use ``snapshotResult(of:as:named:record:testName:filePath:isolation:)`` instead when the failure
 /// itself is what a test is asserting on.
@@ -32,6 +42,8 @@ func expectSnapshot<Value, Format>(
     filePath: sourceLocation.filePath,
     isolation: isolation
   )
+
+  recordAttachments(result.artifacts, sourceLocation: sourceLocation)
 
   if let failure = result.failureMessage {
     Issue.record(Comment(rawValue: failure), sourceLocation: sourceLocation)
@@ -82,6 +94,49 @@ extension SnapshotResult.Outcome {
     guard case .mismatched(let failure) = self else { return nil }
     return failure
   }
+}
+
+/// Records snapshot artifacts as test attachments, so that a mismatch on a machine you cannot reach
+/// — a CI runner — arrives with the image that failed rather than only the message describing it.
+///
+/// Attachments are only captured when the run is hosted by Xcode, which is what puts them in the
+/// resulting `.xcresult`. Recording them elsewhere would discard them.
+private func recordAttachments(_ artifacts: [SnapshotArtifact], sourceLocation: SourceLocation) {
+  #if !os(Android) && !os(Linux) && !os(Windows)
+  #if compiler(>=6.2)
+  guard
+    !artifacts.isEmpty,
+    ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS")
+  else { return }
+
+  for artifact in artifacts {
+    recordAttachment(artifact.data, named: artifact.name, sourceLocation: sourceLocation)
+  }
+  #endif
+  #endif
+}
+
+/// Attaches a blob, preferring the image overload so that a PNG can be previewed in the test report
+/// instead of downloaded as bytes.
+private func recordAttachment(_ data: Data, named name: String, sourceLocation: SourceLocation) {
+  #if !os(Android) && !os(Linux) && !os(Windows)
+  #if compiler(>=6.3) && (canImport(UIKit) || canImport(AppKit))
+  if name.hasSuffix(".png") {
+    #if os(macOS)
+    let image = NSImage(data: data)
+    #elseif os(iOS) || os(tvOS) || os(visionOS)
+    let image = UIImage(data: data)
+    #else
+    let image: Never? = nil
+    #endif
+    if let image {
+      Attachment.record(image, named: name, as: .png, sourceLocation: sourceLocation)
+      return
+    }
+  }
+  #endif
+  Attachment.record(data, named: name, sourceLocation: sourceLocation)
+  #endif
 }
 
 /// Reduces a test or snapshot name to something usable as a file name, turning `#function`'s
