@@ -108,7 +108,12 @@ struct DeviceProfileTests {
       (.year2015, CGSize(width: 1366, height: 1024)),
       (.year2017, CGSize(width: 1112, height: 834)),
       (.year2018, CGSize(width: 1194, height: 834)),
-      (.year2019, CGSize(width: 1080, height: 810))
+      (.year2018Large, CGSize(width: 1366, height: 1024)),
+      (.year2019, CGSize(width: 1080, height: 810)),
+      (.year2020, CGSize(width: 1180, height: 820)),
+      (.year2021, CGSize(width: 1133, height: 744)),
+      (.year2024, CGSize(width: 1210, height: 834)),
+      (.year2024Large, CGSize(width: 1376, height: 1032))
     ]
   )
   func `a tablet is its landscape size, transposed in portrait`(
@@ -146,6 +151,21 @@ struct DeviceProfileTests {
         "\(generation)"
       )
     }
+  }
+
+  @Test func `a tablet with a home indicator reserves room below the screen`() {
+    let generations: [DeviceProfile.TabletGeneration] = [
+      .year2018, .year2018Large, .year2020, .year2021, .year2024, .year2024Large
+    ]
+    for generation in generations {
+      #expect(DeviceProfile.iPad(generation).safeArea.bottom == 25, "\(generation)")
+    }
+  }
+
+  /// The two 1366 × 1024 families differ only in the chrome around them.
+  @Test func `the 2018 large tablet matches the 2015 one but for its insets`() {
+    #expect(DeviceProfile.iPad(.year2018Large).size == DeviceProfile.iPad(.year2015).size)
+    #expect(DeviceProfile.iPad(.year2018Large).safeArea != DeviceProfile.iPad(.year2015).safeArea)
   }
 
   // MARK: - The running system

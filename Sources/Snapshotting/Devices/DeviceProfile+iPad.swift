@@ -4,7 +4,8 @@ import UIKit
 extension DeviceProfile {
   /// A family of iPads that share a screen.
   ///
-  /// Cases are named for the year their screen first shipped.
+  /// Cases are named for the year their screen first shipped; a size role distinguishes the years
+  /// that introduced more than one.
   public enum TabletGeneration: Sendable {
     /// 1024 × 768 pt — iPad (1st–6th generation), iPad 9.7", iPad Air, Air 2, iPad mini (1st–5th generation).
     case year2010
@@ -18,8 +19,27 @@ extension DeviceProfile {
     /// 1194 × 834 pt — iPad Pro 11" (1st–4th generation).
     case year2018
 
+    /// 1366 × 1024 pt — iPad Pro 12.9" (3rd–6th generation), iPad Air 13" (M2, M3, M4).
+    ///
+    /// The same size as ``year2015``, below a home indicator rather than beside a home button, so
+    /// it reserves different insets.
+    case year2018Large
+
     /// 1080 × 810 pt — iPad (7th, 8th, 9th generation), iPad 10.2".
     case year2019
+
+    /// 1180 × 820 pt — iPad Air 10.9" (4th, 5th generation), iPad (10th generation), iPad (A16),
+    /// iPad Air 11" (M2, M3, M4).
+    case year2020
+
+    /// 1133 × 744 pt — iPad mini (6th generation), iPad mini (A17 Pro).
+    case year2021
+
+    /// 1210 × 834 pt — iPad Pro 11" (M4, M5).
+    case year2024
+
+    /// 1376 × 1032 pt — iPad Pro 13" (M4, M5).
+    case year2024Large
   }
 
   /// A profile for an iPad screen.
@@ -73,8 +93,18 @@ extension DeviceProfile.TabletGeneration {
       TabletScreen(shortSide: 834, longSide: 1112, safeArea: .homeButton)
     case .year2018:
       TabletScreen(shortSide: 834, longSide: 1194, safeArea: .homeIndicator)
+    case .year2018Large:
+      TabletScreen(shortSide: 1024, longSide: 1366, safeArea: .homeIndicator)
     case .year2019:
       TabletScreen(shortSide: 810, longSide: 1080, safeArea: .homeButton)
+    case .year2020:
+      TabletScreen(shortSide: 820, longSide: 1180, safeArea: .homeIndicator)
+    case .year2021:
+      TabletScreen(shortSide: 744, longSide: 1133, safeArea: .homeIndicator)
+    case .year2024:
+      TabletScreen(shortSide: 834, longSide: 1210, safeArea: .homeIndicator)
+    case .year2024Large:
+      TabletScreen(shortSide: 1032, longSide: 1376, safeArea: .homeIndicator)
     }
   }
 }
