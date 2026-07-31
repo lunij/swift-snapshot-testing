@@ -39,37 +39,42 @@ struct DeviceProfileTests {
     )
   }
 
-  @Test func `the screens added in 2022 reserve nothing at the top in landscape`() {
+  @Test func `a phone a home button frames reserves only the status bar`() {
     #expect(
-      DeviceProfile.iPhone(.year2022).safeArea
-        == UIEdgeInsets(top: 59, left: 0, bottom: 34, right: 0)
+      DeviceProfile.iPhone(.year2014).safeArea
+        == UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
     )
-    #expect(
-      DeviceProfile.iPhone(.year2022, .landscape).safeArea
-        == UIEdgeInsets(top: 0, left: 59, bottom: 21, right: 59)
-    )
+    #expect(DeviceProfile.iPhone(.year2014, .landscape).safeArea == .zero)
   }
 
-  @Test func `the screens added in 2024 reserve 20 points at the top in landscape`() {
+  /// A sensor housing reaches into the top of the screen in portrait, and into each side in
+  /// landscape, where the system leaves the top free.
+  @Test(
+    arguments: [
+      (DeviceProfile.PhoneGeneration.year2017, CGFloat(44)),
+      (.year2018, 44),
+      (.year2020Mini, 50),
+      (.year2020, 47),
+      (.year2020Max, 47),
+      (.year2022, 59),
+      (.year2022Max, 59),
+      (.year2024, 62),
+      (.year2024Max, 62),
+      (.year2025Air, 68)
+    ]
+  )
+  func `a phone reserves its sensor housing at the top in portrait and at the sides in landscape`(
+    generation: DeviceProfile.PhoneGeneration,
+    housing: CGFloat
+  ) {
     #expect(
-      DeviceProfile.iPhone(.year2024).safeArea
-        == UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0)
+      DeviceProfile.iPhone(generation).safeArea
+        == UIEdgeInsets(top: housing, left: 0, bottom: 34, right: 0)
     )
-    #expect(
-      DeviceProfile.iPhone(.year2024, .landscape).safeArea
-        == UIEdgeInsets(top: 20, left: 62, bottom: 20, right: 62)
-    )
-  }
-
-  @Test func `the iPhone Air stands alone`() {
-    #expect(
-      DeviceProfile.iPhone(.year2025Air).safeArea
-        == UIEdgeInsets(top: 68, left: 0, bottom: 34, right: 0)
-    )
-    #expect(
-      DeviceProfile.iPhone(.year2025Air, .landscape).safeArea
-        == UIEdgeInsets(top: 20, left: 68, bottom: 29, right: 68)
-    )
+    let landscape = DeviceProfile.iPhone(generation, .landscape).safeArea
+    #expect(landscape.top == 0)
+    #expect(landscape.left == housing)
+    #expect(landscape.right == housing)
   }
 
   @Test func `a phone is horizontally compact in portrait`() {
@@ -121,6 +126,43 @@ struct DeviceProfileTests {
     #expect(DeviceProfile.iPad(.year2010).traitCollection.horizontalSizeClass == .regular)
     #expect(DeviceProfile.iPad(.year2010).traitCollection.verticalSizeClass == .regular)
     #expect(DeviceProfile.iPad(.year2010).traitCollection.userInterfaceIdiom == .pad)
+  }
+
+  @Test func `a tablet reserves the same insets in either orientation`() {
+    for generation in [DeviceProfile.TabletGeneration.year2010, .year2018] {
+      #expect(
+        DeviceProfile.iPad(generation).safeArea
+          == DeviceProfile.iPad(generation, .portrait).safeArea,
+        "\(generation)"
+      )
+    }
+  }
+
+  @Test func `a tablet a home button frames reserves only the status bar`() {
+    for generation in [DeviceProfile.TabletGeneration.year2010, .year2015, .year2017, .year2019] {
+      #expect(
+        DeviceProfile.iPad(generation).safeArea
+          == UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
+        "\(generation)"
+      )
+    }
+  }
+
+  // MARK: - The running system
+
+  /// The insets belong to the system, not to the screen: iOS 26 draws a deeper status bar on an
+  /// iPad, and a slimmer landscape home indicator on an iPhone, than earlier releases do.
+  @Test func `the running system decides how deep the chrome is`() {
+    let tabletStatusBar = DeviceProfile.iPad(.year2018).safeArea.top
+    let phoneHomeIndicator = DeviceProfile.iPhone(.year2024, .landscape).safeArea.bottom
+    if #available(iOS 26, *) {
+      #expect(tabletStatusBar == 32)
+      #expect(phoneHomeIndicator == 20)
+    } else {
+      #expect(tabletStatusBar == 24)
+      #expect(phoneHomeIndicator == 21)
+    }
+    #expect(DeviceProfile.iPad(.year2018).safeArea.bottom == 25)
   }
 
   // MARK: - Windows

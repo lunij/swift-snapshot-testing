@@ -9,7 +9,7 @@ extension DeviceProfile {
     /// 1024 × 768 pt — iPad (1st–6th generation), iPad 9.7", iPad Air, Air 2, iPad mini (1st–5th generation).
     case year2010
 
-    /// 1366 × 1024 pt — iPad Pro 12.9" (1st–6th generation), iPad Air 13" (M2, M3, M4).
+    /// 1366 × 1024 pt — iPad Pro 12.9" (1st, 2nd generation).
     case year2015
 
     /// 1112 × 834 pt — iPad Pro 10.5", iPad Air (3rd generation).
@@ -41,7 +41,7 @@ extension DeviceProfile {
     case .portrait: size = CGSize(width: screen.shortSide, height: screen.longSide)
     }
     return Self(
-      safeArea: screen.safeArea,
+      safeArea: screen.safeArea.insets,
       size: size,
       traits: { traits in
         traits.horizontalSizeClass = .regular
@@ -58,42 +58,23 @@ private struct TabletScreen {
   var shortSide: CGFloat
   /// The width of the screen in landscape, which is its height in portrait.
   var longSide: CGFloat
-  var safeArea: UIEdgeInsets
+  /// The chrome around the screen, which decides the insets it reserves.
+  var safeArea: TabletSafeArea
 }
 
 extension DeviceProfile.TabletGeneration {
   fileprivate var screen: TabletScreen {
     switch self {
     case .year2010:
-      TabletScreen(
-        shortSide: 768,
-        longSide: 1024,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
-      )
+      TabletScreen(shortSide: 768, longSide: 1024, safeArea: .homeButton)
     case .year2015:
-      TabletScreen(
-        shortSide: 1024,
-        longSide: 1366,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
-      )
+      TabletScreen(shortSide: 1024, longSide: 1366, safeArea: .homeButton)
     case .year2017:
-      TabletScreen(
-        shortSide: 834,
-        longSide: 1112,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
-      )
+      TabletScreen(shortSide: 834, longSide: 1112, safeArea: .homeButton)
     case .year2018:
-      TabletScreen(
-        shortSide: 834,
-        longSide: 1194,
-        safeArea: UIEdgeInsets(top: 24, left: 0, bottom: 20, right: 0)
-      )
+      TabletScreen(shortSide: 834, longSide: 1194, safeArea: .homeIndicator)
     case .year2019:
-      TabletScreen(
-        shortSide: 810,
-        longSide: 1080,
-        safeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
-      )
+      TabletScreen(shortSide: 810, longSide: 1080, safeArea: .homeButton)
     }
   }
 }

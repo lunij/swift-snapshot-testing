@@ -6,9 +6,6 @@ extension DeviceProfile {
   ///
   /// Cases are named for the year their screen first shipped; a size role distinguishes the years
   /// that introduced more than one.
-  ///
-  /// The screens introduced in 2024 and later reserve 20 points at the top in landscape, which the
-  /// earlier ones leave free.
   public enum PhoneGeneration: Sendable {
     /// 320 × 568 pt — iPhone 5, 5c, 5s, iPhone SE (1st generation), iPod touch (6th, 7th
     /// generation).
@@ -62,23 +59,20 @@ extension DeviceProfile {
   ) -> Self {
     let screen = generation.screen
     let size: CGSize
-    let safeArea: UIEdgeInsets
     let horizontalSizeClass: UIUserInterfaceSizeClass
     let verticalSizeClass: UIUserInterfaceSizeClass
     switch orientation {
     case .landscape:
       size = CGSize(width: screen.portraitSize.height, height: screen.portraitSize.width)
-      safeArea = screen.landscapeSafeArea
       horizontalSizeClass = screen.landscapeHorizontalSizeClass
       verticalSizeClass = .compact
     case .portrait:
       size = screen.portraitSize
-      safeArea = screen.portraitSafeArea
       horizontalSizeClass = .compact
       verticalSizeClass = .regular
     }
     return Self(
-      safeArea: safeArea,
+      safeArea: screen.safeArea.insets(orientation),
       size: size,
       traits: { traits in
         traits.forceTouchCapability = .available
@@ -95,8 +89,8 @@ extension DeviceProfile {
 /// The measurements of an iPhone screen, held in portrait.
 private struct PhoneScreen {
   var portraitSize: CGSize
-  var portraitSafeArea: UIEdgeInsets
-  var landscapeSafeArea: UIEdgeInsets
+  /// The chrome around the screen, which decides the insets it reserves.
+  var safeArea: PhoneSafeArea
   /// The horizontal size class the phone reports in landscape. Every iPhone is horizontally
   /// compact in portrait.
   var landscapeHorizontalSizeClass: UIUserInterfaceSizeClass
@@ -108,92 +102,79 @@ extension DeviceProfile.PhoneGeneration {
     case .year2012:
       PhoneScreen(
         portraitSize: CGSize(width: 320, height: 568),
-        portraitSafeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
-        landscapeSafeArea: .zero,
+        safeArea: .homeButton,
         landscapeHorizontalSizeClass: .compact
       )
     case .year2014:
       PhoneScreen(
         portraitSize: CGSize(width: 375, height: 667),
-        portraitSafeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
-        landscapeSafeArea: .zero,
+        safeArea: .homeButton,
         landscapeHorizontalSizeClass: .compact
       )
     case .year2014Plus:
       PhoneScreen(
         portraitSize: CGSize(width: 414, height: 736),
-        portraitSafeArea: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
-        landscapeSafeArea: .zero,
+        safeArea: .homeButton,
         landscapeHorizontalSizeClass: .regular
       )
     case .year2017:
       PhoneScreen(
         portraitSize: CGSize(width: 375, height: 812),
-        portraitSafeArea: UIEdgeInsets(top: 44, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 0, left: 44, bottom: 24, right: 44),
+        safeArea: .sensorHousing(depth: 44),
         landscapeHorizontalSizeClass: .compact
       )
     case .year2018:
       PhoneScreen(
         portraitSize: CGSize(width: 414, height: 896),
-        portraitSafeArea: UIEdgeInsets(top: 44, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 0, left: 44, bottom: 24, right: 44),
+        safeArea: .sensorHousing(depth: 44),
         landscapeHorizontalSizeClass: .regular
       )
     case .year2020Mini:
       PhoneScreen(
         portraitSize: CGSize(width: 375, height: 812),
-        portraitSafeArea: UIEdgeInsets(top: 50, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 0, left: 50, bottom: 21, right: 50),
+        safeArea: .sensorHousing(depth: 50),
         landscapeHorizontalSizeClass: .compact
       )
     case .year2020:
       PhoneScreen(
         portraitSize: CGSize(width: 390, height: 844),
-        portraitSafeArea: UIEdgeInsets(top: 47, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 0, left: 47, bottom: 21, right: 47),
+        safeArea: .sensorHousing(depth: 47),
         landscapeHorizontalSizeClass: .compact
       )
     case .year2020Max:
       PhoneScreen(
         portraitSize: CGSize(width: 428, height: 926),
-        portraitSafeArea: UIEdgeInsets(top: 47, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 0, left: 47, bottom: 21, right: 47),
+        safeArea: .sensorHousing(depth: 47),
         landscapeHorizontalSizeClass: .regular
       )
     case .year2022:
       PhoneScreen(
         portraitSize: CGSize(width: 393, height: 852),
-        portraitSafeArea: UIEdgeInsets(top: 59, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 0, left: 59, bottom: 21, right: 59),
+        safeArea: .sensorHousing(depth: 59),
         landscapeHorizontalSizeClass: .compact
       )
     case .year2022Max:
       PhoneScreen(
         portraitSize: CGSize(width: 430, height: 932),
-        portraitSafeArea: UIEdgeInsets(top: 59, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 0, left: 59, bottom: 21, right: 59),
+        safeArea: .sensorHousing(depth: 59),
         landscapeHorizontalSizeClass: .regular
       )
     case .year2024:
       PhoneScreen(
         portraitSize: CGSize(width: 402, height: 874),
-        portraitSafeArea: UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 20, left: 62, bottom: 20, right: 62),
+        safeArea: .sensorHousing(depth: 62),
         landscapeHorizontalSizeClass: .compact
       )
     case .year2024Max:
       PhoneScreen(
         portraitSize: CGSize(width: 440, height: 956),
-        portraitSafeArea: UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 20, left: 62, bottom: 20, right: 62),
+        safeArea: .sensorHousing(depth: 62),
         landscapeHorizontalSizeClass: .regular
       )
     case .year2025Air:
       PhoneScreen(
         portraitSize: CGSize(width: 420, height: 912),
-        portraitSafeArea: UIEdgeInsets(top: 68, left: 0, bottom: 34, right: 0),
-        landscapeSafeArea: UIEdgeInsets(top: 20, left: 68, bottom: 29, right: 68),
+        safeArea: .sensorHousing(depth: 68),
         landscapeHorizontalSizeClass: .regular
       )
     }
