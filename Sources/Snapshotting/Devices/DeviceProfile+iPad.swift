@@ -9,13 +9,13 @@ extension DeviceProfile {
     /// 1024 × 768 pt — iPad (1st–6th generation), iPad 9.7", iPad Air, Air 2, iPad mini (1st–5th generation).
     case year2010
 
-    /// 1366 × 1024 pt — iPad Pro 12.9".
+    /// 1366 × 1024 pt — iPad Pro 12.9" (1st–6th generation), iPad Air 13" (M2, M3, M4).
     case year2015
 
     /// 1112 × 834 pt — iPad Pro 10.5", iPad Air (3rd generation).
     case year2017
 
-    /// 1194 × 834 pt — iPad Pro 11".
+    /// 1194 × 834 pt — iPad Pro 11" (1st–4th generation).
     case year2018
 
     /// 1080 × 810 pt — iPad (7th, 8th, 9th generation), iPad 10.2".

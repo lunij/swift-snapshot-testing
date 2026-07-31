@@ -6,6 +6,9 @@ extension DeviceProfile {
   ///
   /// Cases are named for the year their screen first shipped; a size role distinguishes the years
   /// that introduced more than one.
+  ///
+  /// The screens introduced in 2024 and later reserve 20 points at the top in landscape, which the
+  /// earlier ones leave free.
   public enum PhoneGeneration: Sendable {
     /// 320 × 568 pt — iPhone 5, 5c, 5s, iPhone SE (1st generation), iPod touch (6th, 7th
     /// generation).
@@ -26,11 +29,26 @@ extension DeviceProfile {
     /// 375 × 812 pt with a taller sensor housing — iPhone 12 mini, 13 mini.
     case year2020Mini
 
-    /// 390 × 844 pt — iPhone 12, 12 Pro, 13, 13 Pro, 14.
+    /// 390 × 844 pt — iPhone 12, 12 Pro, 13, 13 Pro, 14, 16e, 17e.
     case year2020
 
     /// 428 × 926 pt — iPhone 12 Pro Max, 13 Pro Max, 14 Plus.
     case year2020Max
+
+    /// 393 × 852 pt — iPhone 14 Pro, 15, 15 Pro, 16.
+    case year2022
+
+    /// 430 × 932 pt — iPhone 14 Pro Max, 15 Plus, 15 Pro Max, 16 Plus.
+    case year2022Max
+
+    /// 402 × 874 pt — iPhone 16 Pro, 17, 17 Pro.
+    case year2024
+
+    /// 440 × 956 pt — iPhone 16 Pro Max, 17 Pro Max.
+    case year2024Max
+
+    /// 420 × 912 pt — iPhone Air.
+    case year2025Air
   }
 
   /// A profile for an iPhone screen.
@@ -141,6 +159,41 @@ extension DeviceProfile.PhoneGeneration {
         portraitSize: CGSize(width: 428, height: 926),
         portraitSafeArea: UIEdgeInsets(top: 47, left: 0, bottom: 34, right: 0),
         landscapeSafeArea: UIEdgeInsets(top: 0, left: 47, bottom: 21, right: 47),
+        landscapeHorizontalSizeClass: .regular
+      )
+    case .year2022:
+      PhoneScreen(
+        portraitSize: CGSize(width: 393, height: 852),
+        portraitSafeArea: UIEdgeInsets(top: 59, left: 0, bottom: 34, right: 0),
+        landscapeSafeArea: UIEdgeInsets(top: 0, left: 59, bottom: 21, right: 59),
+        landscapeHorizontalSizeClass: .compact
+      )
+    case .year2022Max:
+      PhoneScreen(
+        portraitSize: CGSize(width: 430, height: 932),
+        portraitSafeArea: UIEdgeInsets(top: 59, left: 0, bottom: 34, right: 0),
+        landscapeSafeArea: UIEdgeInsets(top: 0, left: 59, bottom: 21, right: 59),
+        landscapeHorizontalSizeClass: .regular
+      )
+    case .year2024:
+      PhoneScreen(
+        portraitSize: CGSize(width: 402, height: 874),
+        portraitSafeArea: UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0),
+        landscapeSafeArea: UIEdgeInsets(top: 20, left: 62, bottom: 20, right: 62),
+        landscapeHorizontalSizeClass: .compact
+      )
+    case .year2024Max:
+      PhoneScreen(
+        portraitSize: CGSize(width: 440, height: 956),
+        portraitSafeArea: UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0),
+        landscapeSafeArea: UIEdgeInsets(top: 20, left: 62, bottom: 20, right: 62),
+        landscapeHorizontalSizeClass: .regular
+      )
+    case .year2025Air:
+      PhoneScreen(
+        portraitSize: CGSize(width: 420, height: 912),
+        portraitSafeArea: UIEdgeInsets(top: 68, left: 0, bottom: 34, right: 0),
+        landscapeSafeArea: UIEdgeInsets(top: 20, left: 68, bottom: 29, right: 68),
         landscapeHorizontalSizeClass: .regular
       )
     }
