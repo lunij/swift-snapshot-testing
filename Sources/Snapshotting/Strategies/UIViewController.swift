@@ -23,6 +23,9 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
+  ///   - scale: The scale at which the view is rendered and the reference image is stored.
+  ///     Defaults to `2`, which keeps references small enough to live in a repository while still
+  ///     resolving hairlines. Pass the device's own scale for pixel fidelity.
   ///   - size: A view size override.
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
@@ -30,6 +33,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
     drawHierarchyInKeyWindow: Bool = false,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
+    scale: CGFloat = 2,
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
@@ -38,12 +42,13 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
     DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
-      scale: profile.scale
+      scale: scale
     ).asyncPullback { @MainActor (viewController: UIViewController) async -> UIImage in
       await snapshotView(
         profile: size.map { .init(safeArea: profile.safeArea, size: $0, traits: profile.traits) }
           ?? profile,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        scale: scale,
         traits: traits,
         view: viewController.view,
         viewController: viewController
@@ -85,6 +90,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       await snapshotView(
         profile: .init(safeArea: .zero, size: size, traits: traits),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        scale: scale,
         traits: traits,
         view: viewController.view,
         viewController: viewController

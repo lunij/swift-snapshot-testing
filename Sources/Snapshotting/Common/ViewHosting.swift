@@ -53,6 +53,7 @@ func prepareView(
 func snapshotView(
   profile: DeviceProfile,
   drawHierarchyInKeyWindow: Bool,
+  scale: CGFloat,
   traits: @escaping TraitMutations,
   view: UIView,
   viewController: UIViewController
@@ -76,7 +77,7 @@ func snapshotView(
   }
   let views = await addImagesForRenderedViews(view)
   let image = view.convertToImage(
-    scale: profile.scale,
+    scale: scale,
     traits: traits,
     drawHierarchyInKeyWindow: drawHierarchyInKeyWindow
   )

@@ -4,11 +4,12 @@ import UIKit
 /// The screen a view is laid out and rendered on.
 ///
 /// A profile describes a device: the size of its screen in points, the insets its safe area
-/// reserves, the scale it renders at, and the traits it reports — its idiom, its size classes, and
-/// its input capabilities.
+/// reserves, and the traits it reports — its idiom, its size classes, and its input capabilities.
+/// It says nothing about resolution; the scale a snapshot rasterizes at is a parameter of the
+/// image strategy, not a property of the device.
 ///
 /// Profiles come from the device families — ``iPhone(_:_:)``, ``iPad(_:_:)``, ``tv`` and
-/// ``tv4K`` — or from ``init(safeArea:scale:size:traits:)`` for a screen no device has.
+/// ``tv4K`` — or from ``init(safeArea:size:traits:)`` for a screen no device has.
 public struct DeviceProfile: Sendable {
   /// The orientation a device is held in.
   public enum Orientation: Sendable {
@@ -17,18 +18,15 @@ public struct DeviceProfile: Sendable {
   }
 
   public var safeArea: UIEdgeInsets
-  public var scale: CGFloat
   public var size: CGSize?
   public var traits: TraitMutations
 
   public init(
     safeArea: UIEdgeInsets = .zero,
-    scale: CGFloat = 2,
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   ) {
     self.safeArea = safeArea
-    self.scale = scale
     self.size = size
     self.traits = traits
   }

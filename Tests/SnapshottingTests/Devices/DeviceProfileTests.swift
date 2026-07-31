@@ -192,7 +192,6 @@ struct DeviceProfileTests {
     let window = screen.windowed(width: 375)
     #expect(window.size == CGSize(width: 375, height: 1024))
     #expect(window.safeArea == screen.safeArea)
-    #expect(window.scale == screen.scale)
     #expect(window.traitCollection.userInterfaceIdiom == .pad)
   }
 

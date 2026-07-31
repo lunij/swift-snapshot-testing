@@ -42,8 +42,9 @@ extension SnapshotStrategy where Value == UIView, Format == UIImage {
       scale: scale
     ).asyncPullback { @MainActor (view: UIView) async -> UIImage in
       await snapshotView(
-        profile: .init(safeArea: .zero, scale: scale, size: size ?? view.frame.size),
+        profile: .init(safeArea: .zero, size: size ?? view.frame.size),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        scale: scale,
         traits: traits,
         view: view,
         viewController: .init()

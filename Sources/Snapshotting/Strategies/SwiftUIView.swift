@@ -63,10 +63,10 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
       profile = deviceProfile
     #endif
     case .sizeThatFits:
-      profile = .init(safeArea: .zero, scale: scale, size: nil, traits: traits)
+      profile = .init(safeArea: .zero, size: nil, traits: traits)
     case let .fixed(width: width, height: height):
       let size = CGSize(width: width, height: height)
-      profile = .init(safeArea: .zero, scale: scale, size: size, traits: traits)
+      profile = .init(safeArea: .zero, size: size, traits: traits)
     }
 
     return DirectSnapshotStrategy.image(
@@ -89,6 +89,7 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
       return await snapshotView(
         profile: profile,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        scale: scale,
         traits: traits,
         view: controller.view,
         viewController: controller
