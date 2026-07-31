@@ -28,7 +28,7 @@ struct UIImageDiffTests {
     let failure = try #require(try SnapshotComparator<UIImage>.image.diff(old, new))
     let diffData = try #require(
       failure.artifacts.compactMap { artifact -> Data? in
-        guard artifact.name == "diff" else { return nil }
+        guard artifact.name == "diff.png" else { return nil }
         return artifact.data
       }.first
     )

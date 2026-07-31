@@ -10,9 +10,9 @@ extension SnapshotComparator where Value == XImage {
   ) throws -> [SnapshotArtifact] {
     let diff = toDiffImage(old, new)
     return [
-      .init(name: "old", data: try toData(old)),
-      .init(name: "new", data: try toData(new)),
-      .init(name: "diff", data: try toData(diff))
+      .init(name: "old.png", data: try toData(old)),
+      .init(name: "new.png", data: try toData(new)),
+      .init(name: "diff.png", data: try toData(diff))
     ]
   }
 }
