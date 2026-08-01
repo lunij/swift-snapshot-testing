@@ -134,7 +134,11 @@ struct ViewControllerTests {
     await expectSnapshot(of: viewController, as: .image(on: .iPad(.year2015)), named: "ipad")
     await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2012)), named: "iphoneSe")
     await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2014)), named: "iphone8")
-    await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2018)), named: "iphoneMax")
+    await expectSnapshot(
+      of: viewController,
+      as: .image(on: .iPhone(.year2018Max)),
+      named: "iphoneMax"
+    )
   }
 
   @Test func `view controller lifecycle`() async {

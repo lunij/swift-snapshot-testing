@@ -227,6 +227,7 @@ private let phoneScreens: [(generation: DeviceProfile.PhoneGeneration, name: Str
   (.year2014Plus, "iphone-2014-plus"),
   (.year2017, "iphone-2017"),
   (.year2018, "iphone-2018"),
+  (.year2018Max, "iphone-2018-max"),
   (.year2020, "iphone-2020"),
   (.year2020Max, "iphone-2020-max"),
   (.year2020Mini, "iphone-2020-mini"),

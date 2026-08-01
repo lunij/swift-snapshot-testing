@@ -4,8 +4,9 @@ import UIKit
 extension DeviceProfile {
   /// A family of iPhones that share a screen.
   ///
-  /// Cases are named for the year their screen first shipped; a size role distinguishes the years
-  /// that introduced more than one.
+  /// Cases are named for the year their screen first shipped; a model role distinguishes the years
+  /// that introduced more than one. Two screens can measure the same and still differ, when the
+  /// models that ship them reserve different room for their chrome.
   public enum PhoneGeneration: Sendable {
     /// 320 × 568 pt — iPhone 5, 5c, 5s, iPhone SE (1st generation), iPod touch (6th, 7th
     /// generation).
@@ -20,8 +21,11 @@ extension DeviceProfile {
     /// 375 × 812 pt — iPhone X, XS, 11 Pro.
     case year2017
 
-    /// 414 × 896 pt — iPhone XR, XS Max, 11, 11 Pro Max.
+    /// 414 × 896 pt — iPhone XR, 11.
     case year2018
+
+    /// 414 × 896 pt with a shallower sensor housing — iPhone XS Max, 11 Pro Max.
+    case year2018Max
 
     /// 375 × 812 pt with a taller sensor housing — iPhone 12 mini, 13 mini.
     case year2020Mini
@@ -151,7 +155,17 @@ extension DeviceProfile.PhoneGeneration {
       PhoneScreen(
         description: """
           iPhone .year2018
-          iPhone XR, XS Max, 11, 11 Pro Max
+          iPhone XR, 11
+          """,
+        portraitSize: CGSize(width: 414, height: 896),
+        safeArea: .sensorHousing(depth: 48),
+        landscapeHorizontalSizeClass: .regular
+      )
+    case .year2018Max:
+      PhoneScreen(
+        description: """
+          iPhone .year2018Max
+          iPhone XS Max, 11 Pro Max
           """,
         portraitSize: CGSize(width: 414, height: 896),
         safeArea: .sensorHousing(depth: 44),

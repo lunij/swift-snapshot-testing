@@ -18,6 +18,7 @@ struct DeviceProfileTests {
       (.year2014Plus, CGSize(width: 414, height: 736)),
       (.year2017, CGSize(width: 375, height: 812)),
       (.year2018, CGSize(width: 414, height: 896)),
+      (.year2018Max, CGSize(width: 414, height: 896)),
       (.year2020Mini, CGSize(width: 375, height: 812)),
       (.year2020, CGSize(width: 390, height: 844)),
       (.year2020Max, CGSize(width: 428, height: 926)),
@@ -52,7 +53,8 @@ struct DeviceProfileTests {
   @Test(
     arguments: [
       (DeviceProfile.PhoneGeneration.year2017, CGFloat(44)),
-      (.year2018, 44),
+      (.year2018, 48),
+      (.year2018Max, 44),
       (.year2020Mini, 50),
       (.year2020, 47),
       (.year2020Max, 47),
@@ -98,6 +100,13 @@ struct DeviceProfileTests {
         "\(generation)"
       )
     }
+  }
+
+  /// The two 414 × 896 families differ only in the chrome around them: the @2x screen reserves 48
+  /// points for its sensor housing where the @3x screen reserves 44.
+  @Test func `the 2018 max phone matches the 2018 one but for its insets`() {
+    #expect(DeviceProfile.iPhone(.year2018Max).size == DeviceProfile.iPhone(.year2018).size)
+    #expect(DeviceProfile.iPhone(.year2018Max).safeArea != DeviceProfile.iPhone(.year2018).safeArea)
   }
 
   // MARK: - iPad
