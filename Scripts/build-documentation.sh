@@ -38,7 +38,7 @@ platforms_for() {
 build="$root/.build/documentation"
 graphs="$build/symbol-graphs"
 archives="$build/archives"
-output="$build/swift-snapshot-testing.doccarchive"
+output="$build/swift-snapshotting.doccarchive"
 
 if [ "$(uname -s)" != "Darwin" ]; then
   echo "error: the iOS and tvOS symbol graphs need xcodebuild, which only runs on macOS." >&2
@@ -131,7 +131,7 @@ for module in "${modules[@]}"; do
 
   xcrun docc convert ${catalog[@]+"${catalog[@]}"} \
     --fallback-display-name "$module" \
-    --fallback-bundle-identifier "swift-snapshot-testing.$module" \
+    --fallback-bundle-identifier "swift-snapshotting.$module" \
     --additional-symbol-graph-dir "$staged" \
     --output-path "$archives/$module.doccarchive" \
     --emit-lmdb-index \
@@ -141,6 +141,6 @@ done
 echo "==> Merging"
 xcrun docc merge "$archives"/*.doccarchive \
   --output-path "$output" \
-  --synthesized-landing-page-name "Swift Snapshot Testing"
+  --synthesized-landing-page-name "Snapshotting"
 
 echo "Documentation archive: $output"

@@ -10,7 +10,7 @@ test-macos:
 	set -o pipefail && \
 	TEST_RUNNER_CI=$(CI) \
 	xcodebuild test \
-		-scheme swift-snapshot-testing-Package \
+		-scheme swift-snapshotting-Package \
 		-destination platform="macOS" \
 		-resultBundlePath .xcresults/macos \
 		-workspace . | xcbeautify
@@ -19,7 +19,7 @@ test-ios:
 	set -o pipefail && \
 	TEST_RUNNER_CI=$(CI) \
 	xcodebuild test \
-		-scheme swift-snapshot-testing-Package \
+		-scheme swift-snapshotting-Package \
 		-destination platform="iOS Simulator,name=iPhone 17,OS=26.4.1" \
 		-resultBundlePath .xcresults/ios \
 		-workspace . | xcbeautify
