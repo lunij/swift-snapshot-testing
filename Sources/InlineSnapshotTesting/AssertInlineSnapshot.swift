@@ -1,12 +1,10 @@
 import Foundation
-import Synchronization
-
-#if canImport(SwiftSyntax509)
 @_spi(Internals) import SnapshotTesting
 @_spi(Internals) import Snapshotting
 import SwiftParser
 import SwiftSyntax
 import SwiftSyntaxBuilder
+import Synchronization
 
 /// Asserts that a given value matches an inline string snapshot.
 ///
@@ -155,24 +153,6 @@ public func assertInlineSnapshot<Value>(
     }
   }
 }
-#else
-@available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0")
-public func assertInlineSnapshot<Value>(
-  of value: @autoclosure () throws -> Value?,
-  as strategy: SnapshotStrategy<Value, String>,
-  message: @autoclosure () -> String = "",
-  record isRecording: Bool? = nil,
-  syntaxDescriptor: InlineSnapshotSyntaxDescriptor = InlineSnapshotSyntaxDescriptor(),
-  matches expected: (() -> String)? = nil,
-  fileID: StaticString = #fileID,
-  file filePath: StaticString = #filePath,
-  function: StaticString = #function,
-  line: UInt = #line,
-  column: UInt = #column
-) async {
-  fatalError()
-}
-#endif
 
 /// A structure that describes the location of an inline snapshot.
 ///
@@ -233,7 +213,6 @@ public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
     self.trailingClosureOffset = trailingClosureOffset
   }
 
-  #if canImport(SwiftSyntax509)
   /// Generates a test failure immediately and unconditionally at the described trailing closure.
   ///
   /// This method will attempt to locate the line of the trailing closure described by this type
@@ -281,23 +260,10 @@ public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
   fileprivate func contains(_ label: String) -> Bool {
     self.trailingClosureLabel == label || self.deprecatedTrailingClosureLabels.contains(label)
   }
-  #else
-  @available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0")
-  public func fail(
-    _ message: @autoclosure () -> String = "",
-    fileID: StaticString,
-    file filePath: StaticString,
-    line: UInt,
-    column: UInt
-  ) {
-    fatalError()
-  }
-  #endif
 }
 
 // MARK: - Private
 
-#if canImport(SwiftSyntax509)
 private let installTestObserver: Void = {
   atexit {
     writeInlineSnapshots()
@@ -736,4 +702,3 @@ extension String {
     return hashCount
   }
 }
-#endif
