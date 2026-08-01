@@ -41,9 +41,12 @@ struct TraitTests {
   @Test func `a phone renders every content size`() async {
     let generation = DeviceProfile.PhoneGeneration.year2012
     for (category, name) in contentSizes {
-      // The category leads the caption: it is what this test varies, and it is the line that has to
-      // survive when a large one truncates the rest.
-      let viewController = SafeAreaViewController(caption: "\(name)\n\(generation.description)")
+      // The caption is two letters, not the category it renders at. An accessibility size draws body
+      // text near 53pt, which leaves room for about four characters across this screen, so a longer
+      // caption would have to be broken mid-word — and where a text engine chooses to break a word
+      // is not stable across the systems this suite records and verifies on. The reference file is
+      // named after the category; the glyphs only have to show the size it resolved to.
+      let viewController = SafeAreaViewController(caption: "Aa")
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPhone(generation), traits: { $0.preferredContentSizeCategory = category }),
@@ -86,8 +89,11 @@ struct TraitTests {
   @Test func `a tablet renders in a window`() async {
     for (generation, name) in tabletScreens {
       for width in windowWidths {
+        // The stem names the screen rather than `generation.description`: the prose list of marketing
+        // names is long enough to fill a 320pt window, which puts a line break on a knife edge that
+        // different systems decide differently.
         let viewController = SafeAreaViewController(
-          caption: "\(generation.description)\n\(Int(width)) pt window"
+          caption: "\(name)\n\(Int(width)) pt window"
         )
         await expectSnapshot(
           of: viewController,
