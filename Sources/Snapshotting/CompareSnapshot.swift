@@ -30,6 +30,22 @@ public func compareSnapshot<Value, Format>(
   isolation: isolated (any Actor)? = #isolation
 ) async -> SnapshotResult {
   let record = record ?? SnapshotConfiguration.current.record
+
+  // Produced here rather than inside the operation below, which runs on the generic executor: a
+  // caller building a UIKit or AppKit value in this autoclosure would construct it off the main
+  // thread. This function is isolated to `isolation`, so evaluating it here keeps it wherever the
+  // caller wrote it.
+  let snapshotValue: Value
+  do {
+    snapshotValue = try value()
+  } catch {
+    return SnapshotResult(
+      outcome: .errored(error.localizedDescription),
+      snapshotURL: snapshotURL,
+      name: name
+    )
+  }
+
   return await withSnapshotConfiguration(record: record, isolation: isolation) {
     () async -> SnapshotResult in
     var artifacts: [SnapshotArtifact] = []
@@ -40,7 +56,6 @@ public func compareSnapshot<Value, Format>(
         withIntermediateDirectories: true
       )
 
-      let snapshotValue = try value()
       let diffable = await strategy.snapshot(snapshotValue)
 
       func recordSnapshot(writeToDisk: Bool) throws {
