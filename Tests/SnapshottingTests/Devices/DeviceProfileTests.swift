@@ -13,9 +13,7 @@ struct DeviceProfileTests {
 
   @Test(
     arguments: [
-      (DeviceProfile.PhoneGeneration.year2012, CGSize(width: 320, height: 568)),
-      (.year2014, CGSize(width: 375, height: 667)),
-      (.year2014Plus, CGSize(width: 414, height: 736)),
+      (DeviceProfile.PhoneGeneration.year2014, CGSize(width: 375, height: 667)),
       (.year2017, CGSize(width: 375, height: 812)),
       (.year2018, CGSize(width: 414, height: 896)),
       (.year2018Max, CGSize(width: 414, height: 896)),
@@ -114,7 +112,6 @@ struct DeviceProfileTests {
   @Test(
     arguments: [
       (DeviceProfile.TabletGeneration.year2010, CGSize(width: 1024, height: 768)),
-      (.year2015, CGSize(width: 1366, height: 1024)),
       (.year2017, CGSize(width: 1112, height: 834)),
       (.year2018, CGSize(width: 1194, height: 834)),
       (.year2018Large, CGSize(width: 1366, height: 1024)),
@@ -153,7 +150,7 @@ struct DeviceProfileTests {
   }
 
   @Test func `a tablet a home button frames reserves only the status bar`() {
-    for generation in [DeviceProfile.TabletGeneration.year2010, .year2015, .year2017, .year2019] {
+    for generation in [DeviceProfile.TabletGeneration.year2010, .year2017, .year2019] {
       #expect(
         DeviceProfile.iPad(generation).safeArea
           == UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
@@ -169,12 +166,6 @@ struct DeviceProfileTests {
     for generation in generations {
       #expect(DeviceProfile.iPad(generation).safeArea.bottom == 25, "\(generation)")
     }
-  }
-
-  /// The two 1366 × 1024 families differ only in the chrome around them.
-  @Test func `the 2018 large tablet matches the 2015 one but for its insets`() {
-    #expect(DeviceProfile.iPad(.year2018Large).size == DeviceProfile.iPad(.year2015).size)
-    #expect(DeviceProfile.iPad(.year2018Large).safeArea != DeviceProfile.iPad(.year2015).safeArea)
   }
 
   // MARK: - The running system
@@ -197,7 +188,7 @@ struct DeviceProfileTests {
   // MARK: - Windows
 
   @Test func `a window keeps the height and the insets of its screen`() {
-    let screen = DeviceProfile.iPad(.year2015)
+    let screen = DeviceProfile.iPad(.year2018Large)
     let window = screen.windowed(width: 375)
     #expect(window.size == CGSize(width: 375, height: 1024))
     #expect(window.safeArea == screen.safeArea)
@@ -207,7 +198,7 @@ struct DeviceProfileTests {
   @Test(arguments: [320, 375, 438, 507, 592, 639])
   func `a window narrower than 640 points is horizontally compact`(width: CGFloat) {
     #expect(
-      DeviceProfile.iPad(.year2015).windowed(width: width)
+      DeviceProfile.iPad(.year2018Large).windowed(width: width)
         .traitCollection.horizontalSizeClass == .compact,
       "\(width)"
     )
@@ -216,7 +207,7 @@ struct DeviceProfileTests {
   @Test(arguments: [640, 678, 694, 782, 981])
   func `a window 640 points across or wider is horizontally regular`(width: CGFloat) {
     #expect(
-      DeviceProfile.iPad(.year2015).windowed(width: width)
+      DeviceProfile.iPad(.year2018Large).windowed(width: width)
         .traitCollection.horizontalSizeClass == .regular,
       "\(width)"
     )

@@ -33,7 +33,7 @@ struct SwiftUIViewTests {
     )
     await expectSnapshot(
       of: view,
-      as: .image(layout: .device(profile: .iPhone(.year2012)), traits: { $0.userInterfaceStyle = .light }),
+      as: .image(layout: .device(profile: .iPhone(.year2014)), traits: { $0.userInterfaceStyle = .light }),
       named: "\(platform)-device"
     )
     #endif

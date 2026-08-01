@@ -6,12 +6,13 @@ extension DeviceProfile {
   ///
   /// Cases are named for the year their screen first shipped; a size role distinguishes the years
   /// that introduced more than one.
+  ///
+  /// A screen is named here for as long as at least one model that ships it runs the lowest iOS
+  /// this package supports. Screens no reachable device has are left out; lay a view out on one by
+  /// passing its size directly.
   public enum TabletGeneration: Sendable {
     /// 1024 × 768 pt — iPad (1st–6th generation), iPad 9.7", iPad Air, Air 2, iPad mini (1st–5th generation).
     case year2010
-
-    /// 1366 × 1024 pt — iPad Pro 12.9" (1st, 2nd generation).
-    case year2015
 
     /// 1112 × 834 pt — iPad Pro 10.5", iPad Air (3rd generation).
     case year2017
@@ -20,9 +21,6 @@ extension DeviceProfile {
     case year2018
 
     /// 1366 × 1024 pt — iPad Pro 12.9" (3rd–6th generation), iPad Air 13" (M2, M3, M4).
-    ///
-    /// The same size as ``year2015``, below a home indicator rather than beside a home button, so
-    /// it reserves different insets.
     case year2018Large
 
     /// 1080 × 810 pt — iPad (7th, 8th, 9th generation), iPad 10.2".
@@ -102,16 +100,6 @@ extension DeviceProfile.TabletGeneration {
           """,
         shortSide: 768,
         longSide: 1024,
-        safeArea: .homeButton
-      )
-    case .year2015:
-      TabletScreen(
-        description: """
-          iPad .year2015
-          iPad Pro 12.9" (1st, 2nd generation)
-          """,
-        shortSide: 1024,
-        longSide: 1366,
         safeArea: .homeButton
       )
     case .year2017:

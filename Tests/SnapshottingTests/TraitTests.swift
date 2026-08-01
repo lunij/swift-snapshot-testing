@@ -39,7 +39,7 @@ struct TraitTests {
   }
 
   @Test func `a phone renders every content size`() async {
-    let generation = DeviceProfile.PhoneGeneration.year2012
+    let generation = DeviceProfile.PhoneGeneration.year2014
     for (category, name) in contentSizes {
       // The caption is two letters, not the category it renders at. An accessibility size draws body
       // text near 53pt, which leaves room for about four characters across this screen, so a longer
@@ -180,7 +180,7 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .recursiveDescription(
-          on: .iPhone(.year2012),
+          on: .iPhone(.year2014),
           traits: { $0.preferredContentSizeCategory = category }
         ),
         named: name
@@ -222,9 +222,7 @@ struct TraitTests {
 /// Every iPhone screen, in alphabetical order of the family that ships it, paired with the stem its
 /// reference files are named after.
 private let phoneScreens: [(generation: DeviceProfile.PhoneGeneration, name: String)] = [
-  (.year2012, "iphone-2012"),
   (.year2014, "iphone-2014"),
-  (.year2014Plus, "iphone-2014-plus"),
   (.year2017, "iphone-2017"),
   (.year2018, "iphone-2018"),
   (.year2018Max, "iphone-2018-max"),
@@ -242,7 +240,6 @@ private let phoneScreens: [(generation: DeviceProfile.PhoneGeneration, name: Str
 /// reference files are named after.
 private let tabletScreens: [(generation: DeviceProfile.TabletGeneration, name: String)] = [
   (.year2010, "ipad-2010"),
-  (.year2015, "ipad-2015"),
   (.year2017, "ipad-2017"),
   (.year2018, "ipad-2018"),
   (.year2018Large, "ipad-2018-large"),

@@ -44,7 +44,7 @@ struct ViewControllerTests {
       }
     }
     let tableViewController = TableViewController()
-    await expectSnapshot(of: tableViewController, as: .image(on: .iPhone(.year2012)))
+    await expectSnapshot(of: tableViewController, as: .image(on: .iPhone(.year2014)))
   }
 
   @Test func `collection views with multiple screen sizes`() async {
@@ -131,9 +131,8 @@ struct ViewControllerTests {
 
     let viewController = CollectionViewController()
 
-    await expectSnapshot(of: viewController, as: .image(on: .iPad(.year2015)), named: "ipad")
-    await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2012)), named: "iphoneSe")
-    await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2014)), named: "iphone8")
+    await expectSnapshot(of: viewController, as: .image(on: .iPad(.year2018Large)), named: "ipad")
+    await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2014)), named: "iphoneSe")
     await expectSnapshot(
       of: viewController,
       as: .image(on: .iPhone(.year2018Max)),

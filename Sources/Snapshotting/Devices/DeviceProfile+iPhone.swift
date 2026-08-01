@@ -7,16 +7,13 @@ extension DeviceProfile {
   /// Cases are named for the year their screen first shipped; a model role distinguishes the years
   /// that introduced more than one. Two screens can measure the same and still differ, when the
   /// models that ship them reserve different room for their chrome.
+  ///
+  /// A screen is named here for as long as at least one model that ships it runs the lowest iOS
+  /// this package supports. Screens no reachable device has are left out; lay a view out on one by
+  /// passing its size directly.
   public enum PhoneGeneration: Sendable {
-    /// 320 × 568 pt — iPhone 5, 5c, 5s, iPhone SE (1st generation), iPod touch (6th, 7th
-    /// generation).
-    case year2012
-
     /// 375 × 667 pt — iPhone 6, 6s, 7, 8, iPhone SE (2nd, 3rd generation).
     case year2014
-
-    /// 414 × 736 pt — iPhone 6 Plus, 6s Plus, 7 Plus, 8 Plus.
-    case year2014Plus
 
     /// 375 × 812 pt — iPhone X, XS, 11 Pro.
     case year2017
@@ -110,16 +107,6 @@ private struct PhoneScreen {
 extension DeviceProfile.PhoneGeneration {
   fileprivate var screen: PhoneScreen {
     switch self {
-    case .year2012:
-      PhoneScreen(
-        description: """
-          iPhone .year2012
-          iPhone 5, 5c, 5s, iPhone SE (1st generation), iPod touch (6th, 7th generation)
-          """,
-        portraitSize: CGSize(width: 320, height: 568),
-        safeArea: .homeButton,
-        landscapeHorizontalSizeClass: .compact
-      )
     case .year2014:
       PhoneScreen(
         description: """
@@ -129,16 +116,6 @@ extension DeviceProfile.PhoneGeneration {
         portraitSize: CGSize(width: 375, height: 667),
         safeArea: .homeButton,
         landscapeHorizontalSizeClass: .compact
-      )
-    case .year2014Plus:
-      PhoneScreen(
-        description: """
-          iPhone .year2014Plus
-          iPhone 6 Plus, 6s Plus, 7 Plus, 8 Plus
-          """,
-        portraitSize: CGSize(width: 414, height: 736),
-        safeArea: .homeButton,
-        landscapeHorizontalSizeClass: .regular
       )
     case .year2017:
       PhoneScreen(
