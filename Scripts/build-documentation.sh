@@ -51,7 +51,12 @@ cd "$root"
 # as separate downloads. Say which ones are missing up front: xcodebuild's own
 # answer is to build fine until it reaches the platform, then print every
 # destination it does have, which reads like a simulator problem.
-xcode=$(xcodebuild -version | head -1)
+# Trim to the first line in the shell rather than piping to `head`. A reader
+# that stops early closes the pipe, the writer takes SIGPIPE, and `pipefail`
+# turns that into exit 141 for the whole script. Whether it happens is a race
+# against how much the writer has left to say, so it passes until it doesn't.
+xcode=$(xcodebuild -version)
+xcode=${xcode%%$'\n'*}
 echo "==> Checking platforms against $xcode"
 if ! destinations=$(xcodebuild -showdestinations \
   -workspace . \
@@ -63,8 +68,10 @@ fi
 missing=()
 for platform in $(for module in "${modules[@]}"; do platforms_for "$module"; done | tr ' ' '\n' | sort -u); do
   # A platform Xcode cannot build for still has a destination, carrying the
-  # reason it is ineligible.
-  if ! echo "$destinations" | grep "platform:$platform," | grep -qv "error:"; then
+  # reason it is ineligible. Discard the match rather than asking for `-q`,
+  # which stops reading at the first hit and races the same SIGPIPE as above —
+  # here it would silently report a platform as missing.
+  if ! echo "$destinations" | grep "platform:$platform," | grep -v "error:" >/dev/null; then
     missing+=("$platform")
   fi
 done
