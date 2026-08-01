@@ -85,7 +85,6 @@ extension DeviceProfile {
       safeArea: screen.safeArea.insets(orientation),
       size: size,
       traits: { traits in
-        traits.forceTouchCapability = .available
         traits.layoutDirection = .leftToRight
         traits.preferredContentSizeCategory = .medium
         traits.userInterfaceIdiom = .phone
