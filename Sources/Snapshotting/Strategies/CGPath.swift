@@ -77,6 +77,8 @@ extension SnapshotStrategy where Value == CGPath, Format == UIImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
+  ///   - scale: The scale to use when loading the reference image from disk.
+  ///   - drawingMode: The drawing mode.
   public static func image(
     precision: Float = 1,
     perceptualPrecision: Float = 1,
