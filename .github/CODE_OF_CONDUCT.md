@@ -59,9 +59,11 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-<support@pointfree.co>.
+reported privately to the repository maintainers using GitHub's
+[private reporting form][private-reporting], which is visible to no one else.
 All complaints will be reviewed and investigated promptly and fairly.
+
+[private-reporting]: https://github.com/lunij/swift-snapshotting/security/advisories/new
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
