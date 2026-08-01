@@ -8,8 +8,8 @@ import UIKit
 /// It says nothing about resolution; the scale a snapshot rasterizes at is a parameter of the
 /// image strategy, not a property of the device.
 ///
-/// Profiles come from the device families — ``iPhone(_:_:)``, ``iPad(_:_:)``, ``tv`` and
-/// ``tv4K`` — or from ``init(safeArea:size:traits:)`` for a screen no device has.
+/// Profiles come from the device families — ``iPhone(_:_:)``, ``iPad(_:_:)`` and ``appleTV`` — or from
+/// ``init(safeArea:size:traits:)`` for a screen no device has.
 public struct DeviceProfile: Sendable {
   /// The orientation a device is held in.
   public enum Orientation: Sendable {

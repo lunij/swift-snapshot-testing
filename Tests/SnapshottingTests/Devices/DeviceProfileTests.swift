@@ -1,4 +1,4 @@
-#if os(iOS)
+#if os(iOS) || os(tvOS)
 import Snapshotting
 import Testing
 import UIKit
@@ -8,6 +8,7 @@ import UIKit
 /// simulator can render.
 @MainActor
 struct DeviceProfileTests {
+  #if os(iOS)
 
   // MARK: - iPhone
 
@@ -212,6 +213,32 @@ struct DeviceProfileTests {
       "\(width)"
     )
   }
+  #elseif os(tvOS)
+
+  // MARK: - Apple TV
+
+  /// The values tvOS itself reports, measured on `UIScreen.main` and on a hosted window rather than
+  /// read off a published table. Every Apple TV agrees on them — the HD model, the 4K model, and a
+  /// 4K set to output 1080p — which is why one profile covers the family.
+  @Test func `a tv is 1920 by 1080 points`() {
+    #expect(DeviceProfile.appleTV.size == CGSize(width: 1920, height: 1080))
+  }
+
+  /// The overscan margin a television reserves on all four edges, deeper at the sides than at the
+  /// top and bottom. Not to be confused with the layout margins, which tvOS draws at 96 points
+  /// across.
+  @Test func `a tv reserves its overscan margin on every edge`() {
+    #expect(
+      DeviceProfile.appleTV.safeArea == UIEdgeInsets(top: 60, left: 80, bottom: 60, right: 80)
+    )
+  }
+
+  @Test func `a tv is regular in both dimensions`() {
+    #expect(DeviceProfile.appleTV.traitCollection.userInterfaceIdiom == .tv)
+    #expect(DeviceProfile.appleTV.traitCollection.horizontalSizeClass == .regular)
+    #expect(DeviceProfile.appleTV.traitCollection.verticalSizeClass == .regular)
+  }
+  #endif
 }
 
 extension DeviceProfile {
