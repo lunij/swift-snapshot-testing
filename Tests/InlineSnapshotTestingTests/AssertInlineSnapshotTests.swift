@@ -189,11 +189,11 @@ struct AssertInlineSnapshotTests {
           <html lang="en">
           <head>
             <meta charset="utf-8">
-            <title>Point-Free</title>
+            <title>Example</title>
             <link rel="stylesheet" href="style.css">
           </head>
           <body>
-            <p>What's the point?</p>
+            <p>Hello, world!</p>
           </body>
           </html>
           """,
@@ -214,7 +214,7 @@ struct AssertInlineSnapshotTests {
 
     await assertResponse {
       """
-      https://www.pointfree.co/
+      https://www.example.com/
       """
     } head: {
       """
@@ -227,11 +227,11 @@ struct AssertInlineSnapshotTests {
       <html lang="en">
       <head>
         <meta charset="utf-8">
-        <title>Point-Free</title>
+        <title>Example</title>
         <link rel="stylesheet" href="style.css">
       </head>
       <body>
-        <p>What's the point?</p>
+        <p>Hello, world!</p>
       </body>
       </html>
       """

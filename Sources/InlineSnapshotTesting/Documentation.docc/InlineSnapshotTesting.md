@@ -4,8 +4,8 @@ Powerfully convenient snapshot testing.
 
 ## Overview
 
-[Snapshot Testing][swift-snapshot-testing] writes the snapshots it generates directly to disk
-alongside the test files. This makes for compact test cases with single line assertions...
+`SnapshotTesting` writes the snapshots it generates directly to disk alongside the test files.
+This makes for compact test cases with single line assertions...
 
 ```swift
 assertSnapshot(of: value, as: .json)
@@ -60,9 +60,8 @@ Re-run "testMySnapshot" to test against the newly-recorded snapshot.
 > [start a discussion][discussions] or [open a pull request][pull-requests].
 
 [apple-feedback]: https://www.apple.com/feedback/
-[discussions]: https://github.com/pointfreeco/swift-composable-architecture/discussions
-[pull-requests]: https://github.com/pointfreeco/swift-composable-architecture/pulls
-[swift-snapshot-testing]: https://github.com/pointfreeco/swift-snapshot-testing
+[discussions]: https://github.com/lunij/swift-snapshotting/discussions
+[pull-requests]: https://github.com/lunij/swift-snapshotting/pulls
 
 ## Topics
 

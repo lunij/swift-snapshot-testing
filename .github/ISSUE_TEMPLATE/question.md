@@ -7,4 +7,4 @@ assignees: ''
 
 ---
 
-SnapshotTesting uses GitHub issues for bugs. For more general discussion and help, please use [GitHub Discussions](https://github.com/pointfreeco/swift-snapshot-testing/discussions).
+This project uses GitHub issues for bugs. For more general discussion and help, please use [GitHub Discussions](https://github.com/lunij/swift-snapshotting/discussions).

@@ -20,11 +20,10 @@ func perceptuallyCompare(
   let actualPixelPrecision: Float
   var maximumDeltaE: Float = 0
 
-  // Metal is supported by all iOS/tvOS devices (2013 models or later) and Macs (2012 models or later).
-  // Older devices do not support iOS/tvOS 13 and macOS 10.15 which are the minimum versions of swift-snapshot-testing.
-  // However, some virtualized hardware do not have GPUs and therefore do not support Metal.
-  // In this case, macOS falls back to a CPU-based OpenGL ES renderer that silently fails when a Metal command is issued.
-  // We need to check for Metal device support and fallback to CPU based vImage buffer iteration.
+  // Every device new enough to run the deployment floor supports Metal, but some virtualized
+  // hardware has no GPU at all. There macOS falls back to a CPU-based OpenGL ES renderer that
+  // silently fails when a Metal command is issued, so ask whether Metal is really available and
+  // iterate a vImage buffer on the CPU when it is not.
   if ThresholdImageProcessorKernel.isSupported {
     // Fast path - Metal processing
     guard

@@ -12,9 +12,9 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
   ///
   /// ```
   /// POST http://localhost:8080/account
-  /// Cookie: pf_session={"userId":"1"}
+  /// Cookie: session={"userId":"1"}
   ///
-  /// email=blob%40pointfree.co&name=Blob
+  /// email=blob%40example.com&name=Blob
   /// ```
   public static var raw: SnapshotStrategy {
     SnapshotStrategy.raw(pretty: false)
@@ -72,7 +72,7 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
   //   --request POST \
   //   --header "Accept: text/html" \
   //   --data 'pricing[billing]=monthly&pricing[lane]=individual' \
-  //   "https://www.pointfree.co/subscribe"
+  //   "https://www.example.com/subscribe"
   // ```
   public static var curl: SnapshotStrategy {
     DirectSnapshotStrategy.lines.pullback { (request: URLRequest) in
