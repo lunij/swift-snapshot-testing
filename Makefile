@@ -44,11 +44,6 @@ lint:
 	swift format lint --recursive Sources Tests
 
 docs:
-	swift package generate-documentation \
-		--target Snapshotting \
-		--target SnapshotTesting \
-		--target InlineSnapshotTesting \
-		--target SnapshottingCustomDump \
-		--warnings-as-errors
+	./Scripts/build-documentation.sh
 
 test-all: test-linux test-macos test-ios
