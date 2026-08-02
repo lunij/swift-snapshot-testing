@@ -129,7 +129,8 @@ await assertSnapshot(of: vc, as: .recursiveDescription(on: .iPad(.year2021, .por
 
 A device family is keyed on the year its screen geometry first shipped, and only families a
 device on the deployment floor still has are named. Each case's documentation lists the models it
-covers. Arbitrary geometry stays available through `.image(size:)`.
+covers. Arbitrary geometry stays available through `.image(size:)`. On tvOS a single `.appleTV`
+profile describes the 1920 × 1080 point screen every Apple TV lays out on.
 
 > **Warning**
 > Snapshots must be compared using the exact same simulator that originally took the reference to
