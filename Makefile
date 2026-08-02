@@ -29,9 +29,12 @@ test-swift:
 
 test-tvos:
 	set -o pipefail && \
+	TEST_RUNNER_CI=$(CI) \
 	xcodebuild test \
-		-scheme SnapshotTesting \
-		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=13.3"
+		-scheme swift-snapshotting-Package \
+		-destination platform="tvOS Simulator,name=Apple TV 4K (3rd generation),OS=26.4" \
+		-resultBundlePath .xcresults/tvos \
+		-workspace . | xcbeautify
 
 format:
 	swift format \
@@ -46,4 +49,4 @@ lint:
 docs:
 	./Scripts/build-documentation.sh
 
-test-all: test-linux test-macos test-ios
+test-all: test-linux test-macos test-ios test-tvos
