@@ -1,0 +1,2 @@
+<UIButton; frame = (0 0; 60 30); opaque = NO; gestureRecognizers = <NSArray>; layer = <CALayer>>
+   | <UIButtonLabel; frame = (0 6; 60 18); text = 'Push Me'; opaque = NO; userInteractionEnabled = NO; layer = <_UILabelLayer>>

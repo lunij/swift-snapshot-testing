@@ -1,11 +1,12 @@
-#if os(iOS) || os(macOS)
+#if os(iOS) || os(macOS) || os(tvOS)
 import Snapshotting
 import Testing
 
-#if os(iOS)
-import UIKit
-#else
+#if canImport(AppKit)
 import AppKit
+#endif
+#if canImport(UIKit)
+import UIKit
 #endif
 
 @MainActor
@@ -31,10 +32,23 @@ struct ViewTests {
   }
   #endif
 
-  #if os(iOS)
+  #if os(iOS) || os(tvOS)
   @Test func `uiview`() async {
-    let view = UIButton(type: .contactAdd)
-    await expectSnapshot(of: view, as: .image)
+    let button = UIButton(type: .system)
+    button.setTitle("Push Me", for: .normal)
+    button.sizeToFit()
+    await expectSnapshot(of: button, as: .image, named: platform)
+    await expectSnapshot(of: button, as: .recursiveDescription, named: platform)
+  }
+
+  @Test func `uiview with layer`() async {
+    let view = UIView()
+    view.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
+    view.layer.backgroundColor = UIColor.green.cgColor
+    view.layer.cornerRadius = 5
+    // The image is named per platform because the render scale differs — 20 × 20 pixels on a phone
+    // against 10 × 10 on an Apple TV — while the description is in points, so it is shared.
+    await expectSnapshot(of: view, as: .image, named: platform)
     await expectSnapshot(of: view, as: .recursiveDescription)
   }
   #endif
