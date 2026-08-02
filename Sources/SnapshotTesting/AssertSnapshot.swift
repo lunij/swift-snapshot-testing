@@ -238,7 +238,7 @@ private func recordAttachments(
   line: UInt,
   column: UInt
 ) {
-  #if !os(Android) && !os(Linux) && !os(Windows)
+  #if !os(Linux) && !os(Windows)
   #if compiler(>=6.2)
   guard
     !artifacts.isEmpty,
@@ -263,7 +263,7 @@ private func recordAttachment(
   named name: String,
   sourceLocation: SourceLocation
 ) {
-  #if !os(Android) && !os(Linux) && !os(Windows)
+  #if !os(Linux) && !os(Windows)
   #if compiler(>=6.3) && (canImport(UIKit) || canImport(AppKit))
   if name.hasSuffix(".png") {
     #if os(macOS)

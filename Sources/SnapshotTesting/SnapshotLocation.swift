@@ -37,16 +37,10 @@ struct SnapshotLocation {
     let fileURL = URL(filePath: "\(filePath)")
     let fileName = fileURL.deletingPathExtension().lastPathComponent
 
-    #if os(Android)
-    // When running tests on Android, the CI script copies the Tests/SnapshotTestingTests/__Snapshots__ up to the temporary folder
-    let snapshotsBaseURL = URL(filePath: "/data/local/tmp/android-xctest", directoryHint: .isDirectory)
-    #else
-    let snapshotsBaseURL = fileURL.deletingLastPathComponent()
-    #endif
-
+    let testFileDirectoryURL = fileURL.deletingLastPathComponent()
     let snapshotDirectoryURL =
       snapshotDirectory.map { URL(filePath: $0, directoryHint: .isDirectory) }
-      ?? snapshotsBaseURL.appending(path: "__Snapshots__").appending(path: fileName)
+      ?? testFileDirectoryURL.appending(path: "__Snapshots__").appending(path: fileName)
 
     let identifier: String
     if let name {

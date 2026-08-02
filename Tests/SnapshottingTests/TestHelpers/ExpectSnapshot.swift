@@ -102,7 +102,7 @@ extension SnapshotResult.Outcome {
 /// Attachments are only captured when the run is hosted by Xcode, which is what puts them in the
 /// resulting `.xcresult`. Recording them elsewhere would discard them.
 private func recordAttachments(_ artifacts: [SnapshotArtifact], sourceLocation: SourceLocation) {
-  #if !os(Android) && !os(Linux) && !os(Windows)
+  #if !os(Linux) && !os(Windows)
   #if compiler(>=6.2)
   guard
     !artifacts.isEmpty,
@@ -119,7 +119,7 @@ private func recordAttachments(_ artifacts: [SnapshotArtifact], sourceLocation: 
 /// Attaches a blob, preferring the image overload so that a PNG can be previewed in the test report
 /// instead of downloaded as bytes.
 private func recordAttachment(_ data: Data, named name: String, sourceLocation: SourceLocation) {
-  #if !os(Android) && !os(Linux) && !os(Windows)
+  #if !os(Linux) && !os(Windows)
   #if compiler(>=6.3) && (canImport(UIKit) || canImport(AppKit))
   if name.hasSuffix(".png") {
     #if os(macOS)
