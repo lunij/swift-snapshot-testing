@@ -1,43 +1,24 @@
-#if os(iOS)
+import Foundation
 import SnapshotTesting
 import Testing
-import UIKit
 
 // Covers the two plural 'assertSnapshots' overloads, which are wrapper API with no engine
 // equivalent. The array overload is also the only remaining exercise of the per-test counter that
 // names unnamed snapshots '.1', '.2', … in the order they are taken.
-@MainActor
+//
+// The subject is a value rather than a view: what these overloads do with a strategy is the same
+// whatever the strategy renders, and a value keeps the suite on every platform the package builds
+// for, with references small enough to read in a diff.
 @Suite(.snapshotRecord(.failed), .snapshotDiffTool(.ksdiff))
 struct AssertSnapshotsTests {
   @Test func `multiple snapshots`() async {
-    class TableViewController: UITableViewController {
-      override func viewDidLoad() {
-        super.viewDidLoad()
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
-      }
-      override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        10
-      }
-      override func tableView(
-        _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath
-      )
-        -> UITableViewCell
-      {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        cell.textLabel?.text = "\(indexPath.row)"
-        return cell
-      }
-    }
-    let tableViewController = TableViewController()
-    await assertSnapshots(
-      of: tableViewController,
-      as: ["iPhoneSE-image": .image(on: .iPhone(.year2014)), "iPad-image": .image(on: .iPad(.year2010))]
-    )
-    await assertSnapshots(
-      of: tableViewController,
-      as: [.image(on: .iPhone(.year2017)), .image(on: .iPhone(.year2018))]
-    )
+    struct User: Encodable { let id: Int, name: String, bio: String }
+    let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
+
+    let compact = JSONEncoder()
+    compact.outputFormatting = .sortedKeys
+
+    await assertSnapshots(of: user, as: ["pretty": .json, "compact": .json(compact)])
+    await assertSnapshots(of: user, as: [.json, .plist])
   }
 }
-#endif
