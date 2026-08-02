@@ -1,10 +1,12 @@
 test-linux:
-	docker run \
+	container run \
 		--rm \
-		-v "$(PWD):$(PWD)" \
-		-w "$(PWD)" \
-		swift:5.7-focal \
-		bash -c 'swift test'
+		--cpus 8 \
+		--memory 8G \
+		--volume "$(PWD):$(PWD)" \
+		--workdir "$(PWD)" \
+		swift:6.3 \
+		bash -c 'swift test --scratch-path .build/linux'
 
 test-macos:
 	set -o pipefail && \
@@ -49,4 +51,4 @@ lint:
 docs:
 	./Scripts/build-documentation.sh
 
-test-all: test-linux test-macos test-ios test-tvos
+test-all: test-macos test-ios test-tvos test-linux
