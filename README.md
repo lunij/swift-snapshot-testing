@@ -99,7 +99,8 @@ inside it overrides only the record mode.
 ## Snapshot Anything
 
 While most snapshot testing libraries in the Swift community are limited to `UIImage`s of `UIView`s,
-SnapshotTesting can work with _any_ format of _any_ value on _any_ Swift platform!
+SnapshotTesting can work with _any_ format of _any_ value. The value strategies run everywhere Swift
+does, including [Linux](Documentation/Linux.md); the image strategies need an Apple platform.
 
 The `assertSnapshot` function accepts a value and any snapshot strategy that value supports. This
 means that a view or view controller can be tested against an image representation _and_ against a
@@ -232,6 +233,12 @@ Documentation lives in the package's DocC catalogs and can be generated with the
 ```sh
 swift package generate-documentation --target Snapshotting --target SnapshotTesting
 ```
+
+Guides that describe working on the package itself, rather than its API, live in
+[`Documentation/`](Documentation):
+
+- [Linux](Documentation/Linux.md) — which strategies travel, and how to run the Linux tests from a
+  Mac.
 
 ## Installation
 
