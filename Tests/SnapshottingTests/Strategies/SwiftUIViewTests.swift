@@ -64,7 +64,7 @@ struct SwiftUIViewTests {
     )
     await expectSnapshot(
       of: view,
-      as: .image(layout: .device(profile: .appleTV), scale: 1),
+      as: .image(layout: .device(profile: .appleTV)),
       named: "\(platform)-device"
     )
     #endif

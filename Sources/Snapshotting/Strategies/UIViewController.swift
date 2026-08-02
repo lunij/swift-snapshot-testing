@@ -24,8 +24,10 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
   ///   - scale: The scale at which the view is rendered and the reference image is stored.
-  ///     Defaults to `2`, which keeps references small enough to live in a repository while still
-  ///     resolving hairlines. Pass the device's own scale for pixel fidelity.
+  ///     Defaults to two on iPhone and iPad, which keeps references small enough to live in a
+  ///     repository while still resolving hairlines, and to one on Apple TV, whose screen is
+  ///     already large enough in points that scaling it up costs more than it resolves. Pass the
+  ///     device's own scale for pixel fidelity.
   ///   - size: A view size override.
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
@@ -33,7 +35,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
     drawHierarchyInKeyWindow: Bool = false,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
-    scale: CGFloat = 2,
+    scale: CGFloat = SnapshotScale.default,
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )
@@ -69,14 +71,15 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
   ///   - scale: The scale at which the view is rendered and the reference image is stored.
-  ///     Defaults to `2`.
+  ///     Defaults to two on iPhone and iPad, and to one on Apple TV, whose screen is already large
+  ///     enough in points that scaling it up costs more than it resolves.
   ///   - size: A view size override.
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
     drawHierarchyInKeyWindow: Bool = false,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
-    scale: CGFloat = 2,
+    scale: CGFloat = SnapshotScale.default,
     size: CGSize? = nil,
     traits: @escaping TraitMutations = { _ in }
   )

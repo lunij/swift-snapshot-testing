@@ -35,11 +35,17 @@ struct EmptyAndMismatchedImageTests {
     view.frame = .init(origin: .zero, size: newSize)
     result = await snapshotResult(of: view, as: .image, named: platform, record: .never)
     #expect(result.name == platform)
-    #if os(macOS)
-    #expect(result.outcome.mismatch?.reason == "Image size 123×123 does not match reference size 100×100.")
-    #else
-    #expect(result.outcome.mismatch?.reason == "Image size 246×246 does not match reference size 200×200.")
-    #endif
+    // The reason counts pixels, so the sizes above arrive multiplied by the scale the strategy
+    // rendered at. Deriving them keeps this pinned to the scale policy rather than to a list of
+    // platforms.
+    let scale = Int(SnapshotScale.default)
+    #expect(
+      result.outcome.mismatch?.reason
+        == """
+        Image size \(Int(newSize.width) * scale)×\(Int(newSize.height) * scale) \
+        does not match reference size \(Int(size.width) * scale)×\(Int(size.height) * scale).
+        """
+    )
   }
 }
 #endif

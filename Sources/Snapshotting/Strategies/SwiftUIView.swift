@@ -43,14 +43,15 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
   ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
   ///   - layout: A view layout override.
   ///   - scale: The scale at which the view is rendered and the reference image is stored.
-  ///     Defaults to `2`.
+  ///     Defaults to two on iPhone and iPad, and to one on Apple TV, whose screen is already large
+  ///     enough in points that scaling it up costs more than it resolves.
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
     drawHierarchyInKeyWindow: Bool = false,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
     layout: SwiftUISnapshotLayout = .sizeThatFits,
-    scale: CGFloat = 2,
+    scale: CGFloat = SnapshotScale.default,
     traits: @escaping TraitMutations = { _ in }
   )
     -> SnapshotStrategy
@@ -118,12 +119,13 @@ extension SnapshotStrategy where Value: View, Format == NSImage {
   ///     98-99% mimics [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the human eye.
   ///     Defaults to `0.99`, tolerating imperceptible rendering differences.
   ///   - layout: A view layout override.
-  ///   - scale: The scale at which the view is rendered. Defaults to `1`.
+  ///   - scale: The scale at which the view is rendered. Defaults to one, a Mac screen being large
+  ///     enough in points not to need scaling past it.
   public static func image(
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
     layout: SwiftUISnapshotLayout = .sizeThatFits,
-    scale: CGFloat = 1
+    scale: CGFloat = SnapshotScale.default
   ) -> SnapshotStrategy {
     DirectSnapshotStrategy
       .image(precision: precision, perceptualPrecision: perceptualPrecision)

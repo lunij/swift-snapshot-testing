@@ -201,14 +201,10 @@ struct TraitTests {
 
   // MARK: - Apple TV
 
-  /// Rendered at scale 1, so the reference is 1920 × 1080 rather than the 8.3 megapixels the
-  /// default scale would give. A screen this large costs its resolution twice — on disk, and again
-  /// in the perceptual comparison every assertion runs — and nothing here needs the extra pixels to
-  /// show where the insets fall.
   @Test func `a tv renders its safe area`() async {
     await expectSnapshot(
       of: SafeAreaViewController(caption: "DeviceProfile .appleTV\nApple TV"),
-      as: .image(on: .appleTV, scale: 1)
+      as: .image(on: .appleTV)
     )
   }
   #endif

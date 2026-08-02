@@ -19,12 +19,13 @@ extension SnapshotStrategy where Value == NSView, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  ///   - scale: A scale to use when rendering the view.
+  ///   - scale: A scale to use when rendering the view. Defaults to one, a Mac screen being large
+  ///     enough in points not to need scaling past it.
   ///   - size: A view size override.
   public static func image(
     precision: Float = 1,
     perceptualPrecision: Float = 1,
-    scale: CGFloat = 1,
+    scale: CGFloat = SnapshotScale.default,
     size: CGSize? = nil
   ) -> SnapshotStrategy {
     DirectSnapshotStrategy.image(
