@@ -1,13 +1,10 @@
+#if os(iOS) || os(tvOS)
 import Snapshotting
 import Testing
-
-#if canImport(UIKit)
 import UIKit
-#endif
 
 @MainActor
 struct ViewControllerTests {
-  #if os(iOS)
   @Test func `auto layout`() async {
     let vc = UIViewController()
     vc.view.translatesAutoresizingMaskIntoConstraints = false
@@ -20,8 +17,74 @@ struct ViewControllerTests {
       subview.leftAnchor.constraint(equalTo: vc.view.leftAnchor),
       subview.rightAnchor.constraint(equalTo: vc.view.rightAnchor)
     ])
-    await expectSnapshot(of: vc, as: .image)
+    await expectSnapshot(of: vc, as: .image, named: platform)
   }
+
+  @Test func `view controller lifecycle`() async {
+    class ViewController: UIViewController {
+      var lifecycleEvents: [String] = []
+
+      override func viewDidLoad() {
+        super.viewDidLoad()
+        lifecycleEvents.append("viewDidLoad")
+      }
+      override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        lifecycleEvents.append("viewWillAppear")
+      }
+      override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        lifecycleEvents.append("viewDidAppear")
+      }
+      override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        lifecycleEvents.append("viewWillDisappear")
+      }
+      override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        lifecycleEvents.append("viewDidDisappear")
+      }
+    }
+
+    let viewController = ViewController()
+
+    await expectSnapshot(of: viewController, as: .image, named: platform)
+
+    #expect(
+      viewController.lifecycleEvents == [
+        "viewDidLoad",
+        "viewWillAppear",
+        "viewDidAppear",
+        "viewWillAppear",
+        "viewDidAppear",
+        "viewWillDisappear",
+        "viewDidDisappear"
+      ]
+    )
+  }
+
+  @Test func `view controller hierarchy`() async {
+    let page = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
+    page.setViewControllers([UIViewController()], direction: .forward, animated: false)
+    let tab = UITabBarController()
+    tab.viewControllers = [
+      UINavigationController(rootViewController: page),
+      UINavigationController(rootViewController: UIViewController()),
+      UINavigationController(rootViewController: UIViewController()),
+      UINavigationController(rootViewController: UIViewController()),
+      UINavigationController(rootViewController: UIViewController())
+    ]
+    // The hierarchy is controller classes and their states, with no geometry in it, so iOS and
+    // tvOS share one reference. A platform that starts embedding differently should fail here.
+    await expectSnapshot(of: tab, as: .hierarchy)
+  }
+
+  #if os(iOS)
+
+  // MARK: - Named device screens
+  //
+  // `DeviceProfile` describes iPhone and iPad screens only, and an Apple TV has a single screen, so
+  // laying a view controller out on a named screen — and comparing several of them — is iOS-only.
 
   @Test func `table view controller`() async {
     class TableViewController: UITableViewController {
@@ -139,62 +202,6 @@ struct ViewControllerTests {
       named: "iphoneMax"
     )
   }
-
-  @Test func `view controller lifecycle`() async {
-    class ViewController: UIViewController {
-      var lifecycleEvents: [String] = []
-
-      override func viewDidLoad() {
-        super.viewDidLoad()
-        lifecycleEvents.append("viewDidLoad")
-      }
-      override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        lifecycleEvents.append("viewWillAppear")
-      }
-      override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        lifecycleEvents.append("viewDidAppear")
-      }
-      override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        lifecycleEvents.append("viewWillDisappear")
-      }
-      override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        lifecycleEvents.append("viewDidDisappear")
-      }
-    }
-
-    let viewController = ViewController()
-
-    await expectSnapshot(of: viewController, as: .image)
-
-    #expect(
-      viewController.lifecycleEvents == [
-        "viewDidLoad",
-        "viewWillAppear",
-        "viewDidAppear",
-        "viewWillAppear",
-        "viewDidAppear",
-        "viewWillDisappear",
-        "viewDidDisappear"
-      ]
-    )
-  }
-
-  @Test func `view controller hierarchy`() async {
-    let page = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
-    page.setViewControllers([UIViewController()], direction: .forward, animated: false)
-    let tab = UITabBarController()
-    tab.viewControllers = [
-      UINavigationController(rootViewController: page),
-      UINavigationController(rootViewController: UIViewController()),
-      UINavigationController(rootViewController: UIViewController()),
-      UINavigationController(rootViewController: UIViewController()),
-      UINavigationController(rootViewController: UIViewController())
-    ]
-    await expectSnapshot(of: tab, as: .hierarchy)
-  }
   #endif
 }
+#endif
