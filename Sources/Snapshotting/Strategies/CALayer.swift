@@ -1,16 +1,12 @@
-#if os(macOS)
+#if canImport(AppKit)
 import AppKit
-import Cocoa
-import QuartzCore
 
 extension SnapshotStrategy where Value == CALayer, Format == NSImage {
   /// A snapshot strategy for comparing layers based on pixel equality.
   ///
   /// Every pixel must match the reference. Use `image(precision:perceptualPrecision:)` to tolerate
   /// a percentage of differing pixels.
-  public static var image: SnapshotStrategy {
-    .image(precision: 1)
-  }
+  public static var image: SnapshotStrategy { .image() }
 
   /// A snapshot strategy for comparing layers based on pixel equality.
   ///
@@ -20,7 +16,7 @@ extension SnapshotStrategy where Value == CALayer, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  public static func image(precision: Float, perceptualPrecision: Float = 1) -> SnapshotStrategy {
+  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> SnapshotStrategy {
     DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
@@ -36,7 +32,7 @@ extension SnapshotStrategy where Value == CALayer, Format == NSImage {
     }
   }
 }
-#elseif os(iOS) || os(tvOS)
+#elseif canImport(UIKit)
 import UIKit
 
 extension SnapshotStrategy where Value == CALayer, Format == UIImage {

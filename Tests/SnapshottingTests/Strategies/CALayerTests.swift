@@ -1,4 +1,4 @@
-#if os(iOS)
+#if canImport(UIKit)
 import Snapshotting
 import Testing
 import UIKit
