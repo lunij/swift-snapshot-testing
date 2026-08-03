@@ -113,6 +113,23 @@ public struct SnapshotConfiguration: Sendable {
     /// unexpectedly generated.
     public static let never = Self(storage: .never)
 
+    /// Whether comparing a value against its reference writes to that reference.
+    ///
+    /// Answers before a comparison what ``SnapshotResult/recorded`` reports after one, for a caller
+    /// that has to decide something up front — such as whether two snapshots may share a reference.
+    ///
+    /// - Parameter referenceExists: Whether the reference is already on disk.
+    public func records(whenReferenceExists referenceExists: Bool) -> Bool {
+      switch storage {
+      case .all, .failed:
+        return true
+      case .missing:
+        return !referenceExists
+      case .never:
+        return false
+      }
+    }
+
     private init(storage: Storage) {
       self.storage = storage
     }

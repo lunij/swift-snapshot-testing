@@ -142,4 +142,28 @@ struct RecordTests {
       #expect(content == "42")
     }
   }
+
+  // A mode answers up front what a result reports afterwards, so the two have to agree — asserted
+  // against a real comparison rather than restated, which is what keeps them from drifting apart.
+  //
+  // The value mismatches in both halves: `failed` records only what fails, and what a caller asks up
+  // front is whether a mode writes at all, not whether this particular value will match.
+  @Test(arguments: [SnapshotConfiguration.Record.all, .failed, .missing, .never])
+  func `a record mode says whether comparing writes`(
+    record: SnapshotConfiguration.Record
+  ) async throws {
+    try await withSnapshotURL { snapshotURL in
+      let missing = await withSnapshotConfiguration(record: record) {
+        await compare(42, against: snapshotURL)
+      }
+      #expect(record.records(whenReferenceExists: false) == missing.recorded)
+
+      // Planted, because whether the comparison above left a reference behind is itself under test.
+      try Data("999".utf8).write(to: snapshotURL)
+      let existing = await withSnapshotConfiguration(record: record) {
+        await compare(42, against: snapshotURL)
+      }
+      #expect(record.records(whenReferenceExists: true) == existing.recorded)
+    }
+  }
 }
