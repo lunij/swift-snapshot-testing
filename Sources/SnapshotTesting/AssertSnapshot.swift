@@ -1,4 +1,7 @@
 import Foundation
+// The effective record mode has to be known before comparing, to decide whether two snapshots may
+// share a reference.
+@_spi(Internals) import Snapshotting
 import Testing
 
 #if canImport(UIKit)
@@ -12,6 +15,10 @@ import AppKit
 /// The reference is named after the test, after what `strategy` renders, and — on a platform whose
 /// rendering differs — after the platform, which is derived rather than passed in. Pass `suffixed:`
 /// only for what none of those can supply, such as telling two snapshots of one test apart.
+///
+/// Two snapshots of one test that resolve to the same name are reported rather than allowed to
+/// overwrite each other, unless neither of them records, in which case they may share the reference
+/// they both read.
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
@@ -41,14 +48,42 @@ public func assertSnapshot<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) async {
-  let (result, location) = await snapshotResult(
+  let record = record ?? SnapshotConfiguration.current.record
+  let location = SnapshotLocation(
+    identifier: strategy.identifier,
+    suffixed: suffix,
+    pathExtension: strategy.pathExtension,
+    snapshotDirectory: nil,
+    filePath: filePath,
+    testName: testName
+  )
+
+  // Comparing would pit this snapshot against whatever the earlier one recorded, and then overwrite
+  // it, so the snapshot is not taken at all.
+  let willRecord = record.records(whenReferenceExists: location.referenceExists)
+  if Register.current.claim(location.snapshotURL, recording: willRecord) {
+    reportIssue(
+      """
+      Two snapshots in this test resolve to '\(location.snapshotURL.lastPathComponent)', and one of \
+      them records to it, so the second would be compared against whatever the first recorded. Give \
+      them different names.
+      """,
+      fileID: fileID,
+      filePath: filePath,
+      line: line,
+      column: column
+    )
+    return
+  }
+
+  let result = await compareSnapshot(
     of: try value(),
     as: strategy,
-    suffixed: suffix,
+    against: location.snapshotURL,
+    artifactDirectory: location.artifactDirectory,
+    named: suffix,
     record: record,
-    isolation: isolation,
-    file: filePath,
-    testName: testName
+    isolation: isolation
   )
   recordAttachments(
     result.artifacts,
@@ -165,8 +200,14 @@ public func assertSnapshots<Value, Format>(
 ///
 /// Third party snapshot assert helpers can be built on top of this function. Simply invoke
 /// `verifySnapshot` with your own arguments, and then report an issue with the returned failure
-/// message if it is non-`nil`. For example, if you want the snapshot directory to be determined by
-/// an environment variable, you can create your own assert helper like so:
+/// message if it is non-`nil`.
+///
+/// Unlike `assertSnapshot`, this hands back a comparison rather than making an assertion, so it does
+/// not refuse a name an earlier snapshot in the same test already used: comparing one reference
+/// against several values in turn is a legitimate thing to ask a comparison for.
+///
+/// For example, if you want the snapshot directory to be determined by an environment variable, you
+/// can create your own assert helper like so:
 ///
 /// ```swift
 /// public func myAssertSnapshot<Value, Format>(
@@ -219,33 +260,6 @@ public func verifySnapshot<Value, Format>(
   file filePath: StaticString = #filePath,
   testName: String = #function
 ) async -> SnapshotResult {
-  await snapshotResult(
-    of: try value(),
-    as: strategy,
-    suffixed: suffix,
-    record: record,
-    snapshotDirectory: snapshotDirectory,
-    isolation: isolation,
-    file: filePath,
-    testName: testName
-  )
-  .result
-}
-
-// MARK: - Private
-
-/// Resolves where a snapshot belongs and compares it there, handing back the location alongside the
-/// result so that a caller can say something about the file that was chosen.
-private func snapshotResult<Value, Format>(
-  of value: @autoclosure () throws -> Value,
-  as strategy: SnapshotStrategy<Value, Format>,
-  suffixed suffix: String? = nil,
-  record: SnapshotConfiguration.Record? = nil,
-  snapshotDirectory: String? = nil,
-  isolation: isolated (any Actor)? = #isolation,
-  file filePath: StaticString = #filePath,
-  testName: String = #function
-) async -> (result: SnapshotResult, location: SnapshotLocation) {
   let location = SnapshotLocation(
     identifier: strategy.identifier,
     suffixed: suffix,
@@ -255,25 +269,7 @@ private func snapshotResult<Value, Format>(
     testName: testName
   )
 
-  // Comparing would pit this snapshot against whatever the earlier one recorded, and then overwrite
-  // it, so the snapshot is not taken at all.
-  guard !location.isDuplicate else {
-    return (
-      SnapshotResult(
-        outcome: .errored(
-          """
-          An earlier snapshot in this test was already written to \
-          '\(location.snapshotURL.lastPathComponent)'. Pass 'suffixed:' to tell them apart.
-          """
-        ),
-        snapshotURL: location.snapshotURL,
-        name: suffix
-      ),
-      location
-    )
-  }
-
-  let result = await compareSnapshot(
+  return await compareSnapshot(
     of: try value(),
     as: strategy,
     against: location.snapshotURL,
@@ -282,8 +278,9 @@ private func snapshotResult<Value, Format>(
     record: record,
     isolation: isolation
   )
-  return (result, location)
 }
+
+// MARK: - Private
 
 /// Points out that a mismatching reference is shared by every platform.
 ///

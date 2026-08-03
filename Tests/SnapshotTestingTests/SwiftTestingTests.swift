@@ -13,11 +13,15 @@ import UIKit
 
 @Suite(.serialized, .snapshotRecord(.missing), .snapshotDiffTool(.ksdiff))
 struct SwiftTestingTests {
-  // The committed reference holds the dump of `["Hello", "World"]`, so snapshotting anything else
-  // mismatches. One assertion, because a second one would resolve to the same file.
+  // Both assertions resolve to one reference, which is legal because `.missing` writes nothing while
+  // that reference is on disk. The first pins it — so if it ever drifts, this fails with a diff
+  // against the value on the line, rather than by reporting nothing at all — and the second is the
+  // mismatch under test. `record:` is passed rather than inherited from the suite because it is what
+  // makes the pair legal.
   @Test func `reports on mismatch`() async {
     let issues = await captureIssues {
-      await assertSnapshot(of: ["Goodbye", "World"], as: .dump, suffixed: "snap")
+      await assertSnapshot(of: ["Hello", "World"], as: .dump, suffixed: "snap", record: .missing)
+      await assertSnapshot(of: ["Goodbye", "World"], as: .dump, suffixed: "snap", record: .missing)
     }
     #expect(issues.count == 1)
     let message = issues.first?.message

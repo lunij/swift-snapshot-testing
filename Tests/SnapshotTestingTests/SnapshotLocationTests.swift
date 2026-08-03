@@ -134,50 +134,37 @@ struct SnapshotLocationTests {
     #expect(existing.snapshotURL.lastPathComponent == "\(stem).dump.txt")
   }
 
-  @Test func `two snapshots deriving one name are refused rather than sharing a reference`() async {
+  // Which reference is resolved says nothing about whether it is there yet, and a record mode that
+  // only fills gaps needs to know.
+  @Test func `a location reports whether its reference is already on disk`() throws {
     let directory = scratchDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
 
-    let first = await verifySnapshot(of: 1, as: .json, snapshotDirectory: directory.path)
-    let second = await verifySnapshot(of: 2, as: .json, snapshotDirectory: directory.path)
+    func location() -> SnapshotLocation {
+      SnapshotLocation(
+        identifier: nil,
+        suffixed: nil,
+        pathExtension: "json",
+        snapshotDirectory: directory.path,
+        filePath: #filePath,
+        testName: #function
+      )
+    }
 
-    #expect(first.snapshotURL == second.snapshotURL)
-    #expect(first.outcome == .referenceRecorded)
-
-    let name = "two-snapshots-deriving-one-name-are-refused-rather-than-sharing-a-reference.json"
-    #expect(
-      second.outcome
-        == .errored(
-          """
-          An earlier snapshot in this test was already written to '\(name)'. Pass 'suffixed:' to \
-          tell them apart.
-          """
-        )
-    )
-
-    // The first snapshot's reference survives, which is the point of refusing before comparing.
-    let reference = try? Data(contentsOf: first.snapshotURL)
-    #expect(reference == Data("1".utf8))
+    #expect(location().referenceExists == false)
+    try plant(location().snapshotURL.lastPathComponent, in: directory)
+    #expect(location().referenceExists == true)
   }
 
-  // An explicit suffix takes a snapshot out of that rule: a test can watch one reference be recorded
-  // and then matched.
-  @Test func `a suffixed snapshot may be taken twice`() async {
+  // Verifying hands back a comparison rather than asserting, so it does not refuse a name an earlier
+  // snapshot used — which is what lets a helper watch one reference be recorded and then matched.
+  // Refusing repeats is `assertSnapshot`'s policy; see `RepeatedNameTests`.
+  @Test func `verifying does not refuse a name it has already resolved`() async {
     let directory = scratchDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
 
-    let recorded = await verifySnapshot(
-      of: 1,
-      as: .json,
-      suffixed: "twice",
-      snapshotDirectory: directory.path
-    )
-    let matched = await verifySnapshot(
-      of: 1,
-      as: .json,
-      suffixed: "twice",
-      snapshotDirectory: directory.path
-    )
+    let recorded = await verifySnapshot(of: 1, as: .json, snapshotDirectory: directory.path)
+    let matched = await verifySnapshot(of: 1, as: .json, snapshotDirectory: directory.path)
 
     #expect(recorded.outcome == .referenceRecorded)
     #expect(matched.outcome == .matched)

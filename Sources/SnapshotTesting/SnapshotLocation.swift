@@ -1,6 +1,4 @@
 import Foundation
-import Synchronization
-import Testing
 
 /// The on-disk locations a snapshot assertion reads from and writes to.
 ///
@@ -39,13 +37,11 @@ struct SnapshotLocation {
   /// it turns out not to match.
   let platformSpecificName: String?
 
-  /// Whether an earlier snapshot in this test already resolved to ``snapshotURL`` while deriving its
-  /// whole name.
+  /// Whether ``snapshotURL`` is already on disk.
   ///
-  /// A snapshot given a suffix is left alone: naming a file explicitly says the author meant that
-  /// file, and a test that snapshots the same reference twice over — to watch it be recorded and then
-  /// matched — depends on being able to.
-  let isDuplicate: Bool
+  /// A record mode that only fills gaps writes nothing to a reference that is already there, and
+  /// whether anything writes is what decides if two snapshots may share one — see `Register`.
+  let referenceExists: Bool
 
   /// Derives the locations of a single snapshot.
   ///
@@ -95,8 +91,9 @@ struct SnapshotLocation {
     let versionedURL = url(qualifiedBy: SnapshotPlatform.versionedName)
 
     let fileManager = FileManager.default
-    let snapshotURL =
-      [versionedURL, platformURL].first { fileManager.fileExists(atPath: $0.path) } ?? sharedURL
+    let qualifiedURL = [versionedURL, platformURL]
+      .first { fileManager.fileExists(atPath: $0.path) }
+    let snapshotURL = qualifiedURL ?? sharedURL
 
     let artifactsBaseURL = URL(
       filePath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
@@ -110,35 +107,15 @@ struct SnapshotLocation {
       snapshotURL == sharedURL && platformURL != sharedURL
       ? platformURL.lastPathComponent
       : nil
-    self.isDuplicate = register.claim(snapshotURL) && suffix == nil
+    self.referenceExists =
+      qualifiedURL != nil || fileManager.fileExists(atPath: sharedURL.path)
   }
 }
 
 // MARK: - Private
 
-private var register: Register { Register.current }
-
 private func sanitizePathComponent(_ string: String) -> String {
   string
     .replacingOccurrences(of: "\\W+", with: "-", options: .regularExpression)
     .replacingOccurrences(of: "^-|-$", with: "", options: .regularExpression)
-}
-
-/// The reference files a test has already resolved.
-///
-/// Two snapshots of one test that derive the same name would otherwise share a reference, each
-/// overwriting what the other recorded. The register is what lets that be reported instead. Every
-/// resolution is claimed, so that a derived name colliding with an explicitly suffixed one is caught
-/// as well.
-final class Register: Sendable {
-  @TaskLocal static var current = Register()
-
-  private let claimed = Mutex<Set<URL>>([])
-
-  init() {}
-
-  /// Claims `url` for the current test, returning whether it had already been claimed.
-  func claim(_ url: URL) -> Bool {
-    claimed.withLock { !$0.insert(url).inserted }
-  }
 }

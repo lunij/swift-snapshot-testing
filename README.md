@@ -51,8 +51,10 @@ supply, such as telling two snapshots of one test apart:
 await assertSnapshot(of: vc, as: .image, suffixed: "logged out")
 ```
 
-Two snapshots of one test that would land on the same file are reported rather than allowed to
-overwrite each other, so a suffix is only ever needed where it says something.
+A suffix is one more component of the name rather than a licence to reuse it: two snapshots of one
+test that land on the same file are reported rather than allowed to overwrite each other, whether
+they got there by repeating a suffix or by omitting one. They may share a reference as long as
+neither records to it, which is what lets a test compare one reference against two values in turn.
 
 #### One reference, or one per platform
 
