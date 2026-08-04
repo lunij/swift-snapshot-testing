@@ -65,8 +65,11 @@ public struct SnapshotStrategy<Value, Format> {
   /// which shows just how important this operation is.
   ///
   /// - Parameters:
+  ///   - type: The value type of the resulting strategy. It defaults to the generic, so it only
+  ///     needs spelling out where the compiler cannot infer it from context.
   ///   - transform: A transform function from `NewValue` into `Value`.
   public func pullback<NewValue>(
+    to type: NewValue.Type = NewValue.self,
     _ transform: @escaping (_ otherValue: NewValue) -> Value
   ) -> SnapshotStrategy<NewValue, Format> {
     SnapshotStrategy<NewValue, Format>(

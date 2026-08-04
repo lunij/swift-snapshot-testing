@@ -5,7 +5,7 @@ import Testing
 struct WaitTests {
   @Test func wait() async {
     let start = ContinuousClock.now
-    let strategy = SnapshotStrategy.lines.pullback { (_: Void) in
+    let strategy = SnapshotStrategy.lines.pullback(to: Void.self) { _ in
       start.duration(to: .now) >= .seconds(1.5) ? "Successfully waited" : "Failed to wait"
     }
 

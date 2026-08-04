@@ -46,7 +46,7 @@ supports this natively: the `snapshot` closure and the transform passed to
 
 #### Async pullbacks
 
-Alongside ``SnapshotStrategy/pullback(_:)`` there is ``SnapshotStrategy/transform(to:_:)``, which takes an
+Alongside ``SnapshotStrategy/pullback(to:_:)`` there is ``SnapshotStrategy/transform(to:_:)``, which takes an
 `async` transform function `(NewStrategyValue) async -> ExistingStrategyValue`.
 
 For example, WebKit's `WKWebView` offers a callback-based API for taking image snapshots. You can

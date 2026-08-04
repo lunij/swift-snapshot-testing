@@ -9,7 +9,7 @@
 
 ### Transforming strategies
 
-- ``pullback(_:)``
+- ``pullback(to:_:)``
 - ``transform(to:_:)``
 - ``wait(for:on:)``
 
