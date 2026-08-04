@@ -55,7 +55,7 @@ extension SnapshotStrategy where Value == SKScene, Format == XImage {
     SnapshotStrategy<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).transform { @MainActor (scene: SKScene) async -> SKView in
+    ).transform { @MainActor scene async in
       let view = SKView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
       view.presentScene(scene)
       return view

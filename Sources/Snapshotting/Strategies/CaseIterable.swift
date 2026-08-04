@@ -31,8 +31,7 @@ extension SnapshotStrategy where Value: CaseIterable, Format == String {
   public static func `func`<A>(
     into witness: SnapshotStrategy<A, Format>
   ) -> SnapshotStrategy<(Value) -> A, Format> {
-    var strategy = SnapshotStrategy<String, String>.lines.transform {
-      (f: @escaping (Value) -> A) async -> String in
+    var strategy = SnapshotStrategy<String, String>.lines.transform(to: ((Value) -> A).self) { f in
       var rows: [String] = []
       for input in Value.allCases {
         let output = await witness.snapshot(f(input))

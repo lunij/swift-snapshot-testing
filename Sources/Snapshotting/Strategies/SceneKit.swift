@@ -55,7 +55,7 @@ extension SnapshotStrategy where Value == SCNScene, Format == XImage {
     SnapshotStrategy<XView, XImage>.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).transform { @MainActor (scene: SCNScene) async -> SCNView in
+    ).transform { @MainActor scene async in
       let view = SCNView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
       view.scene = scene
       return view

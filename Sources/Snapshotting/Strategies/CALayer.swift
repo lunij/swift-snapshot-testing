@@ -68,7 +68,7 @@ extension SnapshotStrategy where Value == CALayer, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).transform { @MainActor (layer: CALayer) async -> UIImage in
+    ).transform { @MainActor layer async in
       renderer(bounds: layer.bounds, scale: scale, traits: traits).image { ctx in
         layer.setNeedsLayout()
         layer.layoutIfNeeded()
