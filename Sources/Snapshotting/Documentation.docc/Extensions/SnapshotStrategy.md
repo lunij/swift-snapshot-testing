@@ -9,8 +9,8 @@
 
 ### Transforming strategies
 
-- ``pullback(to:_:)``
-- ``transform(to:_:)``
+- ``transform(to:_:)-(_,(NewValue)->Value)``
+- ``transform(to:_:)-(_,)``
 - ``wait(for:on:)``
 
 ### Properties

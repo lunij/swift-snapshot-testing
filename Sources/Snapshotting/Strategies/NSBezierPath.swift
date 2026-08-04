@@ -20,7 +20,7 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == NSImage {
     DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).pullback { path in
+    ).transform { path in
       // Move path info frame:
       let bounds = path.bounds
       let transform = AffineTransform(translationByX: -bounds.origin.x, byY: -bounds.origin.y)
@@ -81,7 +81,7 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == String {
       .closePath: 0
     ]
 
-    return DirectSnapshotStrategy.lines.pullback { path in
+    return DirectSnapshotStrategy.lines.transform { path in
       var string: String = ""
 
       var elementPoints = [CGPoint](repeating: .zero, count: 3)

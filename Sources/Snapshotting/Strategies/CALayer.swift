@@ -20,7 +20,7 @@ extension SnapshotStrategy where Value == CALayer, Format == NSImage {
     DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).pullback { layer in
+    ).transform { layer in
       let image = NSImage(size: layer.bounds.size)
       image.lockFocus()
       let context = NSGraphicsContext.current!.cgContext

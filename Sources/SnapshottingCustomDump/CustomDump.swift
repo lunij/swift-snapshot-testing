@@ -15,6 +15,6 @@ extension SnapshotStrategy where Format == String {
   /// )
   /// ```
   public static var customDump: SnapshotStrategy {
-    DirectSnapshotStrategy.lines.pullback(String.init(customDumping:))
+    DirectSnapshotStrategy.lines.transform(String.init(customDumping:))
   }
 }

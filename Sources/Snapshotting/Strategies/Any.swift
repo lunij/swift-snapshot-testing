@@ -10,7 +10,7 @@ extension SnapshotStrategy where Format == String {
   /// User(bio: "Blobbed around the world.", id: 1, name: "Blobby")
   /// ```
   public static var description: SnapshotStrategy {
-    DirectSnapshotStrategy.lines.pullback(String.init(describing:))
+    DirectSnapshotStrategy.lines.transform(String.init(describing:))
   }
 }
 
@@ -54,7 +54,7 @@ extension SnapshotStrategy where Format == String {
     message: "Use '.customDump' from the 'SnapshottingCustomDump' module, instead."
   )
   public static var dump: SnapshotStrategy {
-    DirectSnapshotStrategy.lines.pullback { snap($0) }
+    DirectSnapshotStrategy.lines.transform { snap($0) }
   }
 }
 
@@ -67,10 +67,10 @@ extension SnapshotStrategy where Format == String {
       .sortedKeys
     ]
 
-    var strategy = DirectSnapshotStrategy.lines.pullback { (data: Value) in
+    var strategy = DirectSnapshotStrategy.lines.transform(to: Value.self) { value in
       try! String(
         decoding: JSONSerialization.data(
-          withJSONObject: data,
+          withJSONObject: value,
           options: options
         ),
         as: UTF8.self

@@ -25,7 +25,7 @@ extension SnapshotStrategy where Value == UIBezierPath, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).pullback { path in
+    ).transform { path in
       let bounds = path.bounds
       let format = UIGraphicsImageRendererFormat.preferred()
       format.scale = scale
@@ -39,7 +39,7 @@ extension SnapshotStrategy where Value == UIBezierPath, Format == UIImage {
 extension SnapshotStrategy where Value == UIBezierPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
   public static var elementsDescription: SnapshotStrategy {
-    SnapshotStrategy<CGPath, String>.elementsDescription.pullback { $0.cgPath }
+    SnapshotStrategy<CGPath, String>.elementsDescription.transform { $0.cgPath }
   }
 
   /// A snapshot strategy for comparing bezier paths based on pixel equality.
@@ -48,7 +48,7 @@ extension SnapshotStrategy where Value == UIBezierPath, Format == String {
   public static func elementsDescription(numberFormatter: NumberFormatter) -> SnapshotStrategy {
     SnapshotStrategy<CGPath, String>.elementsDescription(
       numberFormatter: numberFormatter
-    ).pullback { $0.cgPath }
+    ).transform { $0.cgPath }
   }
 }
 #endif

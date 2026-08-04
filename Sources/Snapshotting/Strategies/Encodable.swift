@@ -23,7 +23,7 @@ extension SnapshotStrategy where Value: Encodable, Format == String {
   ///
   /// - Parameter encoder: A JSON encoder.
   public static func json(_ encoder: JSONEncoder) -> SnapshotStrategy {
-    var strategy = DirectSnapshotStrategy.lines.pullback(to: Value.self) { encodable in
+    var strategy = DirectSnapshotStrategy.lines.transform(to: Value.self) { encodable in
       try! String(decoding: encoder.encode(encodable), as: UTF8.self)
     }
     strategy.pathExtension = "json"
@@ -61,7 +61,7 @@ extension SnapshotStrategy where Value: Encodable, Format == String {
   ///
   /// - Parameter encoder: A property list encoder.
   public static func plist(_ encoder: PropertyListEncoder) -> SnapshotStrategy {
-    var strategy = DirectSnapshotStrategy.lines.pullback(to: Value.self) { encodable in
+    var strategy = DirectSnapshotStrategy.lines.transform(to: Value.self) { encodable in
       try! String(decoding: encoder.encode(encodable), as: UTF8.self)
     }
     strategy.pathExtension = "plist"

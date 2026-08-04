@@ -11,7 +11,7 @@ The ``Snapshotting/SnapshotStrategy`` type represents the ability to transform a
 
 ### Transforming existing strategies
 
-Existing strategies can be transformed to work with new types using the `pullback` method.
+Existing strategies can be transformed to work with new types using the `transform` methods.
 
 For example, given the following `image` strategy on `UIView`:
 
@@ -19,18 +19,28 @@ For example, given the following `image` strategy on `UIView`:
 SnapshotStrategy<UIView, UIImage>.image
 ```
 
-We can define an `image` strategy on `UIViewController` using the `pullback` method:
+We can define an `image` strategy on `UIViewController` from it:
 
 ``` swift
 extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   public static let image: SnapshotStrategy = SnapshotStrategy<UIView, UIImage>
     .image
-    .pullback { viewController in viewController.view }
+    .transform { $0.view }
 }
 ```
 
-Pullback takes a transform function from the new strategy's value to the existing strategy's value,
-in this case `(UIViewController) -> UIView`.
+The transform runs in the opposite direction to the strategy: it goes from the new strategy's value
+to the existing strategy's value, in this case `(UIViewController) -> UIView`.
+
+The `to:` argument names the new strategy's value type. It defaults to the generic, so it can be left
+off wherever the compiler can infer that type from context — such as from the return type of the
+property being defined:
+
+``` swift
+public static var image: SnapshotStrategy<UIViewController, UIImage> {
+  SnapshotStrategy<UIView, UIImage>.image.transform { $0.view }
+}
+```
 
 ### Creating brand new strategies
 
@@ -42,12 +52,9 @@ base ``Snapshotting/SnapshotStrategy`` value from them directly.
 
 Some types need to be snapshot in an asynchronous fashion. ``Snapshotting/SnapshotStrategy``
 supports this natively: the `snapshot` closure and the transform passed to
-``SnapshotStrategy/transform(to:_:)`` are both `async`, so you can `await` anything inside them.
+``SnapshotStrategy/transform(to:_:)-(_,)`` are both `async`, so you can `await` anything inside them.
 
-#### Async pullbacks
-
-Alongside ``SnapshotStrategy/pullback(to:_:)`` there is ``SnapshotStrategy/transform(to:_:)``, which takes an
-`async` transform function `(NewStrategyValue) async -> ExistingStrategyValue`.
+#### Async transforms
 
 For example, WebKit's `WKWebView` offers a callback-based API for taking image snapshots. You can
 bridge it to `async/await` using `withCheckedContinuation`:
@@ -56,7 +63,7 @@ bridge it to `async/await` using `withCheckedContinuation`:
 extension SnapshotStrategy where Value == WKWebView, Format == UIImage {
   public static let image: SnapshotStrategy = SnapshotStrategy<UIImage, UIImage>
     .image
-    .transform { @MainActor webView async -> UIImage in
+    .transform { @MainActor webView async in
       await withCheckedContinuation { continuation in
         webView.takeSnapshot(with: nil) { image, _ in
           continuation.resume(returning: image ?? UIImage())
@@ -66,10 +73,14 @@ extension SnapshotStrategy where Value == WKWebView, Format == UIImage {
 }
 ```
 
+Spell the `async` out on a `@MainActor` closure even when the body's `await` already implies it.
+Without it the closure is inferred to be `@Sendable`, which a non-`Sendable` value like a view cannot
+be passed through.
+
 #### Async initialization
 
 `SnapshotStrategy` accepts an `async` closure directly in its initializer, so you can describe
-asynchronous strategies without going through `transform`:
+asynchronous strategies without transforming an existing one:
 
 ``` swift
 extension SnapshotStrategy where Value == WKWebView, Format == UIImage {

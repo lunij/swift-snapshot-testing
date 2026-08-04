@@ -26,7 +26,7 @@ extension SnapshotStrategy where Value == CGPath, Format == NSImage {
     DirectSnapshotStrategy.image(
       precision: precision,
       perceptualPrecision: perceptualPrecision
-    ).pullback { path in
+    ).transform { path in
       let bounds = path.boundingBoxOfPath
       var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
       let path = path.copy(using: &transform)!
@@ -89,7 +89,7 @@ extension SnapshotStrategy where Value == CGPath, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).pullback { path in
+    ).transform { path in
       let bounds = path.boundingBoxOfPath
       let format = UIGraphicsImageRendererFormat.preferred()
       format.scale = scale
@@ -130,7 +130,7 @@ extension SnapshotStrategy where Value == CGPath, Format == String {
       .closeSubpath: 0
     ]
 
-    return DirectSnapshotStrategy.lines.pullback { path in
+    return DirectSnapshotStrategy.lines.transform { path in
       var string: String = ""
 
       path.applyWithBlock { elementPointer in

@@ -38,37 +38,25 @@ public struct SnapshotStrategy<Value, Format> {
     self.snapshot = snapshot
   }
 
-  /// Transforms a strategy on `Value`s into a strategy on `NewValue`s through a function
-  /// `(NewValue) -> Value`.
+  /// Transforms this strategy into a strategy on a new value type.
   ///
-  /// This is the most important operation for transforming existing strategies into new strategies.
-  /// It allows you to transform a `SnapshotStrategy<Value, Format>` into a
-  /// `SnapshotStrategy<NewValue, Format>` by pulling it back along a function `(NewValue) -> Value`.
-  /// Notice that the function must go in the direction `(NewValue) -> Value` even though we are
-  /// transforming in the other direction
-  /// `(SnapshotStrategy<Value, Format>) -> SnapshotStrategy<NewValue, Format>`.
-  ///
-  /// A simple example of this is to `pullback` the snapshot strategy on `UIView`s to work on
-  /// `UIViewController`s:
+  /// Most strategies are built this way. Given a strategy that snapshots `UIView`s as `UIImage`s,
+  /// a strategy for `UIViewController`s only needs a way to reach the view:
   ///
   /// ```swift
-  /// let strategy = SnapshotStrategy<UIView, UIImage>.image.pullback { (vc: UIViewController) in
-  ///   vc.view
-  /// }
+  /// let strategy = SnapshotStrategy<UIView, UIImage>.image
+  ///   .transform(to: UIViewController.self) { $0.view }
   /// ```
   ///
-  /// Here we took the strategy that snapshots `UIView`s as `UIImage`s and pulled it back to work on
-  /// `UIViewController`s by using the function `(UIViewController) -> UIView` that simply plucks
-  /// the view out of the controller.
-  ///
-  /// Nearly every snapshot strategy provided in this library is a pullback of some base strategy,
-  /// which shows just how important this operation is.
+  /// Notice that the transform runs in the opposite direction to the strategy: the strategy moves
+  /// from `Value` to `NewValue`, while the transform moves from `NewValue` back to `Value`.
   ///
   /// - Parameters:
   ///   - type: The value type of the resulting strategy. It defaults to the generic, so it only
   ///     needs spelling out where the compiler cannot infer it from context.
-  ///   - transform: A transform function from `NewValue` into `Value`.
-  public func pullback<NewValue>(
+  ///   - transform: A transform function from the new value into this strategy's value. Synchronous
+  ///     closures are accepted because non-async is a subtype of async in Swift.
+  public func transform<NewValue>(
     to type: NewValue.Type = NewValue.self,
     _ transform: @escaping (_ otherValue: NewValue) -> Value
   ) -> SnapshotStrategy<NewValue, Format> {
