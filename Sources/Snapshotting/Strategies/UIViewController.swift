@@ -123,20 +123,21 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   ///    |    | <UIViewController>, state: disappeared, view: (view not loaded)
   /// ```
   public static var hierarchy: SnapshotStrategy {
-    SnapshotStrategy<String, String>.lines.transform { @MainActor viewController async in
-      let dispose = prepareView(
-        profile: .init(),
-        drawHierarchyInKeyWindow: false,
-        traits: { _ in },
-        view: viewController.view,
-        viewController: viewController
-      )
-      defer { dispose() }
-      return purgePointers(
-        viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue()
-          as! String
-      )
-    }
+    SnapshotStrategy<String, String>.lines
+      .transform(identifier: "hierarchy") { @MainActor viewController async in
+        let dispose = prepareView(
+          profile: .init(),
+          drawHierarchyInKeyWindow: false,
+          traits: { _ in },
+          view: viewController.view,
+          viewController: viewController
+        )
+        defer { dispose() }
+        return purgePointers(
+          viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue()
+            as! String
+        )
+      }
   }
 
   /// A snapshot strategy for comparing view controllers based on a recursive description of
@@ -159,25 +160,26 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   )
     -> SnapshotStrategy<UIViewController, String>
   {
-    DirectSnapshotStrategy.lines.transform { @MainActor viewController async in
-      let dispose = prepareView(
-        profile: .init(
-          safeArea: profile.safeArea,
-          size: size ?? profile.size,
-          traits: profile.traits
-        ),
-        drawHierarchyInKeyWindow: false,
-        traits: traits,
-        view: viewController.view,
-        viewController: viewController
-      )
-      defer { dispose() }
-      return purgePointers(
-        viewController.view.perform(Selector(("recursiveDescription"))).retain()
-          .takeUnretainedValue()
-          as! String
-      )
-    }
+    DirectSnapshotStrategy.lines
+      .transform(identifier: "recursive-description") { @MainActor viewController async in
+        let dispose = prepareView(
+          profile: .init(
+            safeArea: profile.safeArea,
+            size: size ?? profile.size,
+            traits: profile.traits
+          ),
+          drawHierarchyInKeyWindow: false,
+          traits: traits,
+          view: viewController.view,
+          viewController: viewController
+        )
+        defer { dispose() }
+        return purgePointers(
+          viewController.view.perform(Selector(("recursiveDescription"))).retain()
+            .takeUnretainedValue()
+            as! String
+        )
+      }
   }
 }
 #endif

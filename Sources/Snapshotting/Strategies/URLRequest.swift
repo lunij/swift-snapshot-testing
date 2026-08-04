@@ -24,7 +24,7 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
   ///
   /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
   public static func raw(pretty: Bool) -> SnapshotStrategy {
-    DirectSnapshotStrategy.lines.transform { request in
+    DirectSnapshotStrategy.lines.transform(identifier: "raw") { request in
       let method =
         "\(request.httpMethod ?? "GET") \(request.url?.sortingQueryItems()?.absoluteString ?? "(null)")"
 
@@ -75,8 +75,7 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
   //   "https://www.example.com/subscribe"
   // ```
   public static var curl: SnapshotStrategy {
-    DirectSnapshotStrategy.lines.transform { request in
-
+    DirectSnapshotStrategy.lines.transform(identifier: "curl") { request in
       var components = ["curl"]
 
       // HTTP Method

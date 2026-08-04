@@ -48,11 +48,32 @@ Most strategies can be built from existing ones, but if you've defined your own
 ``Snapshotting/SnapshotSerializer`` and ``Snapshotting/SnapshotComparator``, you can create a
 base ``Snapshotting/SnapshotStrategy`` value from them directly.
 
+### Identifying what a strategy renders
+
+References are named after the strategy that recorded them, so two strategies for the same value have
+to be told apart. ``SnapshotStrategy/pathExtension`` does that on its own whenever the formats differ
+— an image against a description, JSON against a property list — and in that case
+``SnapshotStrategy/identifier`` stays `nil`.
+
+Set one when it doesn't. A request rendered as a cURL command and the same request rendered raw are
+both `txt`, so each says which it is:
+
+``` swift
+extension SnapshotStrategy where Value == URLRequest, Format == String {
+  public static var curl: SnapshotStrategy {
+    DirectSnapshotStrategy.lines.transform(identifier: "curl") { request in /* … */ }
+  }
+}
+```
+
+`transform` carries the identifier over, so a strategy derived from one that already
+identifies itself needs nothing further.
+
 ### Asynchronous Strategies
 
 Some types need to be snapshot in an asynchronous fashion. ``Snapshotting/SnapshotStrategy``
 supports this natively: the `snapshot` closure and the transform passed to
-``SnapshotStrategy/transform(to:_:)-(_,)`` are both `async`, so you can `await` anything inside them.
+``SnapshotStrategy/transform(to:identifier:_:)-(_,_,)`` are both `async`, so you can `await` anything inside them.
 
 #### Async transforms
 

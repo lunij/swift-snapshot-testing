@@ -14,6 +14,7 @@ extension SnapshotStrategy {
     on strategy: Self
   ) -> Self {
     Self(
+      identifier: strategy.identifier,
       pathExtension: strategy.pathExtension,
       serializer: strategy.serializer,
       comparator: strategy.comparator

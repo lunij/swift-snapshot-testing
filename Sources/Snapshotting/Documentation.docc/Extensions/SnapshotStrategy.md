@@ -4,13 +4,13 @@
 
 ### Defining a strategy
 
-- ``init(pathExtension:serializer:comparator:snapshot:)``
-- ``init(pathExtension:serializer:comparator:)``
+- ``init(identifier:pathExtension:serializer:comparator:snapshot:)``
+- ``init(identifier:pathExtension:serializer:comparator:)``
 
 ### Transforming strategies
 
-- ``transform(to:_:)-(_,(NewValue)->Value)``
-- ``transform(to:_:)-(_,)``
+- ``transform(to:identifier:_:)-(_,_,(NewValue)->Value)``
+- ``transform(to:identifier:_:)-(_,_,)``
 - ``wait(for:on:)``
 
 ### Properties
@@ -18,6 +18,7 @@
 - ``snapshot``
 - ``serializer``
 - ``comparator``
+- ``identifier``
 - ``pathExtension``
 
 ### Supporting types

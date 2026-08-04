@@ -81,7 +81,7 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == String {
       .closePath: 0
     ]
 
-    return DirectSnapshotStrategy.lines.transform { path in
+    return DirectSnapshotStrategy.lines.transform(identifier: "elements-description") { path in
       var string: String = ""
 
       var elementPoints = [CGPoint](repeating: .zero, count: 3)

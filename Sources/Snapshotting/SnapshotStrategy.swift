@@ -3,6 +3,9 @@ import Foundation
 /// A type representing the ability to transform a snapshottable value into a diffable format (like
 /// text or an image) for snapshotting.
 public struct SnapshotStrategy<Value, Format> {
+  /// An identifier to be conditionally added to the filename to distinguish recordings.
+  public let identifier: String?
+
   /// The path extension applied to references saved to disk.
   public var pathExtension: String?
 
@@ -21,17 +24,20 @@ public struct SnapshotStrategy<Value, Format> {
   /// Creates a snapshot strategy.
   ///
   /// - Parameters:
+  ///   - identifier: An identifier to be conditionally added to the filename to distinguish recordings.
   ///   - pathExtension: The path extension applied to references saved to disk.
   ///   - serializer: How to serialize and deserialize the snapshot format to and from `Data`.
   ///   - comparator: How to compare two snapshot format values.
   ///   - snapshot: A transform function from a value into a diffable snapshot format.
   ///     Synchronous closures are accepted because non-async is a subtype of async in Swift.
   public init(
+    identifier: String? = nil,
     pathExtension: String?,
     serializer: SnapshotSerializer<Format>,
     comparator: SnapshotComparator<Format>,
     snapshot: nonisolated(nonsending) @escaping (_ value: Value) async throws -> Format
   ) {
+    self.identifier = identifier
     self.pathExtension = pathExtension
     self.serializer = serializer
     self.comparator = comparator
@@ -54,13 +60,16 @@ public struct SnapshotStrategy<Value, Format> {
   /// - Parameters:
   ///   - type: The value type of the resulting strategy. It defaults to the generic, so it only
   ///     needs spelling out where the compiler cannot infer it from context.
+  ///   - identifier: The new identifier or `nil` to take current identifier over to the resulting strategy.
   ///   - transform: A transform function from the new value into this strategy's value. Synchronous
   ///     closures are accepted because non-async is a subtype of async in Swift.
   public func transform<NewValue>(
     to type: NewValue.Type = NewValue.self,
+    identifier: String? = nil,
     _ transform: @escaping (_ otherValue: NewValue) throws -> Value
   ) -> SnapshotStrategy<NewValue, Format> {
     SnapshotStrategy<NewValue, Format>(
+      identifier: identifier ?? self.identifier,
       pathExtension: pathExtension,
       serializer: serializer,
       comparator: comparator
@@ -85,13 +94,16 @@ public struct SnapshotStrategy<Value, Format> {
   /// - Parameters:
   ///   - type: The value type of the resulting strategy. It defaults to the generic, so it only
   ///     needs spelling out where the compiler cannot infer it from context.
+  ///   - identifier: The new identifier or `nil` to take current identifier over to the resulting strategy.
   ///   - transform: A transform function from the new value into this strategy's value. Synchronous
   ///     closures are accepted because non-async is a subtype of async in Swift.
   public func transform<NewValue>(
     to type: NewValue.Type = NewValue.self,
+    identifier: String? = nil,
     _ transform: nonisolated(nonsending) @escaping (_ newValue: NewValue) async throws -> Value
   ) -> SnapshotStrategy<NewValue, Format> {
     SnapshotStrategy<NewValue, Format>(
+      identifier: identifier ?? self.identifier,
       pathExtension: pathExtension,
       serializer: serializer,
       comparator: comparator
@@ -106,11 +118,13 @@ public typealias DirectSnapshotStrategy<Format> = SnapshotStrategy<Format, Forma
 
 extension SnapshotStrategy where Value == Format {
   public init(
+    identifier: String? = nil,
     pathExtension: String?,
     serializer: SnapshotSerializer<Format>,
     comparator: SnapshotComparator<Format>
   ) {
     self.init(
+      identifier: identifier,
       pathExtension: pathExtension,
       serializer: serializer,
       comparator: comparator,

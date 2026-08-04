@@ -79,7 +79,7 @@ extension SnapshotStrategy where Value == UIView, Format == String {
   )
     -> SnapshotStrategy<UIView, String>
   {
-    DirectSnapshotStrategy.lines.transform { @MainActor view async in
+    DirectSnapshotStrategy.lines.transform(identifier: "recursive-description") { @MainActor view async in
       let dispose = prepareView(
         profile: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
         drawHierarchyInKeyWindow: false,

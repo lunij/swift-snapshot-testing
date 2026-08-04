@@ -130,7 +130,7 @@ extension SnapshotStrategy where Value == CGPath, Format == String {
       .closeSubpath: 0
     ]
 
-    return DirectSnapshotStrategy.lines.transform { path in
+    return DirectSnapshotStrategy.lines.transform(identifier: "elements-description") { path in
       var string: String = ""
 
       path.applyWithBlock { elementPointer in

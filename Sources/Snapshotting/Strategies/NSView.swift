@@ -58,7 +58,7 @@ extension SnapshotStrategy where Value == NSView, Format == String {
   ///   [   AF      LU ] h=--- v=--- NSButtonTextField "Push Me" f=(10,6,57,16) b=(-)
   /// ```
   public static var recursiveDescription: SnapshotStrategy<NSView, String> {
-    DirectSnapshotStrategy.lines.transform { view in
+    DirectSnapshotStrategy.lines.transform(identifier: "recursive-description") { view in
       purgePointers(
         view.perform(Selector(("_subtreeDescription"))).retain().takeUnretainedValue()
           as! String

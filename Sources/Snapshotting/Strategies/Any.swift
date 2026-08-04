@@ -10,7 +10,7 @@ extension SnapshotStrategy where Format == String {
   /// User(bio: "Blobbed around the world.", id: 1, name: "Blobby")
   /// ```
   public static var description: SnapshotStrategy {
-    DirectSnapshotStrategy.lines.transform(String.init(describing:))
+    DirectSnapshotStrategy.lines.transform(identifier: "description", String.init(describing:))
   }
 }
 
@@ -54,7 +54,7 @@ extension SnapshotStrategy where Format == String {
     message: "Use '.customDump' from the 'SnapshottingCustomDump' module, instead."
   )
   public static var dump: SnapshotStrategy {
-    DirectSnapshotStrategy.lines.transform { snap($0) }
+    DirectSnapshotStrategy.lines.transform(identifier: "dump") { snap($0) }
   }
 }
 
