@@ -34,7 +34,7 @@ extension SnapshotStrategy where Value: CaseIterable, Format == String {
     var strategy = SnapshotStrategy<String, String>.lines.transform(to: ((Value) -> A).self) { f in
       var rows: [String] = []
       for input in Value.allCases {
-        let output = await witness.snapshot(f(input))
+        let output = try await witness.snapshot(f(input))
         rows.append("\"\(input)\",\"\(output)\"")
       }
       return rows.joined(separator: "\n")

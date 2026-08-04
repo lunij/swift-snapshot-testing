@@ -52,7 +52,7 @@ public func assertInlineSnapshot<Value>(
     do {
       var actual: String?
       if let value = try value() {
-        actual = await strategy.snapshot(value)
+        actual = try await strategy.snapshot(value)
       }
       let expected = expected?()
       func recordSnapshot() {

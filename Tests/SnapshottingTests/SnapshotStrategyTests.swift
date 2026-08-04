@@ -4,20 +4,22 @@ import Testing
 struct SnapshotStrategyTests {
   private struct Person { let age: Int }
 
-  @Test func `transforms with a synchronous function`() async {
+  @Test func `transforms with a synchronous function`() async throws {
     let strategy: SnapshotStrategy<Person, String> = SnapshotStrategy<Int, String>.description
       .transform { $0.age }
 
-    #expect(await strategy.snapshot(Person(age: 42)) == "42")
+    let output = try await strategy.snapshot(Person(age: 42))
+    #expect(output == "42")
   }
 
-  @Test func `transforms with an asynchronous function`() async {
+  @Test func `transforms with an asynchronous function`() async throws {
     let strategy = SnapshotStrategy<Int, String>.description
       .transform(to: Person.self) { person async in
         await Task { person.age }.value
       }
 
-    #expect(await strategy.snapshot(Person(age: 42)) == "42")
+    let output = try await strategy.snapshot(Person(age: 42))
+    #expect(output == "42")
   }
 
   @Test func `carries the path extension over`() {

@@ -68,7 +68,7 @@ extension SnapshotStrategy where Format == String {
     ]
 
     var strategy = DirectSnapshotStrategy.lines.transform(to: Value.self) { value in
-      try! String(
+      try String(
         decoding: JSONSerialization.data(
           withJSONObject: value,
           options: options

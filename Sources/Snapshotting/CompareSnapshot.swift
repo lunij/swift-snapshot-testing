@@ -56,7 +56,7 @@ public func compareSnapshot<Value, Format>(
         withIntermediateDirectories: true
       )
 
-      let diffable = await strategy.snapshot(snapshotValue)
+      let diffable = try await strategy.snapshot(snapshotValue)
 
       func recordSnapshot(writeToDisk: Bool) throws {
         let snapshotData = try strategy.serializer.toData(diffable)

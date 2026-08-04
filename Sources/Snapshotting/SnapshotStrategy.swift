@@ -16,7 +16,7 @@ public struct SnapshotStrategy<Value, Format> {
   ///
   /// The closure is `nonisolated(nonsending)`: it runs on the caller's actor, so non-Sendable
   /// values never cross an isolation boundary on their way into a snapshot strategy.
-  public var snapshot: nonisolated(nonsending) (Value) async -> Format
+  public var snapshot: nonisolated(nonsending) (Value) async throws -> Format
 
   /// Creates a snapshot strategy.
   ///
@@ -30,7 +30,7 @@ public struct SnapshotStrategy<Value, Format> {
     pathExtension: String?,
     serializer: SnapshotSerializer<Format>,
     comparator: SnapshotComparator<Format>,
-    snapshot: nonisolated(nonsending) @escaping (_ value: Value) async -> Format
+    snapshot: nonisolated(nonsending) @escaping (_ value: Value) async throws -> Format
   ) {
     self.pathExtension = pathExtension
     self.serializer = serializer
@@ -58,14 +58,14 @@ public struct SnapshotStrategy<Value, Format> {
   ///     closures are accepted because non-async is a subtype of async in Swift.
   public func transform<NewValue>(
     to type: NewValue.Type = NewValue.self,
-    _ transform: @escaping (_ otherValue: NewValue) -> Value
+    _ transform: @escaping (_ otherValue: NewValue) throws -> Value
   ) -> SnapshotStrategy<NewValue, Format> {
     SnapshotStrategy<NewValue, Format>(
       pathExtension: pathExtension,
       serializer: serializer,
       comparator: comparator
     ) { newValue in
-      await self.snapshot(transform(newValue))
+      try await self.snapshot(transform(newValue))
     }
   }
 
@@ -89,14 +89,14 @@ public struct SnapshotStrategy<Value, Format> {
   ///     closures are accepted because non-async is a subtype of async in Swift.
   public func transform<NewValue>(
     to type: NewValue.Type = NewValue.self,
-    _ transform: nonisolated(nonsending) @escaping (_ newValue: NewValue) async -> Value
+    _ transform: nonisolated(nonsending) @escaping (_ newValue: NewValue) async throws -> Value
   ) -> SnapshotStrategy<NewValue, Format> {
     SnapshotStrategy<NewValue, Format>(
       pathExtension: pathExtension,
       serializer: serializer,
       comparator: comparator
     ) { newValue in
-      await self.snapshot(await transform(newValue))
+      try await self.snapshot(await transform(newValue))
     }
   }
 }
