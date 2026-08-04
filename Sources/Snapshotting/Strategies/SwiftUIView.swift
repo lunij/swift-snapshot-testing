@@ -74,7 +74,7 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).asyncPullback { @MainActor (view: Value) async -> UIImage in
+    ).transform { @MainActor (view: Value) async -> UIImage in
       var profile = profile
       let controller: UIViewController
 
@@ -129,7 +129,7 @@ extension SnapshotStrategy where Value: View, Format == NSImage {
   ) -> SnapshotStrategy {
     DirectSnapshotStrategy
       .image(precision: precision, perceptualPrecision: perceptualPrecision)
-      .asyncPullback { @MainActor (view: Value) async -> NSImage in
+      .transform { @MainActor (view: Value) async -> NSImage in
         let controller = NSHostingController(rootView: view)
         let initialFrame = controller.view.frame
 

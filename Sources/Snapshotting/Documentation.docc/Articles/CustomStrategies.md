@@ -42,11 +42,11 @@ base ``Snapshotting/SnapshotStrategy`` value from them directly.
 
 Some types need to be snapshot in an asynchronous fashion. ``Snapshotting/SnapshotStrategy``
 supports this natively: the `snapshot` closure and the transform passed to
-``SnapshotStrategy/asyncPullback(_:)`` are both `async`, so you can `await` anything inside them.
+``SnapshotStrategy/transform(to:_:)`` are both `async`, so you can `await` anything inside them.
 
 #### Async pullbacks
 
-Alongside ``SnapshotStrategy/pullback(_:)`` there is ``SnapshotStrategy/asyncPullback(_:)``, which takes an
+Alongside ``SnapshotStrategy/pullback(_:)`` there is ``SnapshotStrategy/transform(to:_:)``, which takes an
 `async` transform function `(NewStrategyValue) async -> ExistingStrategyValue`.
 
 For example, WebKit's `WKWebView` offers a callback-based API for taking image snapshots. You can
@@ -56,7 +56,7 @@ bridge it to `async/await` using `withCheckedContinuation`:
 extension SnapshotStrategy where Value == WKWebView, Format == UIImage {
   public static let image: SnapshotStrategy = SnapshotStrategy<UIImage, UIImage>
     .image
-    .asyncPullback { @MainActor webView async -> UIImage in
+    .transform { @MainActor webView async -> UIImage in
       await withCheckedContinuation { continuation in
         webView.takeSnapshot(with: nil) { image, _ in
           continuation.resume(returning: image ?? UIImage())
@@ -69,7 +69,7 @@ extension SnapshotStrategy where Value == WKWebView, Format == UIImage {
 #### Async initialization
 
 `SnapshotStrategy` accepts an `async` closure directly in its initializer, so you can describe
-asynchronous strategies without going through `asyncPullback`:
+asynchronous strategies without going through `transform`:
 
 ``` swift
 extension SnapshotStrategy where Value == WKWebView, Format == UIImage {

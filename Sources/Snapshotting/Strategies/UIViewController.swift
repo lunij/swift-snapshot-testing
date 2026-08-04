@@ -45,7 +45,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).asyncPullback { @MainActor (viewController: UIViewController) async -> UIImage in
+    ).transform { @MainActor (viewController: UIViewController) async -> UIImage in
       await snapshotView(
         profile: size.map { .init(safeArea: profile.safeArea, size: $0, traits: profile.traits) }
           ?? profile,
@@ -89,7 +89,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).asyncPullback { @MainActor (viewController: UIViewController) async -> UIImage in
+    ).transform { @MainActor (viewController: UIViewController) async -> UIImage in
       await snapshotView(
         profile: .init(safeArea: .zero, size: size, traits: traits),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
@@ -123,7 +123,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   ///    |    | <UIViewController>, state: disappeared, view: (view not loaded)
   /// ```
   public static var hierarchy: SnapshotStrategy {
-    SnapshotStrategy<String, String>.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
+    SnapshotStrategy<String, String>.lines.transform { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         profile: .init(),
         drawHierarchyInKeyWindow: false,
@@ -159,7 +159,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   )
     -> SnapshotStrategy<UIViewController, String>
   {
-    DirectSnapshotStrategy.lines.asyncPullback { @MainActor (viewController: UIViewController) async -> String in
+    DirectSnapshotStrategy.lines.transform { @MainActor (viewController: UIViewController) async -> String in
       let dispose = prepareView(
         profile: .init(
           safeArea: profile.safeArea,

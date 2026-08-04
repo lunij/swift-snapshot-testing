@@ -78,28 +78,6 @@ public struct SnapshotStrategy<Value, Format> {
     }
   }
 
-  /// Transforms a strategy on `Value`s into a strategy on `NewValue`s through an async function
-  /// `(NewValue) async -> Value`.
-  ///
-  /// See the documentation of `pullback` for a full description of how pullbacks work. This
-  /// operation differs from `pullback` in that it allows you to use an async transformation
-  /// `(NewValue) async -> Value`, which is necessary when your transformation needs to perform
-  /// some asynchronous work such as accessing `@MainActor`-isolated properties.
-  ///
-  /// - Parameters:
-  ///   - transform: An async transform function from `NewValue` into `Value`.
-  public func asyncPullback<NewValue>(
-    _ transform: nonisolated(nonsending) @escaping (_ otherValue: NewValue) async -> Value
-  ) -> SnapshotStrategy<NewValue, Format> {
-    SnapshotStrategy<NewValue, Format>(
-      pathExtension: pathExtension,
-      serializer: serializer,
-      comparator: comparator
-    ) { newValue in
-      await self.snapshot(await transform(newValue))
-    }
-  }
-
   /// Transforms this strategy into a strategy on a new value type.
   ///
   /// Most strategies are built this way. Given a strategy that snapshots `UIView`s as `UIImage`s,

@@ -10,7 +10,7 @@
 ### Transforming strategies
 
 - ``pullback(_:)``
-- ``asyncPullback(_:)``
+- ``transform(to:_:)``
 - ``wait(for:on:)``
 
 ### Properties

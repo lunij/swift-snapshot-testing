@@ -26,7 +26,7 @@ extension SnapshotStrategy where Value == NSViewController, Format == NSImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       size: size
-    ).asyncPullback { @MainActor (vc: NSViewController) async -> NSView in vc.view }
+    ).transform { @MainActor (vc: NSViewController) async -> NSView in vc.view }
   }
 }
 
@@ -34,7 +34,7 @@ extension SnapshotStrategy where Value == NSViewController, Format == String {
   /// A snapshot strategy for comparing view controller views based on a recursive description of
   /// their properties and hierarchies.
   public static var recursiveDescription: SnapshotStrategy {
-    SnapshotStrategy<NSView, String>.recursiveDescription.asyncPullback {
+    SnapshotStrategy<NSView, String>.recursiveDescription.transform {
       @MainActor (vc: NSViewController) async -> NSView in vc.view
     }
   }
