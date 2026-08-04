@@ -99,6 +99,37 @@ public struct SnapshotStrategy<Value, Format> {
       await self.snapshot(await transform(newValue))
     }
   }
+
+  /// Transforms this strategy into a strategy on a new value type.
+  ///
+  /// Most strategies are built this way. Given a strategy that snapshots `UIView`s as `UIImage`s,
+  /// a strategy for `UIViewController`s only needs a way to reach the view:
+  ///
+  /// ```swift
+  /// let strategy = SnapshotStrategy<UIView, UIImage>.image
+  ///   .transform(to: UIViewController.self) { $0.view }
+  /// ```
+  ///
+  /// Notice that the transform runs in the opposite direction to the strategy: the strategy moves
+  /// from `Value` to `NewValue`, while the transform moves from `NewValue` back to `Value`.
+  ///
+  /// - Parameters:
+  ///   - type: The value type of the resulting strategy. It defaults to the generic, so it only
+  ///     needs spelling out where the compiler cannot infer it from context.
+  ///   - transform: A transform function from the new value into this strategy's value. Synchronous
+  ///     closures are accepted because non-async is a subtype of async in Swift.
+  public func transform<NewValue>(
+    to type: NewValue.Type = NewValue.self,
+    _ transform: nonisolated(nonsending) @escaping (_ newValue: NewValue) async -> Value
+  ) -> SnapshotStrategy<NewValue, Format> {
+    SnapshotStrategy<NewValue, Format>(
+      pathExtension: pathExtension,
+      serializer: serializer,
+      comparator: comparator
+    ) { newValue in
+      await self.snapshot(await transform(newValue))
+    }
+  }
 }
 
 /// A snapshot strategy where the type being snapshot is also a diffable type.
