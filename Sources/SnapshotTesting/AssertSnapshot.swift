@@ -280,13 +280,18 @@ public func verifySnapshot<Value, Format>(
   )
 }
 
-// MARK: - Private
-
 /// Points out that a mismatching reference is shared by every platform.
 ///
 /// Two platforms rarely render a value identically, so a shared reference that stops matching is as
-/// likely to be a reference recorded elsewhere as it is a change in the value.
-private func sharedReferenceHint(
+/// likely to be a reference recorded elsewhere as it is a change in the value. Splitting it apart
+/// means giving this run's output a name of its own, and what that takes depends on whether the
+/// comparison recorded: a mode that writes on failure has already replaced the shared reference with
+/// this run's output, so the file to rename is no longer the one the other platforms read, and theirs
+/// is left only wherever it is versioned.
+///
+/// Neither branch promises that a re-run would record the platform-specific name. Nothing about the
+/// platform enters a name until a file says it should, so that file is one the author creates.
+func sharedReferenceHint(
   for result: SnapshotResult,
   at location: SnapshotLocation
 ) -> String? {
@@ -295,12 +300,24 @@ private func sharedReferenceHint(
     let platformSpecificName = location.platformSpecificName
   else { return nil }
 
+  let sharedName = location.snapshotURL.lastPathComponent
+  guard result.recorded else {
+    return """
+      '\(sharedName)' is shared by every platform. If it differs because of the platform this ran \
+      on, save this run's output as '\(platformSpecificName)' and leave '\(sharedName)' to the \
+      platforms it matches.
+      """
+  }
+
   return """
-    '\(location.snapshotURL.lastPathComponent)' is shared by every platform. If it differs because of \
-    the platform this ran on, rename it after the platform that recorded it — this run then records \
-    '\(platformSpecificName)'.
+    '\(sharedName)' is shared by every platform, and this run has recorded over it. If it differs \
+    because of the platform this ran on, rename '\(sharedName)' to '\(platformSpecificName)' — it \
+    holds this run's output — and restore '\(sharedName)', which every other platform still reads, \
+    from version control.
     """
 }
+
+// MARK: - Private
 
 /// Records snapshot artifacts as test attachments, so that they show up alongside the failure in
 /// Xcode's test report.

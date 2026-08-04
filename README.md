@@ -71,14 +71,20 @@ The most specific one that exists is used, and a snapshot with no reference yet 
 name. Output that doesn't depend on the platform therefore keeps one reference indefinitely, with
 nothing to configure.
 
-To split one apart, rename it after the platform that recorded it and re-run — the other platform
-then records its own. A mismatch against a shared reference says as much:
+To split one apart, save what this platform renders as `myViewController.ios.png` and leave
+`myViewController.png` to the platforms it still matches. A mismatch against a shared reference says
+as much, and what it takes depends on the record mode: under the default `.failed`, the shared file
+has been recorded over by the time you read the failure, so it is the one to rename and the other
+platforms' reference is left only wherever you version it.
 
-> 'myViewController.png' is shared by every platform. If it differs because of the platform this ran
-> on, rename it after the platform that recorded it — this run then records 'myViewController.ios.png'.
+> 'myViewController.png' is shared by every platform, and this run has recorded over it. If it differs
+> because of the platform this ran on, rename 'myViewController.png' to 'myViewController.ios.png' —
+> it holds this run's output — and restore 'myViewController.png', which every other platform still
+> reads, from version control.
 
 The version rung works the same way and is for output that changes between releases of one platform.
-Neither is ever created for you: nothing about the platform enters a name until a file says it should.
+Neither is ever created for you: nothing about the platform enters a name until a file says it should,
+so no run records a platform-specific name on its own.
 
 ### Recording
 
