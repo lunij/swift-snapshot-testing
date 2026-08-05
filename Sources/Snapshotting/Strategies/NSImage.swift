@@ -66,6 +66,25 @@ private let imageContextBitsPerComponent = 8
 private let imageContextBytesPerPixel = 4
 
 private func convertToData(_ image: NSImage) throws -> Data {
+  let cgImage = try rasterize(image)
+  let rep = NSBitmapImageRep(cgImage: cgImage)
+  // Giving the representation the image's size in points records how many of its pixels go to a
+  // point, which AppKit writes to the file as its resolution and reads back when the reference is
+  // loaded again.
+  rep.size = image.size
+  guard let data = rep.representation(using: .png, properties: [:]) else {
+    throw ImageConversionError.pngDataConversionFailed
+  }
+  return data
+}
+
+/// The pixels of an image, rasterized at a known scale.
+///
+/// `cgImage(forProposedRect:context:hints:)` rasterizes a representation that has no pixels of its
+/// own — a drawing handler, an SF Symbol, a PDF — at the main display's backing scale factor, which
+/// makes a snapshot's pixel dimensions a property of the Mac that recorded it rather than of the
+/// strategy. Drawing into a representation of a known pixel size settles them here instead.
+private func rasterize(_ image: NSImage) throws -> CGImage {
   if image.size == .zero {
     throw ImageConversionError.zeroSize
   }
@@ -75,15 +94,66 @@ private func convertToData(_ image: NSImage) throws -> Data {
   if image.size.height == 0 {
     throw ImageConversionError.zeroHeight
   }
-  guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+
+  // Pixels an image already has are the snapshot, and which of its representations they come from
+  // is AppKit's decision to make, so they are handed over untouched.
+  if image.hasPixels, let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+    return cgImage
+  }
+
+  return try redraw(image, scale: SnapshotScale.default)
+}
+
+extension NSImage {
+  /// Whether any of the image's representations carries pixels, as opposed to a recipe for drawing
+  /// them at whatever size it is asked for.
+  fileprivate var hasPixels: Bool {
+    representations.contains { $0.pixelsWide > 0 && $0.pixelsHigh > 0 }
+  }
+}
+
+private func redraw(_ image: NSImage, scale: CGFloat) throws -> CGImage {
+  try redraw(
+    image,
+    pixelsWide: Int((image.size.width * scale).rounded()),
+    pixelsHigh: Int((image.size.height * scale).rounded())
+  )
+}
+
+private func redraw(_ image: NSImage, pixelsWide: Int, pixelsHigh: Int) throws -> CGImage {
+  guard
+    pixelsWide > 0,
+    pixelsHigh > 0,
+    let rep = NSBitmapImageRep(
+      bitmapDataPlanes: nil,
+      pixelsWide: pixelsWide,
+      pixelsHigh: pixelsHigh,
+      bitsPerSample: imageContextBitsPerComponent,
+      samplesPerPixel: imageContextBytesPerPixel,
+      hasAlpha: true,
+      isPlanar: false,
+      colorSpaceName: .deviceRGB,
+      bytesPerRow: 0,
+      bitsPerPixel: 0
+    ),
+    let context = NSGraphicsContext(bitmapImageRep: rep)
+  else {
     throw ImageConversionError.cgImageConversionFailed
   }
-  let rep = NSBitmapImageRep(cgImage: cgImage)
+
+  // Setting the representation's point size to the image's own is what maps the drawing onto its
+  // pixels: filling those points rasterizes at `pixelsWide / size.width`, which re-renders a vector
+  // representation at that resolution rather than interpolating a smaller rendering of it.
   rep.size = image.size
-  guard let data = rep.representation(using: .png, properties: [:]) else {
-    throw ImageConversionError.pngDataConversionFailed
+  NSGraphicsContext.saveGraphicsState()
+  NSGraphicsContext.current = context
+  image.draw(in: CGRect(origin: .zero, size: image.size))
+  NSGraphicsContext.restoreGraphicsState()
+
+  guard let cgImage = rep.cgImage else {
+    throw ImageConversionError.cgImageConversionFailed
   }
-  return data
+  return cgImage
 }
 
 private func compare(
@@ -91,13 +161,9 @@ private func compare(
   _ new: NSImage,
   precision: Float,
   perceptualPrecision: Float
-) -> ImageComparisonResult {
-  guard let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-    return .cgImageConversionFailed
-  }
-  guard let newCgImage = new.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-    return .cgImageConversionFailed
-  }
+) throws -> ImageComparisonResult {
+  let oldCgImage = try rasterize(old)
+  let newCgImage = try rasterize(new)
   guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
     return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
   }
@@ -113,10 +179,10 @@ private func compare(
     }
   }
   var newerBytes = [UInt8](repeating: 0, count: byteCount)
+  let data = try convertToData(new)
   guard
-    let data = try? convertToData(new),
-    let newerCgImage = NSImage(data: data)?.cgImage(forProposedRect: nil, context: nil, hints: nil),
-    let newerData = context(for: newerCgImage, data: &newerBytes)?.data
+    let newerImage = NSImage(data: data),
+    let newerData = context(for: try rasterize(newerImage), data: &newerBytes)?.data
   else {
     return .cgContextDataConversionFailed
   }
@@ -173,31 +239,51 @@ private func context(for cgImage: CGImage, data: UnsafeMutableRawPointer? = nil)
   return context
 }
 
-private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage {
+private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage? {
   normalizedComponentDiff(old, new)
     ?? blendModeDiff(old, new)
 }
 
-private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage {
-  let oldCiImage = CIImage(cgImage: old.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
-  let newCiImage = CIImage(cgImage: new.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
-  let differenceFilter = CIFilter(name: "CIDifferenceBlendMode")!
-  differenceFilter.setValue(oldCiImage, forKey: kCIInputImageKey)
-  differenceFilter.setValue(newCiImage, forKey: kCIInputBackgroundImageKey)
-  let maxSize = CGSize(
-    width: max(old.size.width, new.size.width),
-    height: max(old.size.height, new.size.height)
-  )
-  let rep = NSCIImageRep(ciImage: differenceFilter.outputImage!)
-  let difference = NSImage(size: maxSize)
-  difference.addRepresentation(rep)
-  return difference
+/// Where the two images differ, for images whose pixel dimensions do not line up. Every pixel of
+/// the larger canvas that only one image covers is that image's own, so a size mismatch shows up as
+/// the region one of them leaves behind.
+private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
+  guard
+    let oldCgImage = try? rasterize(old),
+    let newCgImage = try? rasterize(new),
+    let colorSpace = imageContextColorSpace
+  else {
+    return nil
+  }
+
+  let pixelsWide = max(oldCgImage.width, newCgImage.width)
+  let pixelsHigh = max(oldCgImage.height, newCgImage.height)
+  guard
+    let context = CGContext(
+      data: nil,
+      width: pixelsWide,
+      height: pixelsHigh,
+      bitsPerComponent: imageContextBitsPerComponent,
+      bytesPerRow: pixelsWide * imageContextBytesPerPixel,
+      space: colorSpace,
+      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    )
+  else {
+    return nil
+  }
+
+  context.draw(newCgImage, in: CGRect(origin: .zero, size: newCgImage.size))
+  context.setBlendMode(.difference)
+  context.draw(oldCgImage, in: CGRect(origin: .zero, size: oldCgImage.size))
+
+  guard let cgImage = context.makeImage() else { return nil }
+  return NSImage(cgImage: cgImage, size: CGSize(width: pixelsWide, height: pixelsHigh))
 }
 
 private func normalizedComponentDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
   guard
-    let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil),
-    let newCgImage = new.cgImage(forProposedRect: nil, context: nil, hints: nil),
+    let oldCgImage = try? rasterize(old),
+    let newCgImage = try? rasterize(new),
     oldCgImage.width == newCgImage.width,
     oldCgImage.height == newCgImage.height,
     oldCgImage.width > 0,
