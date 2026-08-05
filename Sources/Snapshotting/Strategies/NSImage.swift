@@ -172,59 +172,15 @@ private func compare(
   precision: Float,
   perceptualPrecision: Float
 ) throws -> ImageComparisonResult {
-  let oldCgImage = try pixels(of: old)
-  let newCgImage = try pixels(of: new)
-  guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
-    return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
+  try comparePixels(
+    pixels(of: old),
+    pixels(of: new),
+    precision: precision,
+    perceptualPrecision: perceptualPrecision
+  ) {
+    guard let reencoded = NSImage(data: try convertToData(new)) else { return nil }
+    return try pixels(of: reencoded)
   }
-  guard let oldBuffer = PixelBuffer(oldCgImage) else {
-    return .cgContextDataConversionFailed
-  }
-  if let newBuffer = PixelBuffer(newCgImage), oldBuffer.bytes == newBuffer.bytes {
-    return .isMatching
-  }
-  let data = try convertToData(new)
-  guard
-    let newerImage = NSImage(data: data),
-    let newerBuffer = PixelBuffer(try pixels(of: newerImage)),
-    newerBuffer.byteCount == oldBuffer.byteCount
-  else {
-    return .cgContextDataConversionFailed
-  }
-  if oldBuffer.bytes == newerBuffer.bytes {
-    return .isMatching
-  }
-  if precision >= 1, perceptualPrecision >= 1 {
-    return .isNotMatching
-  }
-  if perceptualPrecision < 1 {
-    return perceptuallyCompare(
-      CIImage(cgImage: oldCgImage),
-      CIImage(cgImage: newCgImage),
-      pixelPrecision: precision,
-      perceptualPrecision: perceptualPrecision
-    )
-  } else {
-    let byteCount = oldBuffer.byteCount
-    let byteCountThreshold = Int((1 - precision) * Float(byteCount))
-    var differentByteCount = 0
-    // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
-    //     compiler doesn't have optimizations enabled, a `while` loop is
-    //     significantly faster than a `for` loop for iterating through the elements of a memory
-    //     buffer. Details can be found in [SR-6983](https://github.com/apple/swift/issues/49531)
-    var index = 0
-    while index < byteCount {
-      defer { index += 1 }
-      if oldBuffer.bytes[index] != newerBuffer.bytes[index] {
-        differentByteCount += 1
-      }
-    }
-    if differentByteCount > byteCountThreshold {
-      let actualPrecision = 1 - Float(differentByteCount) / Float(byteCount)
-      return .unmatchedPrecision(expected: precision, actual: actualPrecision)
-    }
-  }
-  return .isMatching
 }
 
 private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage? {
