@@ -1,6 +1,40 @@
 #if os(iOS) || os(macOS) || os(tvOS)
 import CoreGraphics
 
+extension CGImage {
+  /// A grayscale image, eight bits to a pixel, whose value at each point is `value(x, y)`.
+  ///
+  /// Grayscale is the point of it: an image built this way carries one component a pixel rather than
+  /// four, and an odd width additionally pads each of its rows out, so it stands in for the layouts
+  /// ImageIO hands back that indexing an image's own bytes as tightly-packed RGBA would misread.
+  static func grayscale(
+    width: Int,
+    height: Int,
+    value: (_ x: Int, _ y: Int) -> UInt8
+  ) -> CGImage? {
+    var bytes = [UInt8](repeating: 0, count: width * height)
+    for y in 0..<height {
+      for x in 0..<width {
+        bytes[y * width + x] = value(x, y)
+      }
+    }
+    return bytes.withUnsafeMutableBytes { pixels in
+      guard
+        let context = CGContext(
+          data: pixels.baseAddress,
+          width: width,
+          height: height,
+          bitsPerComponent: 8,
+          bytesPerRow: width,
+          space: CGColorSpaceCreateDeviceGray(),
+          bitmapInfo: CGImageAlphaInfo.none.rawValue
+        )
+      else { return nil }
+      return context.makeImage()
+    }
+  }
+}
+
 extension CGPath {
   /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
   static var heart: CGPath {

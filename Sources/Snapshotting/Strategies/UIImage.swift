@@ -73,11 +73,6 @@ extension SnapshotStrategy where Value == UIImage, Format == UIImage {
   }
 }
 
-// remap snapshot & reference to same colorspace
-private let imageContextColorSpace = CGColorSpace(name: CGColorSpace.sRGB)
-private let imageContextBitsPerComponent = 8
-private let imageContextBytesPerPixel = 4
-
 private func convertToData(_ image: UIImage) throws -> Data {
   if image.size == .zero {
     throw ImageConversionError.zeroSize
@@ -101,26 +96,21 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
   guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
     return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
   }
-  let pixelCount = oldCgImage.width * oldCgImage.height
-  let byteCount = imageContextBytesPerPixel * pixelCount
-  var oldBytes = [UInt8](repeating: 0, count: byteCount)
-  guard let oldData = context(for: oldCgImage, data: &oldBytes)?.data else {
+  guard let oldBuffer = PixelBuffer(oldCgImage) else {
     return .cgContextDataConversionFailed
   }
-  if let newContext = context(for: newCgImage), let newData = newContext.data {
-    if memcmp(oldData, newData, byteCount) == 0 {
-      return .isMatching
-    }
+  if let newBuffer = PixelBuffer(newCgImage), oldBuffer.bytes == newBuffer.bytes {
+    return .isMatching
   }
-  var newerBytes = [UInt8](repeating: 0, count: byteCount)
   guard
     let pngData = new.pngData(),
     let newerCgImage = UIImage(data: pngData)?.cgImage,
-    let newerData = context(for: newerCgImage, data: &newerBytes)?.data
+    let newerBuffer = PixelBuffer(newerCgImage),
+    newerBuffer.byteCount == oldBuffer.byteCount
   else {
     return .cgContextDataConversionFailed
   }
-  if memcmp(oldData, newerData, byteCount) == 0 {
+  if oldBuffer.bytes == newerBuffer.bytes {
     return .isMatching
   }
   if precision >= 1, perceptualPrecision >= 1 {
@@ -134,6 +124,7 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
       perceptualPrecision: perceptualPrecision
     )
   } else {
+    let byteCount = oldBuffer.byteCount
     let byteCountThreshold = Int((1 - precision) * Float(byteCount))
     var differentByteCount = 0
     // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
@@ -143,7 +134,7 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
     var index = 0
     while index < byteCount {
       defer { index += 1 }
-      if oldBytes[index] != newerBytes[index] {
+      if oldBuffer.bytes[index] != newerBuffer.bytes[index] {
         differentByteCount += 1
       }
     }
@@ -153,25 +144,6 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
     }
   }
   return .isMatching
-}
-
-private func context(for cgImage: CGImage, data: UnsafeMutableRawPointer? = nil) -> CGContext? {
-  let bytesPerRow = cgImage.width * imageContextBytesPerPixel
-  guard
-    let colorSpace = imageContextColorSpace,
-    let context = CGContext(
-      data: data,
-      width: cgImage.width,
-      height: cgImage.height,
-      bitsPerComponent: imageContextBitsPerComponent,
-      bytesPerRow: bytesPerRow,
-      space: colorSpace,
-      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )
-  else { return nil }
-
-  context.draw(cgImage, in: CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
-  return context
 }
 
 private func diffImage(_ old: UIImage, _ new: UIImage) -> UIImage {
@@ -204,8 +176,8 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
 
   guard let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
     let outputFormat = vImage_CGImageFormat(
-      bitsPerComponent: imageContextBitsPerComponent,
-      bitsPerPixel: imageContextBitsPerComponent,
+      bitsPerComponent: PixelLayout.bitsPerComponent,
+      bitsPerPixel: PixelLayout.bitsPerComponent,
       colorSpace: outputColorSpace,
       bitmapInfo: .init()
     )
@@ -213,39 +185,31 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
     return nil
   }
 
-  let width = oldCgImage.width
-  let height = oldCgImage.height
-  let pixelCount = width * height
-  let scale = old.scale
-
-  // Draw both images into contexts with an identical, known layout (RGBA8888,
-  // tightly packed rows). Reading the source images' raw backing bytes instead
-  // would depend on their pixel format and row padding, which ImageIO does not
-  // guarantee.
-  let byteCount = pixelCount * imageContextBytesPerPixel
-  var oldBytes = [UInt8](repeating: 0, count: byteCount)
-  var newBytes = [UInt8](repeating: 0, count: byteCount)
-  guard context(for: oldCgImage, data: &oldBytes) != nil,
-    context(for: newCgImage, data: &newBytes) != nil
-  else {
+  guard let oldBuffer = PixelBuffer(oldCgImage), let newBuffer = PixelBuffer(newCgImage) else {
     return nil
   }
+
+  let width = oldBuffer.width
+  let height = oldBuffer.height
+  let pixelCount = oldBuffer.pixelCount
+  let scale = old.scale
+
   var diffBytes = [UInt8](repeating: 0, count: pixelCount)
 
   var index = 0
   while index < pixelCount {
     defer { index += 1 }
-    let pixelOffset = index * imageContextBytesPerPixel
+    let pixelOffset = index * PixelLayout.bytesPerPixel
 
-    let rOld = Int16(oldBytes[pixelOffset])
-    let gOld = Int16(oldBytes[pixelOffset + 1])
-    let bOld = Int16(oldBytes[pixelOffset + 2])
-    let aOld = Int16(oldBytes[pixelOffset + 3])
+    let rOld = Int16(oldBuffer.bytes[pixelOffset])
+    let gOld = Int16(oldBuffer.bytes[pixelOffset + 1])
+    let bOld = Int16(oldBuffer.bytes[pixelOffset + 2])
+    let aOld = Int16(oldBuffer.bytes[pixelOffset + 3])
 
-    let rNew = Int16(newBytes[pixelOffset])
-    let gNew = Int16(newBytes[pixelOffset + 1])
-    let bNew = Int16(newBytes[pixelOffset + 2])
-    let aNew = Int16(newBytes[pixelOffset + 3])
+    let rNew = Int16(newBuffer.bytes[pixelOffset])
+    let gNew = Int16(newBuffer.bytes[pixelOffset + 1])
+    let bNew = Int16(newBuffer.bytes[pixelOffset + 2])
+    let aNew = Int16(newBuffer.bytes[pixelOffset + 3])
 
     let rDiff = abs(rOld - rNew)
     let gDiff = abs(gOld - gNew)
@@ -268,7 +232,7 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
       var normalizedBuffer = try vImage_Buffer(
         width: width,
         height: height,
-        bitsPerPixel: UInt32(imageContextBitsPerComponent)
+        bitsPerPixel: UInt32(PixelLayout.bitsPerComponent)
       )
       defer { normalizedBuffer.free() }
 

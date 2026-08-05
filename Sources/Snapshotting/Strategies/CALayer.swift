@@ -59,16 +59,7 @@ private func render(_ layer: CALayer, scale: CGFloat) throws -> NSImage {
   guard
     pixelsWide > 0,
     pixelsHigh > 0,
-    let colorSpace = imageContextColorSpace,
-    let context = CGContext(
-      data: nil,
-      width: pixelsWide,
-      height: pixelsHigh,
-      bitsPerComponent: imageContextBitsPerComponent,
-      bytesPerRow: pixelsWide * imageContextBytesPerPixel,
-      space: colorSpace,
-      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )
+    let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh)
   else {
     throw ImageConversionError.cgImageConversionFailed
   }
@@ -91,12 +82,6 @@ private func render(_ layer: CALayer, scale: CGFloat) throws -> NSImage {
   // being recorded.
   return NSImage(cgImage: cgImage, size: size)
 }
-
-// Matches the context the NSImage strategy compares in, so the layer is drawn in the colorspace and
-// layout its reference is read back in.
-private let imageContextColorSpace = CGColorSpace(name: CGColorSpace.sRGB)
-private let imageContextBitsPerComponent = 8
-private let imageContextBytesPerPixel = 4
 #elseif canImport(UIKit)
 import UIKit
 

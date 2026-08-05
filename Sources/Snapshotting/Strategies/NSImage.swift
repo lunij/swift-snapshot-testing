@@ -78,11 +78,6 @@ extension SnapshotStrategy where Value == NSImage, Format == NSImage {
   }
 }
 
-// Remap snapshot & reference to the same colorspace and layout, matching the UIImage strategy.
-private let imageContextColorSpace = CGColorSpace(name: CGColorSpace.sRGB)
-private let imageContextBitsPerComponent = 8
-private let imageContextBytesPerPixel = 4
-
 private func convertToData(_ image: NSImage) throws -> Data {
   let cgImage = try pixels(of: image)
   let rep = NSBitmapImageRep(cgImage: cgImage)
@@ -174,16 +169,7 @@ private func redraw(_ image: NSImage, pixelsWide: Int, pixelsHigh: Int) throws -
   guard
     pixelsWide > 0,
     pixelsHigh > 0,
-    let colorSpace = imageContextColorSpace,
-    let context = CGContext(
-      data: nil,
-      width: pixelsWide,
-      height: pixelsHigh,
-      bitsPerComponent: imageContextBitsPerComponent,
-      bytesPerRow: pixelsWide * imageContextBytesPerPixel,
-      space: colorSpace,
-      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )
+    let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh)
   else {
     throw ImageConversionError.cgImageConversionFailed
   }
@@ -217,26 +203,21 @@ private func compare(
   guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
     return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
   }
-  let pixelCount = oldCgImage.width * oldCgImage.height
-  let byteCount = imageContextBytesPerPixel * pixelCount
-  var oldBytes = [UInt8](repeating: 0, count: byteCount)
-  guard let oldData = context(for: oldCgImage, data: &oldBytes)?.data else {
+  guard let oldBuffer = PixelBuffer(oldCgImage) else {
     return .cgContextDataConversionFailed
   }
-  if let newContext = context(for: newCgImage), let newData = newContext.data {
-    if memcmp(oldData, newData, byteCount) == 0 {
-      return .isMatching
-    }
+  if let newBuffer = PixelBuffer(newCgImage), oldBuffer.bytes == newBuffer.bytes {
+    return .isMatching
   }
-  var newerBytes = [UInt8](repeating: 0, count: byteCount)
   let data = try convertToData(new)
   guard
     let newerImage = NSImage(data: data),
-    let newerData = context(for: try pixels(of: newerImage), data: &newerBytes)?.data
+    let newerBuffer = PixelBuffer(try pixels(of: newerImage)),
+    newerBuffer.byteCount == oldBuffer.byteCount
   else {
     return .cgContextDataConversionFailed
   }
-  if memcmp(oldData, newerData, byteCount) == 0 {
+  if oldBuffer.bytes == newerBuffer.bytes {
     return .isMatching
   }
   if precision >= 1, perceptualPrecision >= 1 {
@@ -250,6 +231,7 @@ private func compare(
       perceptualPrecision: perceptualPrecision
     )
   } else {
+    let byteCount = oldBuffer.byteCount
     let byteCountThreshold = Int((1 - precision) * Float(byteCount))
     var differentByteCount = 0
     // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
@@ -259,7 +241,7 @@ private func compare(
     var index = 0
     while index < byteCount {
       defer { index += 1 }
-      if oldBytes[index] != newerBytes[index] {
+      if oldBuffer.bytes[index] != newerBuffer.bytes[index] {
         differentByteCount += 1
       }
     }
@@ -269,24 +251,6 @@ private func compare(
     }
   }
   return .isMatching
-}
-
-private func context(for cgImage: CGImage, data: UnsafeMutableRawPointer? = nil) -> CGContext? {
-  let bytesPerRow = cgImage.width * imageContextBytesPerPixel
-  guard
-    let colorSpace = imageContextColorSpace,
-    let context = CGContext(
-      data: data,
-      width: cgImage.width,
-      height: cgImage.height,
-      bitsPerComponent: imageContextBitsPerComponent,
-      bytesPerRow: bytesPerRow,
-      space: colorSpace,
-      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )
-  else { return nil }
-  context.draw(cgImage, in: CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
-  return context
 }
 
 private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage? {
@@ -300,25 +264,14 @@ private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage? {
 private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
   guard
     let oldCgImage = try? pixels(of: old),
-    let newCgImage = try? pixels(of: new),
-    let colorSpace = imageContextColorSpace
+    let newCgImage = try? pixels(of: new)
   else {
     return nil
   }
 
   let pixelsWide = max(oldCgImage.width, newCgImage.width)
   let pixelsHigh = max(oldCgImage.height, newCgImage.height)
-  guard
-    let context = CGContext(
-      data: nil,
-      width: pixelsWide,
-      height: pixelsHigh,
-      bitsPerComponent: imageContextBitsPerComponent,
-      bytesPerRow: pixelsWide * imageContextBytesPerPixel,
-      space: colorSpace,
-      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )
-  else {
+  guard let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh) else {
     return nil
   }
 
@@ -345,8 +298,8 @@ private func normalizedComponentDiff(_ old: NSImage, _ new: NSImage) -> NSImage?
   guard
     let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
     let outputFormat = vImage_CGImageFormat(
-      bitsPerComponent: imageContextBitsPerComponent,
-      bitsPerPixel: imageContextBitsPerComponent,
+      bitsPerComponent: PixelLayout.bitsPerComponent,
+      bitsPerPixel: PixelLayout.bitsPerComponent,
       colorSpace: outputColorSpace,
       bitmapInfo: .init()
     )
@@ -354,29 +307,23 @@ private func normalizedComponentDiff(_ old: NSImage, _ new: NSImage) -> NSImage?
     return nil
   }
 
-  let width = oldCgImage.width
-  let height = oldCgImage.height
-  let pixelCount = width * height
-
-  let byteCount = pixelCount * imageContextBytesPerPixel
-  var oldBytes = [UInt8](repeating: 0, count: byteCount)
-  var newBytes = [UInt8](repeating: 0, count: byteCount)
-  guard
-    context(for: oldCgImage, data: &oldBytes) != nil,
-    context(for: newCgImage, data: &newBytes) != nil
-  else {
+  guard let oldBuffer = PixelBuffer(oldCgImage), let newBuffer = PixelBuffer(newCgImage) else {
     return nil
   }
+
+  let width = oldBuffer.width
+  let height = oldBuffer.height
+  let pixelCount = oldBuffer.pixelCount
 
   var diffBytes = [UInt8](repeating: 0, count: pixelCount)
   var index = 0
   while index < pixelCount {
     defer { index += 1 }
-    let pixelOffset = index * imageContextBytesPerPixel
-    let rDiff = abs(Int16(oldBytes[pixelOffset]) - Int16(newBytes[pixelOffset]))
-    let gDiff = abs(Int16(oldBytes[pixelOffset + 1]) - Int16(newBytes[pixelOffset + 1]))
-    let bDiff = abs(Int16(oldBytes[pixelOffset + 2]) - Int16(newBytes[pixelOffset + 2]))
-    let aDiff = abs(Int16(oldBytes[pixelOffset + 3]) - Int16(newBytes[pixelOffset + 3]))
+    let pixelOffset = index * PixelLayout.bytesPerPixel
+    let rDiff = abs(Int16(oldBuffer.bytes[pixelOffset]) - Int16(newBuffer.bytes[pixelOffset]))
+    let gDiff = abs(Int16(oldBuffer.bytes[pixelOffset + 1]) - Int16(newBuffer.bytes[pixelOffset + 1]))
+    let bDiff = abs(Int16(oldBuffer.bytes[pixelOffset + 2]) - Int16(newBuffer.bytes[pixelOffset + 2]))
+    let aDiff = abs(Int16(oldBuffer.bytes[pixelOffset + 3]) - Int16(newBuffer.bytes[pixelOffset + 3]))
     diffBytes[index] = UInt8(max(rDiff, gDiff, bDiff, aDiff))
   }
 
@@ -391,7 +338,7 @@ private func normalizedComponentDiff(_ old: NSImage, _ new: NSImage) -> NSImage?
       var normalizedBuffer = try vImage_Buffer(
         width: width,
         height: height,
-        bitsPerPixel: UInt32(imageContextBitsPerComponent)
+        bitsPerPixel: UInt32(PixelLayout.bitsPerComponent)
       )
       defer { normalizedBuffer.free() }
       let error = vImageContrastStretch_Planar8(
