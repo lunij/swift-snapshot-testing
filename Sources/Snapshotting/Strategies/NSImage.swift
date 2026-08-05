@@ -1,5 +1,4 @@
 #if os(macOS)
-import Accelerate.vImage
 import Cocoa
 
 extension SnapshotSerializer where Value == NSImage {
@@ -184,14 +183,6 @@ private func compare(
 }
 
 private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage? {
-  normalizedComponentDiff(old, new)
-    ?? blendModeDiff(old, new)
-}
-
-/// Where the two images differ, for images whose pixel dimensions do not line up. Every pixel of
-/// the larger canvas that only one image covers is that image's own, so a size mismatch shows up as
-/// the region one of them leaves behind.
-private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
   guard
     let oldCgImage = try? pixels(of: old),
     let newCgImage = try? pixels(of: new)
@@ -199,6 +190,16 @@ private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
     return nil
   }
 
+  if let diff = normalizedComponentDiff(oldCgImage, newCgImage) {
+    return NSImage(cgImage: diff, size: old.size)
+  }
+  return blendModeDiff(oldCgImage, newCgImage)
+}
+
+/// Where the two images differ, for images whose pixel dimensions do not line up. Every pixel of
+/// the larger canvas that only one image covers is that image's own, so a size mismatch shows up as
+/// the region one of them leaves behind.
+private func blendModeDiff(_ oldCgImage: CGImage, _ newCgImage: CGImage) -> NSImage? {
   let pixelsWide = max(oldCgImage.width, newCgImage.width)
   let pixelsHigh = max(oldCgImage.height, newCgImage.height)
   guard let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh) else {
@@ -211,79 +212,5 @@ private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
 
   guard let cgImage = context.makeImage() else { return nil }
   return NSImage(cgImage: cgImage, size: CGSize(width: pixelsWide, height: pixelsHigh))
-}
-
-private func normalizedComponentDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
-  guard
-    let oldCgImage = try? pixels(of: old),
-    let newCgImage = try? pixels(of: new),
-    oldCgImage.width == newCgImage.width,
-    oldCgImage.height == newCgImage.height,
-    oldCgImage.width > 0,
-    oldCgImage.height > 0
-  else {
-    return nil
-  }
-
-  guard
-    let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
-    let outputFormat = vImage_CGImageFormat(
-      bitsPerComponent: PixelLayout.bitsPerComponent,
-      bitsPerPixel: PixelLayout.bitsPerComponent,
-      colorSpace: outputColorSpace,
-      bitmapInfo: .init()
-    )
-  else {
-    return nil
-  }
-
-  guard let oldBuffer = PixelBuffer(oldCgImage), let newBuffer = PixelBuffer(newCgImage) else {
-    return nil
-  }
-
-  let width = oldBuffer.width
-  let height = oldBuffer.height
-  let pixelCount = oldBuffer.pixelCount
-
-  var diffBytes = [UInt8](repeating: 0, count: pixelCount)
-  var index = 0
-  while index < pixelCount {
-    defer { index += 1 }
-    let pixelOffset = index * PixelLayout.bytesPerPixel
-    let rDiff = abs(Int16(oldBuffer.bytes[pixelOffset]) - Int16(newBuffer.bytes[pixelOffset]))
-    let gDiff = abs(Int16(oldBuffer.bytes[pixelOffset + 1]) - Int16(newBuffer.bytes[pixelOffset + 1]))
-    let bDiff = abs(Int16(oldBuffer.bytes[pixelOffset + 2]) - Int16(newBuffer.bytes[pixelOffset + 2]))
-    let aDiff = abs(Int16(oldBuffer.bytes[pixelOffset + 3]) - Int16(newBuffer.bytes[pixelOffset + 3]))
-    diffBytes[index] = UInt8(max(rDiff, gDiff, bDiff, aDiff))
-  }
-
-  let outputCgImage: CGImage? = diffBytes.withUnsafeMutableBytes { diffPtr in
-    var diffBuffer = vImage_Buffer(
-      data: diffPtr.baseAddress,
-      height: vImagePixelCount(height),
-      width: vImagePixelCount(width),
-      rowBytes: width
-    )
-    do {
-      var normalizedBuffer = try vImage_Buffer(
-        width: width,
-        height: height,
-        bitsPerPixel: UInt32(PixelLayout.bitsPerComponent)
-      )
-      defer { normalizedBuffer.free() }
-      let error = vImageContrastStretch_Planar8(
-        &diffBuffer,
-        &normalizedBuffer,
-        vImage_Flags(kvImageNoFlags)
-      )
-      let buffer = error == kvImageNoError ? normalizedBuffer : diffBuffer
-      return try buffer.createCGImage(format: outputFormat)
-    } catch {
-      return nil
-    }
-  }
-
-  guard let outputCgImage else { return nil }
-  return NSImage(cgImage: outputCgImage, size: old.size)
 }
 #endif

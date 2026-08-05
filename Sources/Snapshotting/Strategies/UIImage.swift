@@ -1,5 +1,4 @@
 #if os(iOS) || os(tvOS)
-import Accelerate.vImage
 import UIKit
 
 extension SnapshotSerializer where Value == UIImage {
@@ -97,8 +96,14 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
 }
 
 private func diffImage(_ old: UIImage, _ new: UIImage) -> UIImage {
-  normalizedComponentDiff(old, new)
-    ?? blendModeDiff(old, new)
+  guard
+    let oldCgImage = old.cgImage,
+    let newCgImage = new.cgImage,
+    let diff = normalizedComponentDiff(oldCgImage, newCgImage)
+  else {
+    return blendModeDiff(old, new)
+  }
+  return UIImage(cgImage: diff, scale: old.scale, orientation: .up)
 }
 
 private func blendModeDiff(_ old: UIImage, _ new: UIImage) -> UIImage {
@@ -111,97 +116,5 @@ private func blendModeDiff(_ old: UIImage, _ new: UIImage) -> UIImage {
     new.draw(at: .zero)
     old.draw(at: .zero, blendMode: .difference, alpha: 1)
   }
-}
-
-private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage? {
-  guard let oldCgImage = old.cgImage,
-    let newCgImage = new.cgImage,
-    oldCgImage.width == newCgImage.width,
-    oldCgImage.height == newCgImage.height,
-    oldCgImage.width > 0,
-    oldCgImage.height > 0
-  else {
-    return nil
-  }
-
-  guard let outputColorSpace = CGColorSpace(name: CGColorSpace.linearGray),
-    let outputFormat = vImage_CGImageFormat(
-      bitsPerComponent: PixelLayout.bitsPerComponent,
-      bitsPerPixel: PixelLayout.bitsPerComponent,
-      colorSpace: outputColorSpace,
-      bitmapInfo: .init()
-    )
-  else {
-    return nil
-  }
-
-  guard let oldBuffer = PixelBuffer(oldCgImage), let newBuffer = PixelBuffer(newCgImage) else {
-    return nil
-  }
-
-  let width = oldBuffer.width
-  let height = oldBuffer.height
-  let pixelCount = oldBuffer.pixelCount
-  let scale = old.scale
-
-  var diffBytes = [UInt8](repeating: 0, count: pixelCount)
-
-  var index = 0
-  while index < pixelCount {
-    defer { index += 1 }
-    let pixelOffset = index * PixelLayout.bytesPerPixel
-
-    let rOld = Int16(oldBuffer.bytes[pixelOffset])
-    let gOld = Int16(oldBuffer.bytes[pixelOffset + 1])
-    let bOld = Int16(oldBuffer.bytes[pixelOffset + 2])
-    let aOld = Int16(oldBuffer.bytes[pixelOffset + 3])
-
-    let rNew = Int16(newBuffer.bytes[pixelOffset])
-    let gNew = Int16(newBuffer.bytes[pixelOffset + 1])
-    let bNew = Int16(newBuffer.bytes[pixelOffset + 2])
-    let aNew = Int16(newBuffer.bytes[pixelOffset + 3])
-
-    let rDiff = abs(rOld - rNew)
-    let gDiff = abs(gOld - gNew)
-    let bDiff = abs(bOld - bNew)
-    let aDiff = abs(aOld - aNew)
-
-    let maxDiff = max(rDiff, gDiff, bDiff, aDiff)
-    diffBytes[index] = UInt8(maxDiff)
-  }
-
-  let outputCgImage: CGImage? = diffBytes.withUnsafeMutableBytes { diffPtr in
-    var diffBuffer = vImage_Buffer(
-      data: diffPtr.baseAddress,
-      height: vImagePixelCount(height),
-      width: vImagePixelCount(width),
-      rowBytes: width
-    )
-
-    do {
-      var normalizedBuffer = try vImage_Buffer(
-        width: width,
-        height: height,
-        bitsPerPixel: UInt32(PixelLayout.bitsPerComponent)
-      )
-      defer { normalizedBuffer.free() }
-
-      let error = vImageContrastStretch_Planar8(
-        &diffBuffer,
-        &normalizedBuffer,
-        vImage_Flags(kvImageNoFlags)
-      )
-
-      let buffer = error == kvImageNoError ? normalizedBuffer : diffBuffer
-
-      return try buffer.createCGImage(format: outputFormat)
-    } catch {
-      return nil
-    }
-  }
-
-  guard let outputCgImage else { return nil }
-
-  return UIImage(cgImage: outputCgImage, scale: scale, orientation: .up)
 }
 #endif

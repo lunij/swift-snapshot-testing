@@ -35,6 +35,47 @@ extension CGImage {
   }
 }
 
+extension CGImage {
+  /// An image of four bytes a pixel — red, green, blue, then alpha — whose pixel at each point is
+  /// `value(x, y)`.
+  ///
+  /// Alpha is premultiplied, as an image handed around by Core Graphics is, so a pixel that is not
+  /// opaque comes back with its color components scaled down: a test that means to move alpha on its
+  /// own leaves them at zero.
+  static func rgba(
+    width: Int,
+    height: Int,
+    value: (_ x: Int, _ y: Int) -> (red: UInt8, green: UInt8, blue: UInt8, alpha: UInt8)
+  ) -> CGImage? {
+    var bytes = [UInt8](repeating: 0, count: width * height * 4)
+    for y in 0..<height {
+      for x in 0..<width {
+        let pixel = value(x, y)
+        let offset = (y * width + x) * 4
+        bytes[offset] = pixel.red
+        bytes[offset + 1] = pixel.green
+        bytes[offset + 2] = pixel.blue
+        bytes[offset + 3] = pixel.alpha
+      }
+    }
+    return bytes.withUnsafeMutableBytes { pixels in
+      guard
+        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+        let context = CGContext(
+          data: pixels.baseAddress,
+          width: width,
+          height: height,
+          bitsPerComponent: 8,
+          bytesPerRow: width * 4,
+          space: colorSpace,
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        )
+      else { return nil }
+      return context.makeImage()
+    }
+  }
+}
+
 extension CGPath {
   /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
   static var heart: CGPath {
