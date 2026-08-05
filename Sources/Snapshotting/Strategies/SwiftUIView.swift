@@ -128,7 +128,7 @@ extension SnapshotStrategy where Value: View, Format == NSImage {
     scale: CGFloat = SnapshotScale.default
   ) -> SnapshotStrategy {
     DirectSnapshotStrategy
-      .image(precision: precision, perceptualPrecision: perceptualPrecision)
+      .image(precision: precision, perceptualPrecision: perceptualPrecision, scale: scale)
       .transform { @MainActor view async in
         let controller = NSHostingController(rootView: view)
         let initialFrame = controller.view.frame

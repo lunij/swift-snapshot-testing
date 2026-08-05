@@ -51,12 +51,30 @@ extension SnapshotStrategy where Value == NSImage, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> SnapshotStrategy {
+  ///   - scale: The pixels a point of the recording is made of. The snapshot is rasterized at this
+  ///     scale on its way to being recorded, whatever resolution its producer handed over, so that a
+  ///     reference is the strategy's to describe rather than the screen's that happened to render
+  ///     it. It never applies to the reference, which is read at the pixels it was recorded with; a
+  ///     reference that disagrees is reported as a size mismatch, in pixels, naming both.
+  ///
+  ///     Rasterizing redraws the image, which resolves more detail only where there is more to
+  ///     resolve: an image that draws itself — a symbol, a PDF, a drawing handler — renders again at
+  ///     this resolution, while one that has already been rasterized is resampled onto it.
+  public static func image(
+    precision: Float = 1,
+    perceptualPrecision: Float = 1,
+    scale: CGFloat = SnapshotScale.default
+  ) -> SnapshotStrategy {
     .init(
       pathExtension: "png",
       serializer: .image,
       comparator: .image(precision: precision, perceptualPrecision: perceptualPrecision)
-    )
+    ) { image in
+      // Rasterized here, before the image is either serialized or compared, so that the recording
+      // and the comparison cannot come to different conclusions about how many pixels it has. Its
+      // size in points is left alone: that is what says the pixels are worth `scale` of them each.
+      NSImage(cgImage: try rasterize(image, scale: scale), size: image.size)
+    }
   }
 }
 
@@ -66,7 +84,7 @@ private let imageContextBitsPerComponent = 8
 private let imageContextBytesPerPixel = 4
 
 private func convertToData(_ image: NSImage) throws -> Data {
-  let cgImage = try rasterize(image)
+  let cgImage = try pixels(of: image)
   let rep = NSBitmapImageRep(cgImage: cgImage)
   // Giving the representation the image's size in points records how many of its pixels go to a
   // point, which AppKit writes to the file as its resolution and reads back when the reference is
@@ -78,13 +96,53 @@ private func convertToData(_ image: NSImage) throws -> Data {
   return data
 }
 
-/// The pixels of an image, rasterized at a known scale.
+/// An image's pixels at a named scale.
 ///
 /// `cgImage(forProposedRect:context:hints:)` rasterizes a representation that has no pixels of its
-/// own — a drawing handler, an SF Symbol, a PDF — at the main display's backing scale factor, which
-/// makes a snapshot's pixel dimensions a property of the Mac that recorded it rather than of the
-/// strategy. Drawing into a representation of a known pixel size settles them here instead.
-private func rasterize(_ image: NSImage) throws -> CGImage {
+/// own — a drawing handler, an SF Symbol, a PDF — at the main display's backing scale factor, and an
+/// image that has several representations answers for its resolution with whichever one AppKit
+/// picks. Neither is the snapshot's business, so a scale is named rather than discovered.
+private func rasterize(_ image: NSImage, scale: CGFloat) throws -> CGImage {
+  try requireNonEmpty(image)
+
+  let pixelsWide = SnapshotScale.pixelCount(image.size.width, at: scale)
+  let pixelsHigh = SnapshotScale.pixelCount(image.size.height, at: scale)
+
+  // Pixels that already number what the scale asks for are handed over untouched; redrawing them
+  // would only resample them onto themselves.
+  if image.hasPixels,
+    let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+    cgImage.width == pixelsWide,
+    cgImage.height == pixelsHigh
+  {
+    return cgImage
+  }
+
+  return try redraw(image, pixelsWide: pixelsWide, pixelsHigh: pixelsHigh)
+}
+
+/// The pixels an image already carries, for one that has been rasterized already: a reference read
+/// back from disk, or a snapshot on its way there.
+///
+/// The scale it was rasterized at is not asked about, because it is not this side's to decide — a
+/// reference is read at the pixels it was recorded with, and a mismatch against the snapshot is the
+/// comparison's to report.
+private func pixels(of image: NSImage) throws -> CGImage {
+  try requireNonEmpty(image)
+
+  if image.hasPixels, let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+    return cgImage
+  }
+
+  // Reached only by a value that did not come through the strategy, which rasterizes first: the
+  // serializer and the comparator are public on their own. Drawing it at the strategy's own default
+  // is at least a reading the display cannot move.
+  return try redraw(image, scale: SnapshotScale.default)
+}
+
+/// Snapshotting an image with no extent is a mistake worth reporting rather than a picture worth
+/// comparing.
+private func requireNonEmpty(_ image: NSImage) throws {
   if image.size == .zero {
     throw ImageConversionError.zeroSize
   }
@@ -94,14 +152,6 @@ private func rasterize(_ image: NSImage) throws -> CGImage {
   if image.size.height == 0 {
     throw ImageConversionError.zeroHeight
   }
-
-  // Pixels an image already has are the snapshot, and which of its representations they come from
-  // is AppKit's decision to make, so they are handed over untouched.
-  if image.hasPixels, let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-    return cgImage
-  }
-
-  return try redraw(image, scale: SnapshotScale.default)
 }
 
 extension NSImage {
@@ -115,8 +165,8 @@ extension NSImage {
 private func redraw(_ image: NSImage, scale: CGFloat) throws -> CGImage {
   try redraw(
     image,
-    pixelsWide: Int((image.size.width * scale).rounded()),
-    pixelsHigh: Int((image.size.height * scale).rounded())
+    pixelsWide: SnapshotScale.pixelCount(image.size.width, at: scale),
+    pixelsHigh: SnapshotScale.pixelCount(image.size.height, at: scale)
   )
 }
 
@@ -124,33 +174,33 @@ private func redraw(_ image: NSImage, pixelsWide: Int, pixelsHigh: Int) throws -
   guard
     pixelsWide > 0,
     pixelsHigh > 0,
-    let rep = NSBitmapImageRep(
-      bitmapDataPlanes: nil,
-      pixelsWide: pixelsWide,
-      pixelsHigh: pixelsHigh,
-      bitsPerSample: imageContextBitsPerComponent,
-      samplesPerPixel: imageContextBytesPerPixel,
-      hasAlpha: true,
-      isPlanar: false,
-      colorSpaceName: .deviceRGB,
-      bytesPerRow: 0,
-      bitsPerPixel: 0
-    ),
-    let context = NSGraphicsContext(bitmapImageRep: rep)
+    let colorSpace = imageContextColorSpace,
+    let context = CGContext(
+      data: nil,
+      width: pixelsWide,
+      height: pixelsHigh,
+      bitsPerComponent: imageContextBitsPerComponent,
+      bytesPerRow: pixelsWide * imageContextBytesPerPixel,
+      space: colorSpace,
+      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    )
   else {
     throw ImageConversionError.cgImageConversionFailed
   }
 
-  // Setting the representation's point size to the image's own is what maps the drawing onto its
-  // pixels: filling those points rasterizes at `pixelsWide / size.width`, which re-renders a vector
-  // representation at that resolution rather than interpolating a smaller rendering of it.
-  rep.size = image.size
+  // Scaling the context, rather than handing AppKit a representation whose pixels outnumber its
+  // points, is what makes the image draw itself at this resolution: a representation is only a
+  // request, which AppKit is free to satisfy from a rendering it cached at another scale.
+  context.scaleBy(
+    x: CGFloat(pixelsWide) / image.size.width,
+    y: CGFloat(pixelsHigh) / image.size.height
+  )
   NSGraphicsContext.saveGraphicsState()
-  NSGraphicsContext.current = context
+  NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
   image.draw(in: CGRect(origin: .zero, size: image.size))
   NSGraphicsContext.restoreGraphicsState()
 
-  guard let cgImage = rep.cgImage else {
+  guard let cgImage = context.makeImage() else {
     throw ImageConversionError.cgImageConversionFailed
   }
   return cgImage
@@ -162,8 +212,8 @@ private func compare(
   precision: Float,
   perceptualPrecision: Float
 ) throws -> ImageComparisonResult {
-  let oldCgImage = try rasterize(old)
-  let newCgImage = try rasterize(new)
+  let oldCgImage = try pixels(of: old)
+  let newCgImage = try pixels(of: new)
   guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
     return .unequalSize(old: oldCgImage.size, new: newCgImage.size)
   }
@@ -182,7 +232,7 @@ private func compare(
   let data = try convertToData(new)
   guard
     let newerImage = NSImage(data: data),
-    let newerData = context(for: try rasterize(newerImage), data: &newerBytes)?.data
+    let newerData = context(for: try pixels(of: newerImage), data: &newerBytes)?.data
   else {
     return .cgContextDataConversionFailed
   }
@@ -249,8 +299,8 @@ private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage? {
 /// the region one of them leaves behind.
 private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
   guard
-    let oldCgImage = try? rasterize(old),
-    let newCgImage = try? rasterize(new),
+    let oldCgImage = try? pixels(of: old),
+    let newCgImage = try? pixels(of: new),
     let colorSpace = imageContextColorSpace
   else {
     return nil
@@ -282,8 +332,8 @@ private func blendModeDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
 
 private func normalizedComponentDiff(_ old: NSImage, _ new: NSImage) -> NSImage? {
   guard
-    let oldCgImage = try? rasterize(old),
-    let newCgImage = try? rasterize(new),
+    let oldCgImage = try? pixels(of: old),
+    let newCgImage = try? pixels(of: new),
     oldCgImage.width == newCgImage.width,
     oldCgImage.height == newCgImage.height,
     oldCgImage.width > 0,

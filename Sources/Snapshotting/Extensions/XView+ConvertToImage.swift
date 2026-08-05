@@ -4,13 +4,12 @@ import Cocoa
 extension XView {
   @MainActor func convertToImage(scale: CGFloat) -> XImage {
     let originalSize = bounds.size
-    let scaledSize = NSSize(width: originalSize.width * scale, height: originalSize.height * scale)
 
     guard
       let bitmapRep = NSBitmapImageRep(
         bitmapDataPlanes: nil,
-        pixelsWide: Int(scaledSize.width),
-        pixelsHigh: Int(scaledSize.height),
+        pixelsWide: SnapshotScale.pixelCount(originalSize.width, at: scale),
+        pixelsHigh: SnapshotScale.pixelCount(originalSize.height, at: scale),
         bitsPerSample: 8,
         samplesPerPixel: 4,
         hasAlpha: true,

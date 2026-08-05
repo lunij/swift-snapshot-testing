@@ -30,7 +30,8 @@ extension SnapshotStrategy where Value == NSView, Format == NSImage {
   ) -> SnapshotStrategy {
     DirectSnapshotStrategy.image(
       precision: precision,
-      perceptualPrecision: perceptualPrecision
+      perceptualPrecision: perceptualPrecision,
+      scale: scale
     ).transform { @MainActor view async in
       let initialSize = view.frame.size
       if let size = size { view.frame.size = size }

@@ -24,5 +24,15 @@ public enum SnapshotScale {
     1
     #endif
   }
+
+  /// The pixels a length in points comes to at a scale.
+  ///
+  /// Truncating, not rounding, because that is what a renderer does with a fractional length: an
+  /// `NSButton` 76.5 points across is drawn into 76 pixels at one. Anything deciding how many pixels
+  /// a snapshot has must agree with whatever drew it, or a snapshot gets resampled onto a size it was
+  /// never drawn at.
+  static func pixelCount(_ points: CGFloat, at scale: CGFloat) -> Int {
+    Int(points * scale)
+  }
 }
 #endif

@@ -37,6 +37,22 @@ struct NSImageDiffTests {
     #expect(shouldFail != nil)
   }
 
+  /// Images whose pixels do not line up are the only ones the blend-mode diff sees, the
+  /// component-wise diff needing a common layout to subtract in. The diff covers both of them, so
+  /// the region one image leaves behind is part of what is reported.
+  @Test func `a size mismatch is diffed on a canvas that covers both`() throws {
+    let old = try grayscaleNSImage(width: 20, height: 20) { _, _ in 128 }
+    let new = try grayscaleNSImage(width: 30, height: 10) { _, _ in 128 }
+
+    let failure = try #require(try SnapshotComparator<NSImage>.image.diff(old, new))
+    #expect(failure.artifacts.map(\.name) == ["old.png", "new.png", "diff.png"])
+
+    let diffData = try #require(failure.artifacts.last?.data)
+    let diff = try #require(NSBitmapImageRep(data: diffData))
+    #expect(diff.pixelsWide == 30)
+    #expect(diff.pixelsHigh == 20)
+  }
+
   /// Builds an NSImage backed by ImageIO's native decode of a grayscale PNG, matching how
   /// reference images are loaded from disk by SnapshotSerializer.fromData.
   private func grayscaleNSImage(
