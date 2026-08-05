@@ -91,6 +91,43 @@ struct PixelDiffTests {
     )
   }
 
+  /// Images that do line up are diffed component by component, so a difference of two out of 255 is
+  /// stretched to white rather than left invisible — which is what tells the two diffs apart.
+  @Test func `images that line up are diffed component by component`() throws {
+    let old = try #require(CGImage.grayscale(width: 4, height: 1) { _, _ in 10 })
+    let new = try #require(CGImage.grayscale(width: 4, height: 1) { x, _ in x == 0 ? 12 : 10 })
+
+    let diff = try #require(pixelDiff(old, new))
+
+    #expect(try grayValue(of: diff, atX: 0, y: 0) == 255)
+  }
+
+  @Test func `a size mismatch is diffed on a canvas that covers both images`() throws {
+    let old = try #require(CGImage.grayscale(width: 10, height: 10) { _, _ in 200 })
+    let new = try #require(CGImage.grayscale(width: 4, height: 4) { _, _ in 200 })
+
+    let diff = try #require(pixelDiff(old, new))
+
+    #expect(diff.width == 10)
+    #expect(diff.height == 10)
+  }
+
+  /// Every pixel only one of the two images reaches is that image's own, so a size mismatch reads as
+  /// the region the smaller of them leaves behind. The two agree everywhere they overlap here, which
+  /// leaves the pixels the larger one covers alone as the only ones that are not black.
+  @Test func `the region only one image covers is that image`() throws {
+    let old = try #require(CGImage.grayscale(width: 10, height: 10) { _, _ in 200 })
+    let new = try #require(CGImage.grayscale(width: 4, height: 4) { _, _ in 200 })
+
+    let diff = try #require(pixelDiff(old, new))
+    let buffer = try #require(PixelBuffer(diff))
+    let litPixels = (0..<buffer.pixelCount).count { pixel in
+      buffer.bytes[pixel * PixelLayout.bytesPerPixel] > 0
+    }
+
+    #expect(litPixels == 10 * 10 - 4 * 4)
+  }
+
   /// The diff is grayscale, so its red channel is the brightness of a pixel. Reading it back through
   /// a `PixelBuffer` converts it to sRGB, which moves the values it does not clamp; only their order
   /// and the ends of the range mean anything.

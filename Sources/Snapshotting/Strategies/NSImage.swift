@@ -185,32 +185,21 @@ private func compare(
 private func diffImage(_ old: NSImage, _ new: NSImage) -> NSImage? {
   guard
     let oldCgImage = try? pixels(of: old),
-    let newCgImage = try? pixels(of: new)
+    let newCgImage = try? pixels(of: new),
+    let diff = pixelDiff(oldCgImage, newCgImage)
   else {
     return nil
   }
 
-  if let diff = normalizedComponentDiff(oldCgImage, newCgImage) {
-    return NSImage(cgImage: diff, size: old.size)
-  }
-  return blendModeDiff(oldCgImage, newCgImage)
-}
-
-/// Where the two images differ, for images whose pixel dimensions do not line up. Every pixel of
-/// the larger canvas that only one image covers is that image's own, so a size mismatch shows up as
-/// the region one of them leaves behind.
-private func blendModeDiff(_ oldCgImage: CGImage, _ newCgImage: CGImage) -> NSImage? {
-  let pixelsWide = max(oldCgImage.width, newCgImage.width)
-  let pixelsHigh = max(oldCgImage.height, newCgImage.height)
-  guard let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh) else {
-    return nil
-  }
-
-  context.draw(newCgImage, in: CGRect(origin: .zero, size: newCgImage.size))
-  context.setBlendMode(.difference)
-  context.draw(oldCgImage, in: CGRect(origin: .zero, size: oldCgImage.size))
-
-  guard let cgImage = context.makeImage() else { return nil }
-  return NSImage(cgImage: cgImage, size: CGSize(width: pixelsWide, height: pixelsHigh))
+  // A canvas in points that covers both images, matching the pixels the diff covers. The two only
+  // disagree about their points when they disagree about their pixels, which is the mismatch the
+  // diff is there to show.
+  return NSImage(
+    cgImage: diff,
+    size: CGSize(
+      width: max(old.size.width, new.size.width),
+      height: max(old.size.height, new.size.height)
+    )
+  )
 }
 #endif

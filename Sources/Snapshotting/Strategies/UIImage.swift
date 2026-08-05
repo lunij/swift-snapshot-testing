@@ -95,26 +95,16 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
   }
 }
 
-private func diffImage(_ old: UIImage, _ new: UIImage) -> UIImage {
+private func diffImage(_ old: UIImage, _ new: UIImage) -> UIImage? {
   guard
     let oldCgImage = old.cgImage,
     let newCgImage = new.cgImage,
-    let diff = normalizedComponentDiff(oldCgImage, newCgImage)
+    let diff = pixelDiff(oldCgImage, newCgImage)
   else {
-    return blendModeDiff(old, new)
+    return nil
   }
+  // The reference's scale, the diff being read against it: however many pixels a point of the
+  // reference is made of, that is how many of the diff's a point of it accounts for.
   return UIImage(cgImage: diff, scale: old.scale, orientation: .up)
-}
-
-private func blendModeDiff(_ old: UIImage, _ new: UIImage) -> UIImage {
-  let width = max(old.size.width, new.size.width)
-  let height = max(old.size.height, new.size.height)
-  let format = UIGraphicsImageRendererFormat()
-  format.scale = max(old.scale, new.scale)
-  format.opaque = true
-  return UIGraphicsImageRenderer(size: CGSize(width: width, height: height), format: format).image { _ in
-    new.draw(at: .zero)
-    old.draw(at: .zero, blendMode: .difference, alpha: 1)
-  }
 }
 #endif

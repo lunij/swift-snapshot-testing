@@ -2,6 +2,14 @@
 import Accelerate.vImage
 import CoreGraphics
 
+/// Where two images differ, as an image.
+///
+/// - Returns: `nil` when Core Graphics will not hand the images' bytes over, which leaves a mismatch
+///   reported without a picture of it.
+func pixelDiff(_ old: CGImage, _ new: CGImage) -> CGImage? {
+  normalizedComponentDiff(old, new) ?? blendModeDiff(old, new)
+}
+
 /// Where two images differ, as a grayscale image: black where they agree, and brighter the further
 /// apart they are.
 ///
@@ -45,6 +53,29 @@ func normalizedComponentDiff(_ old: CGImage, _ new: CGImage) -> CGImage? {
   }
 
   return brightened(diffBytes, width: oldBuffer.width, height: oldBuffer.height)
+}
+
+/// Where two images differ, for a pair whose pixels do not line up, by drawing one over the other in
+/// difference blend mode.
+///
+/// The canvas covers both images, and each of them is drawn at the pixels it carries, so a size
+/// mismatch shows up as the region only one of them reaches: subtracting nothing from a pixel leaves
+/// that pixel, which is the image that covers it.
+///
+/// - Returns: `nil` when there are no pixels to cover, or when Core Graphics will not give up a
+///   canvas of this layout.
+func blendModeDiff(_ old: CGImage, _ new: CGImage) -> CGImage? {
+  let pixelsWide = max(old.width, new.width)
+  let pixelsHigh = max(old.height, new.height)
+  guard let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh) else {
+    return nil
+  }
+
+  context.draw(new, in: CGRect(origin: .zero, size: new.size))
+  context.setBlendMode(.difference)
+  context.draw(old, in: CGRect(origin: .zero, size: old.size))
+
+  return context.makeImage()
 }
 
 /// One byte a pixel, stretched over the whole range of brightness, as a grayscale image.
