@@ -74,15 +74,7 @@ extension SnapshotStrategy where Value == UIImage, Format == UIImage {
 }
 
 private func convertToData(_ image: UIImage) throws -> Data {
-  if image.size == .zero {
-    throw ImageConversionError.zeroSize
-  }
-  if image.size.width == 0 {
-    throw ImageConversionError.zeroWidth
-  }
-  if image.size.height == 0 {
-    throw ImageConversionError.zeroHeight
-  }
+  try image.size.requireExtent()
   guard let data = image.pngData() else {
     throw ImageConversionError.pngDataConversionFailed
   }

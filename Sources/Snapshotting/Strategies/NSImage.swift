@@ -98,7 +98,7 @@ private func convertToData(_ image: NSImage) throws -> Data {
 /// image that has several representations answers for its resolution with whichever one AppKit
 /// picks. Neither is the snapshot's business, so a scale is named rather than discovered.
 private func rasterize(_ image: NSImage, scale: CGFloat) throws -> CGImage {
-  try requireNonEmpty(image)
+  try image.size.requireExtent()
 
   let pixelsWide = SnapshotScale.pixelCount(image.size.width, at: scale)
   let pixelsHigh = SnapshotScale.pixelCount(image.size.height, at: scale)
@@ -123,7 +123,7 @@ private func rasterize(_ image: NSImage, scale: CGFloat) throws -> CGImage {
 /// reference is read at the pixels it was recorded with, and a mismatch against the snapshot is the
 /// comparison's to report.
 private func pixels(of image: NSImage) throws -> CGImage {
-  try requireNonEmpty(image)
+  try image.size.requireExtent()
 
   if image.hasPixels, let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
     return cgImage
@@ -133,20 +133,6 @@ private func pixels(of image: NSImage) throws -> CGImage {
   // serializer and the comparator are public on their own. Drawing it at the strategy's own default
   // is at least a reading the display cannot move.
   return try redraw(image, scale: SnapshotScale.default)
-}
-
-/// Snapshotting an image with no extent is a mistake worth reporting rather than a picture worth
-/// comparing.
-private func requireNonEmpty(_ image: NSImage) throws {
-  if image.size == .zero {
-    throw ImageConversionError.zeroSize
-  }
-  if image.size.width == 0 {
-    throw ImageConversionError.zeroWidth
-  }
-  if image.size.height == 0 {
-    throw ImageConversionError.zeroHeight
-  }
 }
 
 extension NSImage {
@@ -166,30 +152,18 @@ private func redraw(_ image: NSImage, scale: CGFloat) throws -> CGImage {
 }
 
 private func redraw(_ image: NSImage, pixelsWide: Int, pixelsHigh: Int) throws -> CGImage {
-  guard
-    pixelsWide > 0,
-    pixelsHigh > 0,
-    let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh)
-  else {
-    throw ImageConversionError.cgImageConversionFailed
-  }
+  // Drawing into a canvas scaled to these pixels, rather than handing AppKit a representation whose
+  // pixels outnumber its points, is what makes the image draw itself at this resolution: a
+  // representation is only a request, which AppKit is free to satisfy from a rendering it cached at
+  // another scale.
+  let canvas = try BitmapCanvas(size: image.size, pixelsWide: pixelsWide, pixelsHigh: pixelsHigh)
 
-  // Scaling the context, rather than handing AppKit a representation whose pixels outnumber its
-  // points, is what makes the image draw itself at this resolution: a representation is only a
-  // request, which AppKit is free to satisfy from a rendering it cached at another scale.
-  context.scaleBy(
-    x: CGFloat(pixelsWide) / image.size.width,
-    y: CGFloat(pixelsHigh) / image.size.height
-  )
   NSGraphicsContext.saveGraphicsState()
-  NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
-  image.draw(in: CGRect(origin: .zero, size: image.size))
+  NSGraphicsContext.current = NSGraphicsContext(cgContext: canvas.context, flipped: false)
+  image.draw(in: CGRect(origin: .zero, size: canvas.size))
   NSGraphicsContext.restoreGraphicsState()
 
-  guard let cgImage = context.makeImage() else {
-    throw ImageConversionError.cgImageConversionFailed
-  }
-  return cgImage
+  return try canvas.makeImage()
 }
 
 private func compare(

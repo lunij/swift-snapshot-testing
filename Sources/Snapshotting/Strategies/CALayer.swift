@@ -42,45 +42,16 @@ extension SnapshotStrategy where Value == CALayer, Format == NSImage {
 /// resampled down again and a machine attached to a single-density display recording one that does
 /// not — different pixels for the same layer.
 private func render(_ layer: CALayer, scale: CGFloat) throws -> NSImage {
-  let size = layer.bounds.size
-  if size == .zero {
-    throw ImageConversionError.zeroSize
-  }
-  if size.width == 0 {
-    throw ImageConversionError.zeroWidth
-  }
-  if size.height == 0 {
-    throw ImageConversionError.zeroHeight
-  }
-
-  let pixelsWide = SnapshotScale.pixelCount(size.width, at: scale)
-  let pixelsHigh = SnapshotScale.pixelCount(size.height, at: scale)
-
-  guard
-    pixelsWide > 0,
-    pixelsHigh > 0,
-    let context = PixelLayout.context(width: pixelsWide, height: pixelsHigh)
-  else {
-    throw ImageConversionError.cgImageConversionFailed
-  }
-
-  // Taken from the pixel counts rather than from `scale` itself so that the layer covers the bitmap
-  // exactly: a fractional bounds truncates to a whole number of pixels, and drawing at `scale` would
-  // leave the last row and column of it unpainted.
-  context.scaleBy(x: CGFloat(pixelsWide) / size.width, y: CGFloat(pixelsHigh) / size.height)
+  let canvas = try BitmapCanvas(size: layer.bounds.size, scale: scale)
 
   layer.setNeedsLayout()
   layer.layoutIfNeeded()
-  layer.render(in: context)
-
-  guard let cgImage = context.makeImage() else {
-    throw ImageConversionError.cgImageConversionFailed
-  }
+  layer.render(in: canvas.context)
 
   // The size in points is what says these pixels are worth `scale` of them each, and it is what the
   // `NSImage` strategy measures its own rasterization against, so nothing is resampled on the way to
   // being recorded.
-  return NSImage(cgImage: cgImage, size: size)
+  return NSImage(cgImage: try canvas.makeImage(), size: canvas.size)
 }
 #elseif canImport(UIKit)
 import UIKit
