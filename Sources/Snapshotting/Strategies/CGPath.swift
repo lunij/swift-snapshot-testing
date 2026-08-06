@@ -1,5 +1,4 @@
 #if os(macOS)
-import AppKit
 import Cocoa
 import CoreGraphics
 
@@ -17,50 +16,24 @@ extension SnapshotStrategy where Value == CGPath, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
+  ///   - scale: The pixels a point of the recording is made of.
   ///   - drawingMode: The drawing mode.
   public static func image(
     precision: Float = 1,
     perceptualPrecision: Float = 1,
+    scale: CGFloat = 1,
     drawingMode: CGPathDrawingMode = .eoFill
   ) -> SnapshotStrategy {
-    DirectSnapshotStrategy.image(
+    imageStrategy(
       precision: precision,
-      perceptualPrecision: perceptualPrecision
-    ).transform { path in
-      let bounds = path.boundingBoxOfPath
-      var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
-      let path = path.copy(using: &transform)!
-
-      // Draw into an explicitly sized bitmap so the image is rendered at 1x
-      // regardless of the main display's backing scale factor.
-      let bitmapRep = NSBitmapImageRep(
-        bitmapDataPlanes: nil,
-        pixelsWide: Int(ceil(bounds.width)),
-        pixelsHigh: Int(ceil(bounds.height)),
-        bitsPerSample: 8,
-        samplesPerPixel: 4,
-        hasAlpha: true,
-        isPlanar: false,
-        colorSpaceName: .calibratedRGB,
-        bytesPerRow: 0,
-        bitsPerPixel: 0
-      )!
-      NSGraphicsContext.saveGraphicsState()
-      defer { NSGraphicsContext.restoreGraphicsState() }
-      let graphicsContext = NSGraphicsContext(bitmapImageRep: bitmapRep)!
-      NSGraphicsContext.current = graphicsContext
-
-      let context = graphicsContext.cgContext
-      context.addPath(path)
-      context.drawPath(using: drawingMode)
-
-      let image = NSImage(size: bounds.size)
-      image.addRepresentation(bitmapRep)
-      return image
-    }
+      perceptualPrecision: perceptualPrecision,
+      scale: scale,
+      drawingMode: drawingMode
+    )
   }
 }
 #elseif os(iOS) || os(tvOS)
+import CoreGraphics
 import UIKit
 
 extension SnapshotStrategy where Value == CGPath, Format == UIImage {
@@ -77,7 +50,7 @@ extension SnapshotStrategy where Value == CGPath, Format == UIImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  ///   - scale: The scale to use when loading the reference image from disk.
+  ///   - scale: The pixels a point of the recording is made of.
   ///   - drawingMode: The drawing mode.
   public static func image(
     precision: Float = 1,
@@ -85,25 +58,36 @@ extension SnapshotStrategy where Value == CGPath, Format == UIImage {
     scale: CGFloat = 1,
     drawingMode: CGPathDrawingMode = .eoFill
   ) -> SnapshotStrategy {
-    DirectSnapshotStrategy.image(
+    imageStrategy(
       precision: precision,
       perceptualPrecision: perceptualPrecision,
-      scale: scale
-    ).transform { path in
-      let bounds = path.boundingBoxOfPath
-      let format = UIGraphicsImageRendererFormat.preferred()
-      format.scale = scale
-      return UIGraphicsImageRenderer(bounds: bounds, format: format).image { ctx in
-        let cgContext = ctx.cgContext
-        cgContext.addPath(path)
-        cgContext.drawPath(using: drawingMode)
-      }
-    }
+      scale: scale,
+      drawingMode: drawingMode
+    )
   }
 }
 #endif
 
 #if os(macOS) || os(iOS) || os(tvOS)
+/// The strategy both platforms' `image` declare.
+///
+/// The two are spelled separately because a strategy names the format it records in, and the two
+/// platforms do not share a public one. What they record is identical, so it is written once.
+private func imageStrategy(
+  precision: Float,
+  perceptualPrecision: Float,
+  scale: CGFloat,
+  drawingMode: CGPathDrawingMode
+) -> SnapshotStrategy<CGPath, XImage> {
+  DirectSnapshotStrategy<XImage>.image(
+    precision: precision,
+    perceptualPrecision: perceptualPrecision,
+    scale: scale
+  ).transform { path in
+    try path.convertToImage(drawingMode: drawingMode, scale: scale)
+  }
+}
+
 extension SnapshotStrategy where Value == CGPath, Format == String {
   /// A snapshot strategy for comparing bezier paths based on element descriptions.
   public static var elementsDescription: SnapshotStrategy {
