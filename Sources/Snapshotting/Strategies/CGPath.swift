@@ -115,27 +115,36 @@ extension SnapshotStrategy where Value == CGPath, Format == String {
     ]
 
     return DirectSnapshotStrategy.lines.transform(identifier: "elements-description") { path in
-      var string: String = ""
+      // `applyWithBlock` cannot carry a throw out of its closure, and the points it hands over are
+      // only addressable for the length of the call, so every element is copied out before any of
+      // them is described. A type of no known number of points keeps `nil` rather than an empty
+      // array: an element that names none is written with the separator its points would have
+      // followed, and one nothing is known about is written without it.
+      var elements: [(type: CGPathElementType, points: [CGPoint]?)] = []
 
       path.applyWithBlock { elementPointer in
         let element = elementPointer.pointee
-        let name = namesByType[element.type] ?? "Unknown"
+        elements.append(
+          (
+            type: element.type,
+            points: numberOfPointsByType[element.type].map { numberOfPoints in
+              Array(UnsafeBufferPointer(start: element.points, count: numberOfPoints))
+            }
+          )
+        )
+      }
 
+      var string: String = ""
+
+      for element in elements {
         if element.type == .moveToPoint && !string.isEmpty {
           string += "\n"
         }
 
-        string += name
+        string += namesByType[element.type] ?? "Unknown"
 
-        if let numberOfPoints = numberOfPointsByType[element.type] {
-          let points = UnsafeBufferPointer(start: element.points, count: numberOfPoints)
-          string +=
-            " "
-            + points.map { point in
-              let x = numberFormatter.string(from: point.x as NSNumber)!
-              let y = numberFormatter.string(from: point.y as NSNumber)!
-              return "(\(x), \(y))"
-            }.joined(separator: " ")
+        if let points = element.points {
+          string += " " + (try points.map(numberFormatter.string(from:)).joined(separator: " "))
         }
 
         string += "\n"

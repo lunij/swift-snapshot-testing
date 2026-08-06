@@ -97,13 +97,7 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == String {
 
         if let numberOfPoints = numberOfPointsByType[elementType] {
           let points = elementPoints[0..<numberOfPoints]
-          string +=
-            " "
-            + points.map { point in
-              let x = numberFormatter.string(from: point.x as NSNumber)!
-              let y = numberFormatter.string(from: point.y as NSNumber)!
-              return "(\(x), \(y))"
-            }.joined(separator: " ")
+          string += " " + (try points.map(numberFormatter.string(from:)).joined(separator: " "))
         }
 
         string += "\n"
