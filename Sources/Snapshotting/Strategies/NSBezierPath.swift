@@ -53,6 +53,7 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == String {
     let namesByType: [NSBezierPath.ElementType: String] = [
       .moveTo: "MoveTo",
       .lineTo: "LineTo",
+      .quadraticCurveTo: "QuadCurveTo",
       .cubicCurveTo: "CubicCurveTo",
       .closePath: "Close"
     ]
@@ -60,6 +61,7 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == String {
     let numberOfPointsByType: [NSBezierPath.ElementType: Int] = [
       .moveTo: 1,
       .lineTo: 1,
+      .quadraticCurveTo: 2,
       .cubicCurveTo: 3,
       .closePath: 0
     ]

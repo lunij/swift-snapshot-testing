@@ -22,6 +22,23 @@ struct BezierPathTests {
     await expectSnapshot(of: path, as: .image, named: platform)
     await expectSnapshot(of: path, as: .elementsDescription, named: platform)
   }
+
+  /// The heart is drawn with cubic curves, so nothing else says what a quadratic one is called. It
+  /// takes the name a `CGPath` gives the same geometry, both its points being the same two.
+  @Test func `a quadratic curve is named like a path's own`() async throws {
+    let path = NSBezierPath()
+    path.move(to: .zero)
+    path.curve(to: CGPoint(x: 10, y: 0), controlPoint: CGPoint(x: 5, y: 10))
+
+    let strategy = SnapshotStrategy<NSBezierPath, String>.elementsDescription
+    #expect(
+      try await strategy.snapshot(path) == """
+        MoveTo (0.0, 0.0)
+        QuadCurveTo (5.0, 10.0) (10.0, 0.0)
+
+        """
+    )
+  }
   #endif
 
   #if os(iOS) || os(tvOS)
