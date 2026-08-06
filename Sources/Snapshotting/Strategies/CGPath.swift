@@ -84,7 +84,9 @@ private func imageStrategy(
     perceptualPrecision: perceptualPrecision,
     scale: scale
   ).transform { path in
-    try path.convertToImage(drawingMode: drawingMode, scale: scale)
+    // A path is written in Core Graphics' coordinates whatever platform it is drawn on, so the
+    // recording is the same picture everywhere and needs only the one reference.
+    try path.convertToImage(drawingMode: drawingMode, scale: scale, origin: .bottomLeft)
   }
 }
 

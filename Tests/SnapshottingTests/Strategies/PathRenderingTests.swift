@@ -22,8 +22,8 @@ struct PathRenderingTests {
     let moved = try #require(CGPath.heart.copy(using: &displacement))
     #expect(moved.boundingBoxOfPath.origin == CGPoint(x: 250, y: -80))
 
-    let atOrigin = try pixels(of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: 1))
-    let awayFromIt = try pixels(of: moved.convertToImage(drawingMode: .eoFill, scale: 1))
+    let atOrigin = try pixels(of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft))
+    let awayFromIt = try pixels(of: moved.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft))
 
     #expect(awayFromIt.bytes == atOrigin.bytes)
   }
@@ -33,24 +33,52 @@ struct PathRenderingTests {
   /// discover there is nothing to record.
   @Test func `a path enclosing nothing is refused`() {
     #expect(throws: ImageConversionError.zeroSize) {
-      try CGMutablePath().convertToImage(drawingMode: .eoFill, scale: 1)
+      try CGMutablePath().convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft)
     }
   }
 
   @Test(arguments: [CGFloat(1), 2, 3])
   func `a scale records that many pixels per point`(scale: CGFloat) throws {
     // The heart measures 90 points on a side.
-    let recording = try pixels(of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: scale))
+    let recording = try pixels(of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: scale, origin: .bottomLeft))
 
     #expect(recording.width == Int(90 * scale))
     #expect(recording.height == Int(90 * scale))
   }
 
+  /// The corner is named by whatever authored the path rather than taken from the platform, so both
+  /// answers have to be available on all of them — and the one is the other turned over.
+  @Test func `the origin corner turns the recording over`() throws {
+    let fromBottom = try pixels(
+      of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft)
+    )
+    let fromTop = try pixels(
+      of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: 1, origin: .topLeft)
+    )
+
+    #expect(fromTop.width == fromBottom.width)
+    #expect(fromTop.height == fromBottom.height)
+    #expect(fromTop.bytes != fromBottom.bytes, "the heart is not symmetrical about its middle row")
+
+    // Turning the picture over is exact for a pixel a path either covers or does not, and rounds the
+    // other way for one it half covers, so a mirrored row is the same row to within a single value
+    // of a byte rather than byte for byte.
+    var largestDifference = 0
+    for y in 0..<fromTop.height {
+      let against = fromBottom.row(fromBottom.height - 1 - y)
+      largestDifference = max(
+        largestDifference,
+        zip(fromTop.row(y), against).map { abs(Int($0) - Int($1)) }.max() ?? 0
+      )
+    }
+    #expect(largestDifference <= 1)
+  }
+
   /// The drawing mode decides what counts as the interior where a path covers itself: even-odd counts
   /// the crossings, which puts the square the two share outside the path, and non-zero fills it.
   @Test func `even-odd leaves an overlap that non-zero fills`() throws {
-    let evenOdd = try pixels(of: overlappingSquares.convertToImage(drawingMode: .eoFill, scale: 1))
-    let nonZero = try pixels(of: overlappingSquares.convertToImage(drawingMode: .fill, scale: 1))
+    let evenOdd = try pixels(of: overlappingSquares.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft))
+    let nonZero = try pixels(of: overlappingSquares.convertToImage(drawingMode: .fill, scale: 1, origin: .bottomLeft))
 
     #expect(evenOdd.alpha(x: 15, y: 15) == 0)
     #expect(nonZero.alpha(x: 15, y: 15) == 255)
@@ -101,6 +129,12 @@ extension PixelBuffer {
   /// How opaque the pixel at a coordinate is, rows counted from the top.
   fileprivate func alpha(x: Int, y: Int) -> UInt8 {
     bytes[(y * width + x) * PixelLayout.bytesPerPixel + 3]
+  }
+
+  /// A row of pixels, counted from the top.
+  fileprivate func row(_ y: Int) -> ArraySlice<UInt8> {
+    let bytesPerRow = width * PixelLayout.bytesPerPixel
+    return bytes[(y * bytesPerRow)..<((y + 1) * bytesPerRow)]
   }
 }
 #endif

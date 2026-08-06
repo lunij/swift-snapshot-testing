@@ -27,10 +27,12 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == NSImage {
       perceptualPrecision: perceptualPrecision,
       scale: scale
     ).transform { path in
-      // The path's own winding rule, this being how it fills itself.
+      // The path's own winding rule, this being how it fills itself, and AppKit's corner, this
+      // being the space it was laid out in.
       try path.cgPath.convertToImage(
         drawingMode: path.windingRule == .evenOdd ? .eoFill : .fill,
-        scale: scale
+        scale: scale,
+        origin: .bottomLeft
       )
     }
   }

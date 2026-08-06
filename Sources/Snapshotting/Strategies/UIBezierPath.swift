@@ -26,10 +26,12 @@ extension SnapshotStrategy where Value == UIBezierPath, Format == UIImage {
       perceptualPrecision: perceptualPrecision,
       scale: scale
     ).transform { path in
-      // The path's own fill rule, this being how it fills itself.
+      // The path's own fill rule, this being how it fills itself, and UIKit's corner, this being
+      // the space it was laid out in: a path is recorded the way up it is drawn in a view.
       try path.cgPath.convertToImage(
         drawingMode: path.usesEvenOddFillRule ? .eoFill : .fill,
-        scale: scale
+        scale: scale,
+        origin: .topLeft
       )
     }
   }

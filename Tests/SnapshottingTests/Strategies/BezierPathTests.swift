@@ -9,18 +9,21 @@ import AppKit
 import UIKit
 #endif
 
+/// Every reference here is shared by the platforms the test runs on: a path is written in the
+/// coordinates of whatever authored it, and drawn through Core Graphics at a scale the strategy
+/// names, so nothing about the recording is left to the machine that made it.
 struct BezierPathTests {
   @Test func `CGPath snapshot`() async {
     let path = CGPath.heart
-    await expectSnapshot(of: path, as: .image, named: platform)
-    await expectSnapshot(of: path, as: .elementsDescription, named: platform)
+    await expectSnapshot(of: path, as: .image)
+    await expectSnapshot(of: path, as: .elementsDescription)
   }
 
   #if os(macOS)
   @Test func `NSBezierPath snapshot`() async {
     let path = NSBezierPath.heart
-    await expectSnapshot(of: path, as: .image, named: platform)
-    await expectSnapshot(of: path, as: .elementsDescription, named: platform)
+    await expectSnapshot(of: path, as: .image)
+    await expectSnapshot(of: path, as: .elementsDescription)
   }
 
   /// The heart is drawn with cubic curves, so nothing else says what a quadratic one is called. It
@@ -44,8 +47,8 @@ struct BezierPathTests {
   #if os(iOS) || os(tvOS)
   @Test func `UIBezierPath snapshot`() async {
     let path = UIBezierPath.heart
-    await expectSnapshot(of: path, as: .image, named: platform)
-    await expectSnapshot(of: path, as: .elementsDescription, named: platform)
+    await expectSnapshot(of: path, as: .image)
+    await expectSnapshot(of: path, as: .elementsDescription)
   }
   #endif
 }

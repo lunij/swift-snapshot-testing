@@ -7,19 +7,20 @@ import UIKit
 #if os(iOS) || os(macOS) || os(tvOS)
 import CoreGraphics
 
-/// Whether a point's y coordinate grows downwards, away from the origin at the top left corner.
+/// The corner a path's coordinates are measured from.
 ///
-/// A path is described in Core Graphics' own coordinate space, whose origin is at the bottom left,
-/// but UIKit hands drawing code a context flipped about its horizontal axis and AppKit does not. A
-/// recording made through either therefore depicts the same path either way up, so the convention is
-/// the platform's to state rather than the path's.
-private let originIsAtTopLeft: Bool = {
-  #if canImport(UIKit)
-  true
-  #else
-  false
-  #endif
-}()
+/// Which one a path means is decided by whatever authored it, not by the machine the recording is
+/// made on: a `CGPath` is written in Core Graphics' own space wherever it is drawn, while a
+/// `UIBezierPath` is written in the coordinates its view lays out in. So a recording is the same
+/// picture on every platform, and it is the same way up as the thing it depicts.
+enum OriginCorner {
+  /// Core Graphics' own, which AppKit shares: y grows upwards from the bottom left.
+  case bottomLeft
+
+  /// UIKit's: y grows downwards from the top left, UIKit handing drawing code a context flipped
+  /// about its horizontal axis.
+  case topLeft
+}
 
 extension CGPath {
   /// The path's own filling, at a named scale.
@@ -31,14 +32,19 @@ extension CGPath {
   /// - Parameters:
   ///   - drawingMode: How the path's interior is decided and painted.
   ///   - scale: The pixels a point of the recording is made of.
+  ///   - origin: The corner the path measures its coordinates from.
   /// - Throws: ``ImageConversionError`` when the path encloses nothing, or when Core Graphics will
   ///   not hand its pixels over.
-  func convertToImage(drawingMode: CGPathDrawingMode, scale: CGFloat) throws -> XImage {
+  func convertToImage(
+    drawingMode: CGPathDrawingMode,
+    scale: CGFloat,
+    origin: OriginCorner
+  ) throws -> XImage {
     let bounds = boundingBoxOfPath
     let canvas = try BitmapCanvas(size: bounds.size, scale: scale)
     let context = canvas.context
 
-    if originIsAtTopLeft {
+    if origin == .topLeft {
       context.translateBy(x: 0, y: bounds.height)
       context.scaleBy(x: 1, y: -1)
     }
