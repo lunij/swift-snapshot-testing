@@ -31,7 +31,7 @@ printing out the file path of any newly-recorded reference.
 
 > ❌ No reference was found on disk. Automatically recorded snapshot: …
 >
-> open "…/MyAppTests/\_\_Snapshots\_\_/MyViewControllerTests/myViewController.1.png"
+> open "…/MyAppTests/\_\_Snapshots\_\_/MyViewControllerTests/myViewController.png"
 >
 > Re-run to compare against the newly-recorded snapshot.
 
@@ -39,6 +39,44 @@ Repeat test runs will load this reference and compare it with the runtime value.
 match, the test will fail and describe the difference. Failures can be inspected from Xcode's Report
 Navigator, where the reference and the mismatching snapshot are attached to the failure, or by
 inspecting the file URLs printed in the failure message.
+
+### Naming
+
+A reference is named after the test that took it, plus what the strategy renders when its file
+extension doesn't already say — `.image` produces `myViewController.png`, while `.curl` and `.raw`
+produce `myRequest.curl.txt` and `myRequest.raw.txt`. Pass `suffixed:` for what nothing else can
+supply, such as telling two snapshots of one test apart:
+
+```swift
+await assertSnapshot(of: vc, as: .image, suffixed: "logged out")
+```
+
+Two snapshots of one test that would land on the same file are reported rather than allowed to
+overwrite each other, so a suffix is only ever needed where it says something.
+
+#### One reference, or one per platform
+
+The same test running on two platforms rarely renders the same thing. So a reference is looked for at
+three names, most specific first:
+
+```
+myViewController.ios26.png    the platform and its major version
+myViewController.ios.png      the platform
+myViewController.png          shared by every platform
+```
+
+The most specific one that exists is used, and a snapshot with no reference yet records the shared
+name. Output that doesn't depend on the platform therefore keeps one reference indefinitely, with
+nothing to configure.
+
+To split one apart, rename it after the platform that recorded it and re-run — the other platform
+then records its own. A mismatch against a shared reference says as much:
+
+> 'myViewController.png' is shared by every platform. If it differs because of the platform this ran
+> on, rename it after the platform that recorded it — this run then records 'myViewController.ios.png'.
+
+The version rung works the same way and is for output that changes between releases of one platform.
+Neither is ever created for you: nothing about the platform enters a name until a file says it should.
 
 ### Recording
 

@@ -3,8 +3,8 @@ import SnapshotTesting
 import Testing
 
 // Covers the two plural 'assertSnapshots' overloads, which are wrapper API with no engine
-// equivalent. The array overload is also the only remaining exercise of the per-test counter that
-// names unnamed snapshots '.1', '.2', … in the order they are taken.
+// equivalent. The array overload takes no suffixes, so it is what proves two strategies can be told
+// apart by what they render alone — here by the extensions 'json' and 'plist'.
 //
 // The subject is a value rather than a view: what these overloads do with a strategy is the same
 // whatever the strategy renders, and a value keeps the suite on every platform the package builds

@@ -28,12 +28,7 @@ struct CALayerTests {
     gradientLayer.colors = [XColor.red.cgColor, XColor.yellow.cgColor]
     gradientLayer.frame = baseLayer.frame
     baseLayer.addSublayer(gradientLayer)
-    #if os(macOS)
-    let name = platform
-    #else
-    let name = nil as String?
-    #endif
-    await expectSnapshot(of: baseLayer, as: .image, named: name)
+    await expectSnapshot(of: baseLayer, as: .image)
   }
 
   #if canImport(AppKit)

@@ -17,12 +17,12 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPhone(generation, .landscape)),
-        named: "\(name)-landscape"
+        suffixed: "\(name)-landscape"
       )
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPhone(generation, .portrait)),
-        named: "\(name)-portrait"
+        suffixed: "\(name)-portrait"
       )
     }
   }
@@ -33,7 +33,7 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .recursiveDescription(on: .iPhone(generation)),
-        named: name
+        suffixed: name
       )
     }
   }
@@ -50,7 +50,7 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPhone(generation), traits: { $0.preferredContentSizeCategory = category }),
-        named: name
+        suffixed: name
       )
     }
   }
@@ -63,12 +63,12 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPad(generation, .landscape)),
-        named: "\(name)-landscape"
+        suffixed: "\(name)-landscape"
       )
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPad(generation, .portrait)),
-        named: "\(name)-portrait"
+        suffixed: "\(name)-portrait"
       )
     }
   }
@@ -79,7 +79,7 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .recursiveDescription(on: .iPad(generation)),
-        named: name
+        suffixed: name
       )
     }
   }
@@ -98,7 +98,7 @@ struct TraitTests {
         await expectSnapshot(
           of: viewController,
           as: .image(on: .iPad(generation, .landscape).windowed(width: width)),
-          named: "\(name)-\(Int(width))"
+          suffixed: "\(name)-\(Int(width))"
         )
       }
     }
@@ -112,12 +112,12 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPhone(generation, .landscape)),
-        named: "\(name)-landscape"
+        suffixed: "\(name)-landscape"
       )
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPhone(generation, .portrait)),
-        named: "\(name)-portrait"
+        suffixed: "\(name)-portrait"
       )
     }
     for (generation, name) in tabletScreens {
@@ -125,12 +125,12 @@ struct TraitTests {
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPad(generation, .landscape)),
-        named: "\(name)-landscape"
+        suffixed: "\(name)-landscape"
       )
       await expectSnapshot(
         of: viewController,
         as: .image(on: .iPad(generation, .portrait)),
-        named: "\(name)-portrait"
+        suffixed: "\(name)-portrait"
       )
     }
   }
@@ -155,7 +155,7 @@ struct TraitTests {
       await expectSnapshot(
         of: label,
         as: .image(traits: { $0.preferredContentSizeCategory = category }),
-        named: name
+        suffixed: name
       )
     }
   }
@@ -183,7 +183,7 @@ struct TraitTests {
           on: .iPhone(.year2014),
           traits: { $0.preferredContentSizeCategory = category }
         ),
-        named: name
+        suffixed: name
       )
     }
   }

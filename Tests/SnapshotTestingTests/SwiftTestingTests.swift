@@ -1,6 +1,7 @@
 import Foundation
-import SnapshotTesting
 import Testing
+
+@testable import SnapshotTesting
 
 #if canImport(AppKit)
 import AppKit
@@ -12,14 +13,23 @@ import UIKit
 
 @Suite(.serialized, .snapshotRecord(.missing), .snapshotDiffTool(.ksdiff))
 struct SwiftTestingTests {
+  // The committed reference holds the dump of `["Hello", "World"]`, so snapshotting anything else
+  // mismatches. One assertion, because a second one would resolve to the same file.
   @Test func `reports on mismatch`() async {
     let issues = await captureIssues {
-      await assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
-      await assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
+      await assertSnapshot(of: ["Goodbye", "World"], as: .dump, suffixed: "snap")
     }
     #expect(issues.count == 1)
-    #expect(issues.first?.message.hasPrefix("[snap] Text does not match reference") == true)
+    let message = issues.first?.message
+    #expect(message?.hasPrefix("[snap] Text does not match reference") == true)
     #expect(issues.first?.sourceLocation.fileID == #fileID)
+
+    // The reference carries no platform, so the failure offers the reading that a value rendered on
+    // another platform is a likelier cause than a value that changed.
+    if let platform = SnapshotPlatform.name {
+      #expect(message?.contains("is shared by every platform") == true)
+      #expect(message?.contains("'reports-on-mismatch.dump.snap.\(platform).txt'") == true)
+    }
   }
 
   #if canImport(UIKit)
@@ -66,7 +76,7 @@ struct SwiftTestingTests {
       await verifySnapshot(
         of: redPixelImage(),
         as: .image,
-        named: "pixel",
+        suffixed: "pixel",
         record: .missing,
         snapshotDirectory: snapshotDirectory.path
       ).failureMessage
@@ -131,7 +141,7 @@ private func verifyImageSnapshotting(
     await verifySnapshot(
       of: image,
       as: .image,
-      named: "pixel",
+      suffixed: "pixel",
       record: .missing,
       snapshotDirectory: snapshotDirectory.path,
       file: filePath,

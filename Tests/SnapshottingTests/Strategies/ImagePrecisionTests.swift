@@ -19,7 +19,7 @@ struct ImagePrecisionTests {
     await expectSnapshot(
       of: view,
       as: .image(precision: 1, perceptualPrecision: 1),
-      named: "\(platform)-original"
+      suffixed: "original"
     )
 
     let subview = XView(frame: .init(x: 0, y: 0, width: 10, height: 10))  // 100 pixels
@@ -28,23 +28,23 @@ struct ImagePrecisionTests {
     await expectSnapshot(
       of: view,
       as: .image(precision: 1, perceptualPrecision: 1),
-      named: "\(platform)-modified"
+      suffixed: "modified"
     )
 
     var result = await snapshotResult(
       of: view,
       as: .image(precision: 0.999, perceptualPrecision: 1),
-      named: "\(platform)-original",
+      suffixed: "original",
       record: .never
     )
-    #expect(result.name == "\(platform)-original")
+    #expect(result.name == "original")
     #expect(result.outcome.mismatch?.reason == "Image does not match reference (pixel precision 0.995 is less than required 0.999).")
 
     // 10000-100=9900 => 99% precision
     result = await snapshotResult(
       of: view,
       as: .image(precision: 0.99, perceptualPrecision: 1),
-      named: "\(platform)-original",
+      suffixed: "original",
       record: .never
     )
     #expect(result.outcome == .matched)
@@ -56,20 +56,20 @@ struct ImagePrecisionTests {
     await expectSnapshot(
       of: view,
       as: .image(precision: 1, perceptualPrecision: 1),
-      named: platform + "-original"
+      suffixed: "original"
     )
 
     view.backgroundColor = .init(white: 0.0019, alpha: 1)
     await expectSnapshot(
       of: view,
       as: .image(precision: 1, perceptualPrecision: 1),
-      named: platform + "-modified"
+      suffixed: "modified"
     )
 
     await expectSnapshot(
       of: view,
       as: .image(precision: 1, perceptualPrecision: 0.98),
-      named: platform + "-original",
+      suffixed: "original",
       record: .never
     )
   }

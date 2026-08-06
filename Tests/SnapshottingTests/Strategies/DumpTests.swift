@@ -24,19 +24,19 @@ struct DumpTests {
       }
       let father = Father()
       let child = Child(father)
-      await expectSnapshot(of: father, as: .dump, named: "father")
-      await expectSnapshot(of: child, as: .dump, named: "child")
+      await expectSnapshot(of: father, as: .dump, suffixed: "father")
+      await expectSnapshot(of: child, as: .dump, suffixed: "child")
     }
   }
 
   @Test func `StringConvertible dump`() async {
-    await expectSnapshot(of: "a" as Character, as: .dump, named: "character")
-    await expectSnapshot(of: Data("Hello, world!".utf8), as: .dump, named: "data")
-    await expectSnapshot(of: Date(timeIntervalSinceReferenceDate: 0), as: .dump, named: "date")
-    await expectSnapshot(of: NSObject(), as: .dump, named: "nsobject")
-    await expectSnapshot(of: "Hello, world!", as: .dump, named: "string")
-    await expectSnapshot(of: "Hello, world!".dropLast(8), as: .dump, named: "substring")
-    await expectSnapshot(of: URL(string: "https://www.apple.com")!, as: .dump, named: "url")
+    await expectSnapshot(of: "a" as Character, as: .dump, suffixed: "character")
+    await expectSnapshot(of: Data("Hello, world!".utf8), as: .dump, suffixed: "data")
+    await expectSnapshot(of: Date(timeIntervalSinceReferenceDate: 0), as: .dump, suffixed: "date")
+    await expectSnapshot(of: NSObject(), as: .dump, suffixed: "nsobject")
+    await expectSnapshot(of: "Hello, world!", as: .dump, suffixed: "string")
+    await expectSnapshot(of: "Hello, world!".dropLast(8), as: .dump, suffixed: "substring")
+    await expectSnapshot(of: URL(string: "https://www.apple.com")!, as: .dump, suffixed: "url")
   }
 
   @Test func `Dictionary and Set dump`() async {
@@ -50,13 +50,13 @@ struct DumpTests {
   }
 
   @Test func `multiple dumps`() async {
-    await expectSnapshot(of: [1], as: .dump, named: "one element")
-    await expectSnapshot(of: [1, 2], as: .dump, named: "two elements")
+    await expectSnapshot(of: [1], as: .dump, suffixed: "one element")
+    await expectSnapshot(of: [1, 2], as: .dump, suffixed: "two elements")
   }
 
-  @Test func `named dump`() async {
+  @Test func `suffixed dump`() async {
     struct User { let id: Int, name: String, bio: String }
     let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
-    await expectSnapshot(of: user, as: .dump, named: "named")
+    await expectSnapshot(of: user, as: .dump, suffixed: "the suffix")
   }
 }

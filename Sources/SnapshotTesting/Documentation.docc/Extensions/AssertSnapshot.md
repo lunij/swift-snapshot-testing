@@ -1,4 +1,4 @@
-# ``SnapshotTesting/assertSnapshot(of:as:named:record:isolation:fileID:file:testName:line:column:)``
+# ``SnapshotTesting/assertSnapshot(of:as:suffixed:record:isolation:fileID:file:testName:line:column:)``
 
 ## Topics
 
@@ -9,4 +9,4 @@
 
 ### Custom assertions
 
-- ``verifySnapshot(of:as:named:record:snapshotDirectory:isolation:file:testName:)``
+- ``verifySnapshot(of:as:suffixed:record:snapshotDirectory:isolation:file:testName:)``

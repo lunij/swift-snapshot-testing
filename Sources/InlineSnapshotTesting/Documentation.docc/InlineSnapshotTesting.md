@@ -12,11 +12,11 @@ assertSnapshot(of: value, as: .json)
 ```
 
 ...but can make verification more cumbersome: one must find the corresponding file in order to
-verify that it matches their expectation. In this case, if the above assertion is the second one in
-a `testMySnapshot()` method in a `MySnapshotTests.swift` file, the snapshot will be found at:
+verify that it matches their expectation. In this case, if the above assertion is in a
+`testMySnapshot()` method in a `MySnapshotTests.swift` file, the snapshot will be found at:
 
 ```sh
-$ cat __Snapshots__/MySnapshotTests/testMySnapshot.2.json
+$ cat __Snapshots__/MySnapshotTests/testMySnapshot.json
 {
   "id": 42,
   "name": "Blob"

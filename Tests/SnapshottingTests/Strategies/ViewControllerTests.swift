@@ -17,7 +17,7 @@ struct ViewControllerTests {
       subview.leftAnchor.constraint(equalTo: vc.view.leftAnchor),
       subview.rightAnchor.constraint(equalTo: vc.view.rightAnchor)
     ])
-    await expectSnapshot(of: vc, as: .image, named: platform)
+    await expectSnapshot(of: vc, as: .image)
   }
 
   @Test func `view controller lifecycle`() async {
@@ -48,7 +48,7 @@ struct ViewControllerTests {
 
     let viewController = ViewController()
 
-    await expectSnapshot(of: viewController, as: .image, named: platform)
+    await expectSnapshot(of: viewController, as: .image)
 
     #expect(
       viewController.lifecycleEvents == [
@@ -194,12 +194,12 @@ struct ViewControllerTests {
 
     let viewController = CollectionViewController()
 
-    await expectSnapshot(of: viewController, as: .image(on: .iPad(.year2018Large)), named: "ipad")
-    await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2014)), named: "iphoneSe")
+    await expectSnapshot(of: viewController, as: .image(on: .iPad(.year2018Large)), suffixed: "ipad")
+    await expectSnapshot(of: viewController, as: .image(on: .iPhone(.year2014)), suffixed: "iphoneSe")
     await expectSnapshot(
       of: viewController,
       as: .image(on: .iPhone(.year2018Max)),
-      named: "iphoneMax"
+      suffixed: "iphoneMax"
     )
   }
   #endif

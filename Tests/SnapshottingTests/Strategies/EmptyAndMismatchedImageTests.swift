@@ -29,12 +29,12 @@ struct EmptyAndMismatchedImageTests {
   @Test func `image with size mismatch`() async {
     let size = CGSize(width: 100, height: 100)
     let view = XView(frame: .init(origin: .zero, size: size))
-    var result = await snapshotResult(of: view, as: .image, named: platform)
+    var result = await snapshotResult(of: view, as: .image)
     #expect(result.outcome == .matched)
     let newSize = CGSize(width: 123, height: 123)
     view.frame = .init(origin: .zero, size: newSize)
-    result = await snapshotResult(of: view, as: .image, named: platform, record: .never)
-    #expect(result.name == platform)
+    result = await snapshotResult(of: view, as: .image, record: .never)
+    #expect(result.name == nil)
     // The reason counts pixels, so the sizes above arrive multiplied by the scale the strategy
     // rendered at. Deriving them keeps this pinned to the scale policy rather than to a list of
     // platforms.

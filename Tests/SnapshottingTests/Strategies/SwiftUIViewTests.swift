@@ -24,17 +24,17 @@ struct SwiftUIViewTests {
         layout: .fixed(width: 100, height: 100),
         traits: { $0.userInterfaceStyle = .light }
       ),
-      named: "\(platform)-fixed"
+      suffixed: "fixed"
     )
     await expectSnapshot(
       of: view,
       as: .image(layout: .sizeThatFits, traits: { $0.userInterfaceStyle = .light }),
-      named: "\(platform)-size-that-fits"
+      suffixed: "size-that-fits"
     )
     await expectSnapshot(
       of: view,
       as: .image(layout: .device(profile: .iPhone(.year2014)), traits: { $0.userInterfaceStyle = .light }),
-      named: "\(platform)-device"
+      suffixed: "device"
     )
     #endif
 
@@ -42,12 +42,12 @@ struct SwiftUIViewTests {
     await expectSnapshot(
       of: view,
       as: .image(layout: .fixed(width: 100, height: 100)),
-      named: "\(platform)\(osVersion.majorVersion)-fixed"
+      suffixed: "fixed"
     )
     await expectSnapshot(
       of: view,
       as: .image(layout: .sizeThatFits),
-      named: "\(platform)\(osVersion.majorVersion)-size-that-fits"
+      suffixed: "size-that-fits"
     )
     #endif
 
@@ -55,17 +55,17 @@ struct SwiftUIViewTests {
     await expectSnapshot(
       of: view,
       as: .image(layout: .fixed(width: 100, height: 100)),
-      named: "\(platform)-fixed"
+      suffixed: "fixed"
     )
     await expectSnapshot(
       of: view,
       as: .image(layout: .sizeThatFits),
-      named: "\(platform)-size-that-fits"
+      suffixed: "size-that-fits"
     )
     await expectSnapshot(
       of: view,
       as: .image(layout: .device(profile: .appleTV)),
-      named: "\(platform)-device"
+      suffixed: "device"
     )
     #endif
   }

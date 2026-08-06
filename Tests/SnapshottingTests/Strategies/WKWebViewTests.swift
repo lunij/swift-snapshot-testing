@@ -27,8 +27,7 @@ struct WKWebViewTests {
         perceptualPrecision: 0.95,
         scale: 1,
         size: .init(width: 800, height: 600)
-      ),
-      named: platform
+      )
     )
   }
 
@@ -57,8 +56,7 @@ struct WKWebViewTests {
         perceptualPrecision: 0.95,
         scale: 1,
         size: .init(width: 800, height: 600)
-      ),
-      named: platform
+      )
     )
     _ = manipulatingWKWebViewNavigationDelegate
   }
@@ -79,8 +77,7 @@ struct WKWebViewTests {
     webView.load(.init(url: .htmlFixture))
     await expectSnapshot(
       of: webView,
-      as: .image(size: .init(width: 800, height: 600)),
-      named: platform
+      as: .image(size: .init(width: 800, height: 600))
     )
     _ = cancellingWKWebViewNavigationDelegate
   }
@@ -100,8 +97,7 @@ struct WKWebViewTests {
 
     await expectSnapshot(
       of: stackView,
-      as: .image(precision: 0.99, perceptualPrecision: 0.99, size: .init(width: 800, height: 600)),
-      named: platform
+      as: .image(precision: 0.99, perceptualPrecision: 0.99, size: .init(width: 800, height: 600))
     )
   }
   #endif

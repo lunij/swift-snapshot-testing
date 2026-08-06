@@ -12,8 +12,8 @@ struct URLRequestTests {
     request.addValue("session={}", forHTTPHeaderField: "Cookie")
     request.addValue("text/html", forHTTPHeaderField: "Accept")
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    await expectSnapshot(of: request, as: .raw, named: "raw")
-    await expectSnapshot(of: request, as: .curl, named: "curl")
+    await expectSnapshot(of: request, as: .raw)
+    await expectSnapshot(of: request, as: .curl)
   }
 
   @Test func `GET request with query parameters`() async {
@@ -23,8 +23,8 @@ struct URLRequestTests {
     request.addValue("session={}", forHTTPHeaderField: "Cookie")
     request.addValue("text/html", forHTTPHeaderField: "Accept")
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    await expectSnapshot(of: request, as: .raw, named: "raw")
-    await expectSnapshot(of: request, as: .curl, named: "curl")
+    await expectSnapshot(of: request, as: .raw)
+    await expectSnapshot(of: request, as: .curl)
   }
 
   @Test func `POST request`() async {
@@ -33,8 +33,8 @@ struct URLRequestTests {
     request.addValue("session={\"user_id\":\"0\"}", forHTTPHeaderField: "Cookie")
     request.addValue("text/html", forHTTPHeaderField: "Accept")
     request.httpBody = Data("plan[billing]=monthly&plan[tier]=basic".utf8)
-    await expectSnapshot(of: request, as: .raw, named: "raw")
-    await expectSnapshot(of: request, as: .curl, named: "curl")
+    await expectSnapshot(of: request, as: .raw)
+    await expectSnapshot(of: request, as: .curl)
   }
 
   @Test func `POST request with JSON body`() async {
@@ -45,15 +45,15 @@ struct URLRequestTests {
     request.httpBody = Data(
       "{\"name\":\"Jane Doe\", \"age\":30, \"role\":\"tester\"}".utf8
     )
-    await expectSnapshot(of: request, as: .raw, named: "raw")
-    await expectSnapshot(of: request, as: .curl, named: "curl")
+    await expectSnapshot(of: request, as: .raw)
+    await expectSnapshot(of: request, as: .curl)
   }
 
   @Test func `HEAD request`() async {
     var request = URLRequest(url: URL(string: "https://www.example.com/")!)
     request.httpMethod = "HEAD"
     request.addValue("session={}", forHTTPHeaderField: "Cookie")
-    await expectSnapshot(of: request, as: .raw, named: "raw")
-    await expectSnapshot(of: request, as: .curl, named: "curl")
+    await expectSnapshot(of: request, as: .raw)
+    await expectSnapshot(of: request, as: .curl)
   }
 }

@@ -13,21 +13,20 @@ import AppKit
 /// A mismatch also attaches what was rendered to the test report, so the failure can be inspected
 /// from the `.xcresult` alone.
 ///
-/// Use ``snapshotResult(of:as:named:record:testName:filePath:isolation:)`` instead when the failure
-/// itself is what a test is asserting on.
+/// Use ``snapshotResult(of:as:suffixed:record:testName:filePath:isolation:)`` instead when the
+/// failure itself is what a test is asserting on.
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
 ///   - strategy: A strategy for serializing, deserializing, and comparing values.
-///   - name: An optional suffix distinguishing several snapshots taken by the same test, appended to
-///     `testName`. There is no counter, so snapshots a test takes in the same format need names.
+///   - suffix: An optional suffix distinguishing several snapshots taken by the same test, appended to the derived name.
 ///   - record: The record mode to use. Defaults to `.failed`, which re-records a mismatch so that an
 ///     intended change can be reviewed as a diff of the reference file.
 ///   - testName: The test the snapshot was taken in, which names the reference file.
 func expectSnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
-  named name: String? = nil,
+  suffixed suffix: String? = nil,
   record: SnapshotConfiguration.Record = .failed,
   testName: String = #function,
   sourceLocation: SourceLocation = #_sourceLocation,
@@ -36,7 +35,7 @@ func expectSnapshot<Value, Format>(
   let result = await snapshotResult(
     of: try value(),
     as: strategy,
-    named: name,
+    suffixed: suffix,
     record: record,
     testName: testName,
     filePath: sourceLocation.filePath,
@@ -55,31 +54,35 @@ func expectSnapshot<Value, Format>(
 ///
 /// This exists for the tests that assert on failure *messages* — recording an issue would fail the
 /// very test that is checking the engine reports a mismatch correctly. It applies the same file
-/// naming as ``expectSnapshot(of:as:named:record:testName:sourceLocation:isolation:)``.
+/// naming as ``expectSnapshot(of:as:suffixed:record:testName:sourceLocation:isolation:)``.
 func snapshotResult<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
-  named name: String? = nil,
+  suffixed suffix: String? = nil,
   record: SnapshotConfiguration.Record = .failed,
   testName: String = #function,
   filePath: String = #filePath,
   isolation: isolated (any Actor)? = #isolation
 ) async -> SnapshotResult {
-  var fileName = sanitizePathComponent(testName)
-  if let name {
-    fileName += ".\(sanitizePathComponent(name))"
+  var stem = sanitizePathComponent(testName)
+  if let identifier = strategy.identifier {
+    stem += ".\(sanitizePathComponent(identifier))"
   }
-  if let pathExtension = strategy.pathExtension {
-    fileName += ".\(pathExtension)"
+  if let suffix {
+    stem += ".\(sanitizePathComponent(suffix))"
   }
-  let file = SnapshotFile(fileName, filePath: filePath)
+  let file = SnapshotFile(
+    stem: stem,
+    pathExtension: strategy.pathExtension,
+    filePath: filePath
+  )
 
   return await compareSnapshot(
     of: try value(),
     as: strategy,
     against: file.snapshotURL,
     artifactDirectory: file.artifactDirectory,
-    named: name,
+    named: suffix,
     record: record,
     isolation: isolation
   )
@@ -139,7 +142,7 @@ private func recordAttachment(_ data: Data, named name: String, sourceLocation: 
   #endif
 }
 
-/// Reduces a test or snapshot name to something usable as a file name, turning `#function`'s
+/// Reduces a test name or a suffix to something usable as a file name, turning `#function`'s
 /// `"Encodable snapshot()"` into `"Encodable-snapshot"`.
 private func sanitizePathComponent(_ string: String) -> String {
   string

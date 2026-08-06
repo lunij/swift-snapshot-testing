@@ -40,8 +40,7 @@ struct MetalViewTests {
 
     await expectSnapshot(
       of: scene,
-      as: .image(precision: 0.999, size: .init(width: 500, height: 500)),
-      named: platform
+      as: .image(precision: 0.999, size: .init(width: 500, height: 500))
     )
   }
 
@@ -54,8 +53,7 @@ struct MetalViewTests {
 
     await expectSnapshot(
       of: scene,
-      as: .image(size: .init(width: 50, height: 50)),
-      named: platform
+      as: .image(size: .init(width: 50, height: 50))
     )
   }
 }

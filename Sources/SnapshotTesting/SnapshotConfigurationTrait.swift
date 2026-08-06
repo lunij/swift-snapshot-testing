@@ -48,7 +48,7 @@ extension SnapshotConfigurationTrait: TestScoping {
     performing function: () async throws -> Void
   ) async throws {
     try await withSnapshotConfiguration(record: record, diffTool: diffTool) {
-      try await File.$counter.withValue(File.Counter()) {
+      try await Register.$current.withValue(Register()) {
         try await function()
       }
     }

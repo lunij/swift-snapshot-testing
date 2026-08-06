@@ -9,10 +9,14 @@ import AppKit
 
 /// Asserts that a given value matches a reference on disk.
 ///
+/// The reference is named after the test, after what `strategy` renders, and — on a platform whose
+/// rendering differs — after the platform, which is derived rather than passed in. Pass `suffixed:`
+/// only for what none of those can supply, such as telling two snapshots of one test apart.
+///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
 ///   - strategy: A strategy for serializing, deserializing, and comparing values.
-///   - name: An optional description of the snapshot.
+///   - suffix: An optional suffix distinguishing several snapshots taken by the same test.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -28,7 +32,7 @@ import AppKit
 public func assertSnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
-  named name: String? = nil,
+  suffixed suffix: String? = nil,
   record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
@@ -37,10 +41,10 @@ public func assertSnapshot<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) async {
-  let result = await verifySnapshot(
+  let (result, location) = await snapshotResult(
     of: try value(),
     as: strategy,
-    named: name,
+    suffixed: suffix,
     record: record,
     isolation: isolation,
     file: filePath,
@@ -53,7 +57,10 @@ public func assertSnapshot<Value, Format>(
     line: line,
     column: column
   )
-  guard let message = result.failureMessage else { return }
+  guard var message = result.failureMessage else { return }
+  if let hint = sharedReferenceHint(for: result, at: location) {
+    message += "\n\n\(hint)"
+  }
   reportIssue(
     message,
     fileID: fileID,
@@ -67,7 +74,7 @@ public func assertSnapshot<Value, Format>(
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
-///   - strategies: A dictionary of names and strategies for serializing, deserializing, and
+///   - strategies: A dictionary of suffixes and strategies for serializing, deserializing, and
 ///     comparing values.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
@@ -92,11 +99,11 @@ public func assertSnapshots<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) async {
-  for (name, strategy) in strategies {
+  for (suffix, strategy) in strategies {
     await assertSnapshot(
       of: try value(),
       as: strategy,
-      named: name,
+      suffixed: suffix,
       record: record,
       isolation: isolation,
       fileID: fileID,
@@ -109,6 +116,9 @@ public func assertSnapshots<Value, Format>(
 }
 
 /// Asserts that a given value matches references on disk.
+///
+/// Each strategy names its own reference, so the strategies have to be distinguishable: two that
+/// render the same format need the dictionary overload, which suffixes them.
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
@@ -162,7 +172,7 @@ public func assertSnapshots<Value, Format>(
 /// public func myAssertSnapshot<Value, Format>(
 ///   of value: @autoclosure () throws -> Value,
 ///   as strategy: SnapshotStrategy<Value, Format>,
-///   named name: String? = nil,
+///   suffixed suffix: String? = nil,
 ///   record: SnapshotConfiguration.Record? = nil,
 ///   file: StaticString = #file,
 ///   testName: String = #function,
@@ -173,7 +183,7 @@ public func assertSnapshots<Value, Format>(
 ///     let result = await verifySnapshot(
 ///       of: try value(),
 ///       as: strategy,
-///       named: name,
+///       suffixed: suffix,
 ///       record: record,
 ///       snapshotDirectory: snapshotDirectory,
 ///       file: file,
@@ -187,7 +197,7 @@ public func assertSnapshots<Value, Format>(
 /// - Parameters:
 ///   - value: A value to compare against a reference.
 ///   - strategy: A strategy for serializing, deserializing, and comparing values.
-///   - name: An optional description of the snapshot.
+///   - suffix: An optional suffix distinguishing several snapshots taken by the same test.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
 ///     in a directory with the same name as the test file, and that directory will sit inside a
@@ -202,32 +212,98 @@ public func assertSnapshots<Value, Format>(
 public func verifySnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
-  named name: String? = nil,
+  suffixed suffix: String? = nil,
   record: SnapshotConfiguration.Record? = nil,
   snapshotDirectory: String? = nil,
   isolation: isolated (any Actor)? = #isolation,
   file filePath: StaticString = #filePath,
   testName: String = #function
 ) async -> SnapshotResult {
+  await snapshotResult(
+    of: try value(),
+    as: strategy,
+    suffixed: suffix,
+    record: record,
+    snapshotDirectory: snapshotDirectory,
+    isolation: isolation,
+    file: filePath,
+    testName: testName
+  )
+  .result
+}
+
+// MARK: - Private
+
+/// Resolves where a snapshot belongs and compares it there, handing back the location alongside the
+/// result so that a caller can say something about the file that was chosen.
+private func snapshotResult<Value, Format>(
+  of value: @autoclosure () throws -> Value,
+  as strategy: SnapshotStrategy<Value, Format>,
+  suffixed suffix: String? = nil,
+  record: SnapshotConfiguration.Record? = nil,
+  snapshotDirectory: String? = nil,
+  isolation: isolated (any Actor)? = #isolation,
+  file filePath: StaticString = #filePath,
+  testName: String = #function
+) async -> (result: SnapshotResult, location: SnapshotLocation) {
   let location = SnapshotLocation(
-    named: name,
+    identifier: strategy.identifier,
+    suffixed: suffix,
     pathExtension: strategy.pathExtension,
     snapshotDirectory: snapshotDirectory,
     filePath: filePath,
     testName: testName
   )
-  return await compareSnapshot(
+
+  // Comparing would pit this snapshot against whatever the earlier one recorded, and then overwrite
+  // it, so the snapshot is not taken at all.
+  guard !location.isDuplicate else {
+    return (
+      SnapshotResult(
+        outcome: .errored(
+          """
+          An earlier snapshot in this test was already written to \
+          '\(location.snapshotURL.lastPathComponent)'. Pass 'suffixed:' to tell them apart.
+          """
+        ),
+        snapshotURL: location.snapshotURL,
+        name: suffix
+      ),
+      location
+    )
+  }
+
+  let result = await compareSnapshot(
     of: try value(),
     as: strategy,
     against: location.snapshotURL,
     artifactDirectory: location.artifactDirectory,
-    named: name,
+    named: suffix,
     record: record,
     isolation: isolation
   )
+  return (result, location)
 }
 
-// MARK: - Private
+/// Points out that a mismatching reference is shared by every platform.
+///
+/// Two platforms rarely render a value identically, so a shared reference that stops matching is as
+/// likely to be a reference recorded elsewhere as it is a change in the value.
+private func sharedReferenceHint(
+  for result: SnapshotResult,
+  at location: SnapshotLocation
+) -> String? {
+  guard
+    case .mismatched = result.outcome,
+    let platformSpecificName = location.platformSpecificName
+  else { return nil }
+
+  return """
+    '\(location.snapshotURL.lastPathComponent)' is shared by every platform. If it differs because of \
+    the platform this ran on, rename it after the platform that recorded it — this run then records \
+    '\(platformSpecificName)'.
+    """
+}
 
 /// Records snapshot artifacts as test attachments, so that they show up alongside the failure in
 /// Xcode's test report.
