@@ -25,39 +25,18 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
   /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
   public static func raw(pretty: Bool) -> SnapshotStrategy {
     DirectSnapshotStrategy.lines.transform(identifier: "raw") { request in
-      let method =
-        "\(request.httpMethod ?? "GET") \(request.url?.sortingQueryItems()?.absoluteString ?? "(null)")"
+      guard let url = request.url else { throw URLRequestDescriptionError.urlMissing }
+
+      let method = "\(request.httpMethod ?? "GET") \(url.sortingQueryItems().absoluteString)"
 
       let headers = (request.allHTTPHeaderFields ?? [:])
         .map { key, value in "\(key): \(value)" }
         .sorted()
 
-      let body: [String]
-      do {
-        if pretty {
-          body =
-            try request.httpBody
-            .map { try JSONSerialization.jsonObject(with: $0, options: []) }
-            .map {
-              try JSONSerialization.data(
-                withJSONObject: $0,
-                options: [.prettyPrinted, .sortedKeys]
-              )
-            }
-            .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
-            ?? []
-        } else {
-          body =
-            request.httpBody
-            .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
-            ?? []
-        }
-      } catch {
-        body =
-          request.httpBody
-          .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
-          ?? []
-      }
+      let body =
+        request.httpBody
+        .map { ["\n\($0.text(prettyPrinted: pretty))"] }
+        ?? []
 
       return ([method] + headers + body).joined(separator: "\n")
     }
@@ -76,10 +55,12 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
   // ```
   public static var curl: SnapshotStrategy {
     DirectSnapshotStrategy.lines.transform(identifier: "curl") { request in
+      guard let url = request.url else { throw URLRequestDescriptionError.urlMissing }
+
       var components = ["curl"]
 
       // HTTP Method
-      let httpMethod = request.httpMethod!
+      let httpMethod = request.httpMethod ?? "GET"
       switch httpMethod {
       case "GET": break
       case "HEAD": components.append("--head")
@@ -88,17 +69,16 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
 
       // Headers
       if let headers = request.allHTTPHeaderFields {
-        for field in headers.keys.sorted() where field != "Cookie" {
-          let escapedValue = headers[field]!.replacingOccurrences(of: "\"", with: "\\\"")
+        for (field, value) in headers.sorted(by: { $0.key < $1.key }) where field != "Cookie" {
+          let escapedValue = value.replacingOccurrences(of: "\"", with: "\\\"")
           components.append("--header \"\(field): \(escapedValue)\"")
         }
       }
 
       // Body
-      if let httpBodyData = request.httpBody,
-        let httpBody = String(data: httpBodyData, encoding: .utf8)
-      {
-        var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
+      if let httpBody = request.httpBody {
+        var escapedBody = String(decoding: httpBody, as: UTF8.self)
+          .replacingOccurrences(of: "\\\"", with: "\\\\\"")
         escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
 
         components.append("--data \"\(escapedBody)\"")
@@ -111,20 +91,42 @@ extension SnapshotStrategy where Value == URLRequest, Format == String {
       }
 
       // URL
-      components.append("\"\(request.url!.sortingQueryItems()!.absoluteString)\"")
+      components.append("\"\(url.sortingQueryItems().absoluteString)\"")
 
       return components.joined(separator: " \\\n\t")
     }
   }
 }
 
+extension Data {
+  /// The body as text, pretty printed when asked for and when it reads as JSON.
+  ///
+  /// Not every body is JSON, so one that does not read as JSON quietly records as the bytes that
+  /// were sent.
+  fileprivate func text(prettyPrinted: Bool) -> String {
+    guard prettyPrinted,
+      let json = try? JSONSerialization.jsonObject(with: self),
+      let prettyPrintedData = try? JSONSerialization.data(
+        withJSONObject: json,
+        options: [.prettyPrinted, .sortedKeys]
+      )
+    else {
+      return String(decoding: self, as: UTF8.self)
+    }
+
+    return String(decoding: prettyPrintedData, as: UTF8.self)
+  }
+}
+
 extension URL {
-  fileprivate func sortingQueryItems() -> URL? {
+  /// The URL with its query items in name order, or the URL as it stands when it cannot be taken
+  /// apart and put back together.
+  fileprivate func sortingQueryItems() -> URL {
     var components = URLComponents(url: self, resolvingAgainstBaseURL: false)
     let sortedQueryItems = components?.queryItems?.sorted { $0.name < $1.name }
     components?.queryItems = sortedQueryItems
 
-    return components?.url
+    return components?.url ?? self
   }
 }
 #endif

@@ -1,6 +1,7 @@
 import Foundation
-import Snapshotting
 import Testing
+
+@testable import Snapshotting
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -55,5 +56,33 @@ struct URLRequestTests {
     request.addValue("session={}", forHTTPHeaderField: "Cookie")
     await expectSnapshot(of: request, as: .raw, named: "raw")
     await expectSnapshot(of: request, as: .curl, named: "curl")
+  }
+
+  /// Every recording leads with the URL, so a request without one is refused rather than described
+  /// around the hole where the URL should be. Both strategies answer the same way.
+  @Test func `a request without a URL is refused`() async {
+    var request = URLRequest(url: URL(string: "https://www.example.com/")!)
+    request.url = nil
+
+    await #expect(throws: URLRequestDescriptionError.urlMissing) {
+      try await SnapshotStrategy<URLRequest, String>.raw.snapshot(request)
+    }
+    await #expect(throws: URLRequestDescriptionError.urlMissing) {
+      try await SnapshotStrategy<URLRequest, String>.curl.snapshot(request)
+    }
+  }
+
+  /// A body that is not text still gets sent, so it still gets recorded: bytes that will not decode
+  /// read as replacement characters rather than taking the whole body out of the recording.
+  @Test func `a body that is not text still records`() async throws {
+    var request = URLRequest(url: URL(string: "https://www.example.com/upload")!)
+    request.httpMethod = "POST"
+    request.httpBody = Data([0xFF, 0xFE])
+
+    let curl = try await SnapshotStrategy<URLRequest, String>.curl.snapshot(request)
+    let raw = try await SnapshotStrategy<URLRequest, String>.raw.snapshot(request)
+
+    #expect(curl.contains("--data \"\u{FFFD}\u{FFFD}\""))
+    #expect(raw.hasSuffix("\n\u{FFFD}\u{FFFD}"))
   }
 }
