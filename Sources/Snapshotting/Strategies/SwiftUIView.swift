@@ -74,7 +74,7 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).transform { @MainActor view async in
+    ).transform { @MainActor view async throws in
       var profile = profile
       let controller: UIViewController
 
@@ -87,7 +87,7 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
         controller = hostingController
       }
 
-      return await snapshotView(
+      return try await snapshotView(
         profile: profile,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         scale: scale,

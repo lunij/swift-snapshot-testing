@@ -41,8 +41,8 @@ extension SnapshotStrategy where Value == UIView, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).transform { @MainActor view async in
-      await snapshotView(
+    ).transform { @MainActor view async throws in
+      try await snapshotView(
         profile: .init(safeArea: .zero, size: size ?? view.frame.size),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         scale: scale,
@@ -80,7 +80,7 @@ extension SnapshotStrategy where Value == UIView, Format == String {
     -> SnapshotStrategy<UIView, String>
   {
     DirectSnapshotStrategy.lines.transform(identifier: "recursive-description") { @MainActor view async throws in
-      let dispose = prepareView(
+      let dispose = try prepareView(
         profile: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
         drawHierarchyInKeyWindow: false,
         traits: { _ in },

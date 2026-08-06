@@ -10,7 +10,7 @@ func prepareView(
   traits: @escaping TraitMutations,
   view: UIView,
   viewController: UIViewController
-) -> () -> Void {
+) throws -> () -> Void {
   let size = profile.size ?? viewController.view.frame.size
   view.frame.size = size
   if view != viewController.view {
@@ -25,17 +25,23 @@ func prepareView(
     traits(&mutableTraits)
   }
   let window: UIWindow
+  // The key window belongs to the host application and outlives the snapshot, so its geometry is
+  // borrowed for the render and handed back afterwards.
+  let restoreWindow: () -> Void
   if drawHierarchyInKeyWindow {
     guard let keyWindow = getKeyWindow() else {
-      fatalError("'drawHierarchyInKeyWindow' requires running in a host application")
+      throw ViewHostingError.keyWindowUnavailable
     }
+    let originalFrame = keyWindow.frame
+    keyWindow.frame.size = size
     window = keyWindow
-    window.frame.size = size
+    restoreWindow = { keyWindow.frame = originalFrame }
   } else {
     window = Window(
       profile: .init(safeArea: profile.safeArea, size: profile.size ?? size, traits: traits),
       viewController: viewController
     )
+    restoreWindow = {}
   }
   let dispose = add(traits: traits, viewController: viewController, to: window)
 
@@ -46,7 +52,10 @@ func prepareView(
     view.layoutIfNeeded()
   }
 
-  return dispose
+  return {
+    dispose()
+    restoreWindow()
+  }
 }
 
 @MainActor
@@ -57,9 +66,9 @@ func snapshotView(
   traits: @escaping TraitMutations,
   view: UIView,
   viewController: UIViewController
-) async -> UIImage {
+) async throws -> UIImage {
   let initialFrame = view.frame
-  let dispose = prepareView(
+  let dispose = try prepareView(
     profile: profile,
     drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
     traits: traits,
@@ -100,6 +109,9 @@ private func add(
   viewController: UIViewController,
   to window: UIWindow
 ) -> () -> Void {
+  // The window may be the host application's, whose root outlives the snapshot, so `dispose`
+  // reinstates it rather than leaving the window empty.
+  let originalRootViewController = window.rootViewController
   let rootViewController: UIViewController
   if viewController != window.rootViewController {
     rootViewController = UIViewController()
@@ -158,7 +170,7 @@ private func add(
     viewController.removeFromParent()
     viewController.didMove(toParent: nil)
     viewController.endAppearanceTransition()
-    window.rootViewController = nil
+    window.rootViewController = originalRootViewController
   }
 }
 

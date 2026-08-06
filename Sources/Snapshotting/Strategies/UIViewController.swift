@@ -45,8 +45,8 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).transform { @MainActor viewController async in
-      await snapshotView(
+    ).transform { @MainActor viewController async throws in
+      try await snapshotView(
         profile: size.map { .init(safeArea: profile.safeArea, size: $0, traits: profile.traits) }
           ?? profile,
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
@@ -89,8 +89,8 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).transform { @MainActor viewController async in
-      await snapshotView(
+    ).transform { @MainActor viewController async throws in
+      try await snapshotView(
         profile: .init(safeArea: .zero, size: size, traits: traits),
         drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
         scale: scale,
@@ -125,7 +125,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   public static var hierarchy: SnapshotStrategy {
     SnapshotStrategy<String, String>.lines
       .transform(identifier: "hierarchy") { @MainActor viewController async throws in
-        let dispose = prepareView(
+        let dispose = try prepareView(
           profile: .init(),
           drawHierarchyInKeyWindow: false,
           traits: { _ in },
@@ -159,7 +159,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
   {
     DirectSnapshotStrategy.lines
       .transform(identifier: "recursive-description") { @MainActor viewController async throws in
-        let dispose = prepareView(
+        let dispose = try prepareView(
           profile: .init(
             safeArea: profile.safeArea,
             size: size ?? profile.size,
