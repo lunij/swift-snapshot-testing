@@ -14,9 +14,10 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///
   /// - Parameters:
   ///   - profile: The device the view controller's view is laid out and rendered on.
-  ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
-  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host
-  ///     application and will _not_ work in a plain framework bundle.
+  ///   - host: The window the view is hosted in while it renders. Defaults to
+  ///     ``ViewHost/offscreenWindow``, which draws the view's layers; pass
+  ///     ``ViewHost/keyWindow`` to render `UIAppearance` and `UIVisualEffect`s from an
+  ///     application-hosted test bundle.
   ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
   ///     pixel to match within `perceptualPrecision`.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
@@ -32,7 +33,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
     on profile: DeviceProfile,
-    drawHierarchyInKeyWindow: Bool = false,
+    in host: ViewHost = .offscreenWindow,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
     scale: CGFloat = SnapshotScale.default,
@@ -49,7 +50,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       try await snapshotView(
         profile: size.map { .init(safeArea: profile.safeArea, size: $0, traits: profile.traits) }
           ?? profile,
-        in: drawHierarchyInKeyWindow ? .keyWindow : .offscreenWindow,
+        in: host,
         scale: scale,
         traits: traits,
         view: viewController.view,
@@ -61,9 +62,10 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   /// A snapshot strategy for comparing view controller views based on pixel equality.
   ///
   /// - Parameters:
-  ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
-  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host
-  ///     application and will _not_ work in a plain framework bundle.
+  ///   - host: The window the view is hosted in while it renders. Defaults to
+  ///     ``ViewHost/offscreenWindow``, which draws the view's layers; pass
+  ///     ``ViewHost/keyWindow`` to render `UIAppearance` and `UIVisualEffect`s from an
+  ///     application-hosted test bundle.
   ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
   ///     pixel to match within `perceptualPrecision`.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
@@ -76,7 +78,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
   ///   - size: A view size override.
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
-    drawHierarchyInKeyWindow: Bool = false,
+    in host: ViewHost = .offscreenWindow,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
     scale: CGFloat = SnapshotScale.default,
@@ -92,7 +94,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
     ).transform { @MainActor viewController async throws in
       try await snapshotView(
         profile: .init(safeArea: .zero, size: size, traits: traits),
-        in: drawHierarchyInKeyWindow ? .keyWindow : .offscreenWindow,
+        in: host,
         scale: scale,
         traits: traits,
         view: viewController.view,

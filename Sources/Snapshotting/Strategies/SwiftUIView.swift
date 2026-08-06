@@ -32,9 +32,10 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
   /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
   ///
   /// - Parameters:
-  ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
-  ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host
-  ///     application and will _not_ work in a plain framework bundle.
+  ///   - host: The window the view is hosted in while it renders. Defaults to
+  ///     ``ViewHost/offscreenWindow``, which draws the view's layers; pass
+  ///     ``ViewHost/keyWindow`` to render `UIAppearance` and `UIVisualEffect`s from an
+  ///     application-hosted test bundle.
   ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
   ///     pixel to match within `perceptualPrecision`.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
@@ -47,7 +48,7 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
   ///     enough in points that scaling it up costs more than it resolves.
   ///   - traits: Trait overrides to apply when rendering.
   public static func image(
-    drawHierarchyInKeyWindow: Bool = false,
+    in host: ViewHost = .offscreenWindow,
     precision: Float = 1,
     perceptualPrecision: Float = 0.99,
     layout: SwiftUISnapshotLayout = .sizeThatFits,
@@ -89,7 +90,7 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
 
       return try await snapshotView(
         profile: profile,
-        in: drawHierarchyInKeyWindow ? .keyWindow : .offscreenWindow,
+        in: host,
         scale: scale,
         traits: traits,
         view: controller.view,

@@ -2,18 +2,19 @@
 import UIKit
 
 /// The window a view is hosted in while it renders, which decides how its pixels are taken.
-enum ViewHost: Sendable {
-  /// A window this library makes, which never reaches the screen.
+public enum ViewHost: Sendable {
+  /// A window the library makes, which never reaches the screen.
   ///
-  /// The view's layer tree is drawn directly, so the result depends on nothing outside the
-  /// process. Nothing is composited: a visual effect contributes its tint but not its blur.
+  /// The view's layer tree is drawn directly, so a recording depends on nothing outside the test
+  /// process. Nothing is composited, so a visual effect contributes its tint but not its blur.
   case offscreenWindow
 
-  /// The host application's key window.
+  /// The window the application under test has on screen.
   ///
-  /// The view is drawn as it is composited onscreen, which is the only way to capture
-  /// `UIAppearance` and `UIVisualEffect`s. A test bundle with no host application has no key
-  /// window to draw into.
+  /// The view is drawn as the render server composited it, which is the only way to capture
+  /// `UIAppearance` and `UIVisualEffect`s faithfully. It requires a test bundle hosted by an
+  /// application: a package's own tests have no window on screen to draw into, and snapshotting
+  /// into it reports a failure.
   case keyWindow
 }
 
