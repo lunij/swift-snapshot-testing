@@ -94,7 +94,4 @@ reasons — it downloads and unpacks the `swift:6.3` image, roughly 3.7 GB — a
 build of the package takes several minutes. Later runs reuse both, and an incremental
 test run finishes in well under a minute.
 
-A successful run currently reports **76 tests in 21 suites**, against Swift 6.3.3 on
-`aarch64-unknown-linux-gnu`.
-
 [container]: https://github.com/apple/container
