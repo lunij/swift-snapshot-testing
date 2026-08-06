@@ -16,39 +16,22 @@ extension SnapshotStrategy where Value == NSBezierPath, Format == NSImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  public static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> SnapshotStrategy {
+  ///   - scale: The pixels a point of the recording is made of.
+  public static func image(
+    precision: Float = 1,
+    perceptualPrecision: Float = 1,
+    scale: CGFloat = 1
+  ) -> SnapshotStrategy {
     DirectSnapshotStrategy.image(
       precision: precision,
-      perceptualPrecision: perceptualPrecision
+      perceptualPrecision: perceptualPrecision,
+      scale: scale
     ).transform { path in
-      // Move path info frame:
-      let bounds = path.bounds
-      let transform = AffineTransform(translationByX: -bounds.origin.x, byY: -bounds.origin.y)
-      path.transform(using: transform)
-
-      // Draw into an explicitly sized bitmap so the image is rendered at 1x
-      // regardless of the main display's backing scale factor.
-      let size = path.bounds.size
-      let bitmapRep = NSBitmapImageRep(
-        bitmapDataPlanes: nil,
-        pixelsWide: Int(ceil(size.width)),
-        pixelsHigh: Int(ceil(size.height)),
-        bitsPerSample: 8,
-        samplesPerPixel: 4,
-        hasAlpha: true,
-        isPlanar: false,
-        colorSpaceName: .calibratedRGB,
-        bytesPerRow: 0,
-        bitsPerPixel: 0
-      )!
-      NSGraphicsContext.saveGraphicsState()
-      defer { NSGraphicsContext.restoreGraphicsState() }
-      NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmapRep)
-      path.fill()
-
-      let image = NSImage(size: size)
-      image.addRepresentation(bitmapRep)
-      return image
+      // The path's own winding rule, this being how it fills itself.
+      try path.cgPath.convertToImage(
+        drawingMode: path.windingRule == .evenOdd ? .eoFill : .fill,
+        scale: scale
+      )
     }
   }
 }

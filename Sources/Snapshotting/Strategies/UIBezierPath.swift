@@ -15,7 +15,7 @@ extension SnapshotStrategy where Value == UIBezierPath, Format == UIImage {
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
   ///     human eye.
-  ///   - scale: The scale to use when loading the reference image from disk.
+  ///   - scale: The pixels a point of the recording is made of.
   public static func image(
     precision: Float = 1,
     perceptualPrecision: Float = 1,
@@ -26,12 +26,11 @@ extension SnapshotStrategy where Value == UIBezierPath, Format == UIImage {
       perceptualPrecision: perceptualPrecision,
       scale: scale
     ).transform { path in
-      let bounds = path.bounds
-      let format = UIGraphicsImageRendererFormat.preferred()
-      format.scale = scale
-      return UIGraphicsImageRenderer(bounds: bounds, format: format).image { ctx in
-        path.fill()
-      }
+      // The path's own fill rule, this being how it fills itself.
+      try path.cgPath.convertToImage(
+        drawingMode: path.usesEvenOddFillRule ? .eoFill : .fill,
+        scale: scale
+      )
     }
   }
 }
