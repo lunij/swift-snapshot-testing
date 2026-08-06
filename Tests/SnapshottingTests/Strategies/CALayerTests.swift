@@ -10,6 +10,7 @@ import UIKit
 typealias XColor = UIColor
 #endif
 
+@MainActor
 struct CALayerTests {
   @Test func `CALayer with colors`() async {
     let layer = CALayer()
@@ -36,6 +37,7 @@ struct CALayerTests {
   }
 
   #if canImport(AppKit)
+  @MainActor
   struct CALayerScaleTests {
     /// The layer is drawn at the scale the strategy was asked for, rather than at the scale of
     /// whatever display the machine running the test happens to have attached.

@@ -28,7 +28,7 @@ extension SnapshotStrategy where Value == CALayer, Format == NSImage {
       precision: precision,
       perceptualPrecision: perceptualPrecision,
       scale: scale
-    ).transform { layer in
+    ).transform { @MainActor layer async throws in
       try render(layer, scale: scale)
     }
   }
@@ -41,6 +41,11 @@ extension SnapshotStrategy where Value == CALayer, Format == NSImage {
 /// whatever scale was asked for, which leaves a Retina machine recording a rendering that has to be
 /// resampled down again and a machine attached to a single-density display recording one that does
 /// not — different pixels for the same layer.
+///
+/// Laying a layer out and rendering it opens an implicit `CATransaction`, which Core Animation only
+/// allows on the main thread, so the drawing is main-actor isolated even though the bitmap it draws
+/// into owes nothing to the display.
+@MainActor
 private func render(_ layer: CALayer, scale: CGFloat) throws -> NSImage {
   let canvas = try BitmapCanvas(size: layer.bounds.size, scale: scale)
 
