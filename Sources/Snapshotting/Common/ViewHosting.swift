@@ -6,7 +6,7 @@ import UIKit
 @MainActor
 func prepareView(
   profile: DeviceProfile,
-  drawHierarchyInKeyWindow: Bool,
+  in host: ViewHost = .offscreenWindow,
   traits: @escaping TraitMutations,
   view: UIView,
   viewController: UIViewController
@@ -24,25 +24,12 @@ func prepareView(
     profileTraits(&mutableTraits)
     traits(&mutableTraits)
   }
-  let window: UIWindow
-  // The key window belongs to the host application and outlives the snapshot, so its geometry is
-  // borrowed for the render and handed back afterwards.
-  let restoreWindow: () -> Void
-  if drawHierarchyInKeyWindow {
-    guard let keyWindow = getKeyWindow() else {
-      throw ViewHostingError.keyWindowUnavailable
-    }
-    let originalFrame = keyWindow.frame
-    keyWindow.frame.size = size
-    window = keyWindow
-    restoreWindow = { keyWindow.frame = originalFrame }
-  } else {
-    window = OffscreenWindow(
-      profile: .init(safeArea: profile.safeArea, size: profile.size ?? size, traits: traits),
-      viewController: viewController
-    )
-    restoreWindow = {}
-  }
+  let (window, restoreWindow) = try host.window(
+    for: viewController,
+    profile: profile,
+    size: size,
+    traits: traits
+  )
   let dispose = add(traits: traits, viewController: viewController, to: window)
 
   if size.width == 0 || size.height == 0 {
@@ -61,7 +48,7 @@ func prepareView(
 @MainActor
 func snapshotView(
   profile: DeviceProfile,
-  drawHierarchyInKeyWindow: Bool,
+  in host: ViewHost,
   scale: CGFloat,
   traits: @escaping TraitMutations,
   view: UIView,
@@ -70,7 +57,7 @@ func snapshotView(
   let initialFrame = view.frame
   let dispose = try prepareView(
     profile: profile,
-    drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+    in: host,
     traits: traits,
     view: view,
     viewController: viewController
@@ -85,11 +72,7 @@ func snapshotView(
     return image
   }
   let views = await addImagesForRenderedViews(view)
-  let image = view.convertToImage(
-    scale: scale,
-    traits: traits,
-    drawHierarchyInKeyWindow: drawHierarchyInKeyWindow
-  )
+  let image = view.convertToImage(scale: scale, traits: traits, in: host)
   for view in views { view.removeFromSuperview() }
   view.frame = initialFrame
   dispose()
@@ -172,12 +155,5 @@ private func add(
     viewController.endAppearanceTransition()
     window.rootViewController = originalRootViewController
   }
-}
-
-@MainActor
-private func getKeyWindow() -> UIWindow? {
-  UIApplication.sharedIfAvailable?.connectedScenes
-    .compactMap { ($0 as? UIWindowScene)?.keyWindow }
-    .first
 }
 #endif

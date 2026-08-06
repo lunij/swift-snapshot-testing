@@ -38,13 +38,13 @@ extension XView {
 import UIKit
 
 extension XView {
-  @MainActor func convertToImage(scale: CGFloat, traits: @escaping TraitMutations, drawHierarchyInKeyWindow: Bool) -> XImage {
-    renderer(bounds: bounds, scale: scale, traits: traits).image { ctx in
-      if drawHierarchyInKeyWindow {
-        drawHierarchy(in: bounds, afterScreenUpdates: true)
-      } else {
-        layer.render(in: ctx.cgContext)
-      }
+  @MainActor func convertToImage(
+    scale: CGFloat,
+    traits: @escaping TraitMutations,
+    in host: ViewHost
+  ) -> XImage {
+    renderer(bounds: bounds, scale: scale, traits: traits).image { context in
+      host.draw(self, into: context)
     }
   }
 }

@@ -89,7 +89,7 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
 
       return try await snapshotView(
         profile: profile,
-        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        in: drawHierarchyInKeyWindow ? .keyWindow : .offscreenWindow,
         scale: scale,
         traits: traits,
         view: controller.view,

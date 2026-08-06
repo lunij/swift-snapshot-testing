@@ -49,7 +49,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
       try await snapshotView(
         profile: size.map { .init(safeArea: profile.safeArea, size: $0, traits: profile.traits) }
           ?? profile,
-        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        in: drawHierarchyInKeyWindow ? .keyWindow : .offscreenWindow,
         scale: scale,
         traits: traits,
         view: viewController.view,
@@ -92,7 +92,7 @@ extension SnapshotStrategy where Value == UIViewController, Format == UIImage {
     ).transform { @MainActor viewController async throws in
       try await snapshotView(
         profile: .init(safeArea: .zero, size: size, traits: traits),
-        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        in: drawHierarchyInKeyWindow ? .keyWindow : .offscreenWindow,
         scale: scale,
         traits: traits,
         view: viewController.view,
@@ -127,7 +127,6 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
       .transform(identifier: "hierarchy") { @MainActor viewController async throws in
         let dispose = try prepareView(
           profile: .init(),
-          drawHierarchyInKeyWindow: false,
           traits: { _ in },
           view: viewController.view,
           viewController: viewController
@@ -165,7 +164,6 @@ extension SnapshotStrategy where Value == UIViewController, Format == String {
             size: size ?? profile.size,
             traits: profile.traits
           ),
-          drawHierarchyInKeyWindow: false,
           traits: traits,
           view: viewController.view,
           viewController: viewController
