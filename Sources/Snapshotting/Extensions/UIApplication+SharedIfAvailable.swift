@@ -9,7 +9,7 @@ extension UIApplication {
     }
 
     let shared = UIApplication.perform(sharedSelector)
-    return shared?.takeUnretainedValue() as! UIApplication?
+    return shared?.takeUnretainedValue() as? UIApplication
   }
 }
 #endif
