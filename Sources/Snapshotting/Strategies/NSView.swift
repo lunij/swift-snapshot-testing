@@ -60,10 +60,7 @@ extension SnapshotStrategy where Value == NSView, Format == String {
   /// ```
   public static var recursiveDescription: SnapshotStrategy<NSView, String> {
     DirectSnapshotStrategy.lines.transform(identifier: "recursive-description") { view in
-      purgePointers(
-        view.perform(Selector(("_subtreeDescription"))).retain().takeUnretainedValue()
-          as! String
-      )
+      try runtimeDescription(of: view, printedBy: "_subtreeDescription")
     }
   }
 }

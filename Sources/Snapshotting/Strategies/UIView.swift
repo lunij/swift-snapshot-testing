@@ -79,7 +79,7 @@ extension SnapshotStrategy where Value == UIView, Format == String {
   )
     -> SnapshotStrategy<UIView, String>
   {
-    DirectSnapshotStrategy.lines.transform(identifier: "recursive-description") { @MainActor view async in
+    DirectSnapshotStrategy.lines.transform(identifier: "recursive-description") { @MainActor view async throws in
       let dispose = prepareView(
         profile: .init(safeArea: .zero, size: size ?? view.frame.size, traits: traits),
         drawHierarchyInKeyWindow: false,
@@ -88,10 +88,7 @@ extension SnapshotStrategy where Value == UIView, Format == String {
         viewController: .init()
       )
       defer { dispose() }
-      return purgePointers(
-        view.perform(Selector(("recursiveDescription"))).retain().takeUnretainedValue()
-          as! String
-      )
+      return try runtimeDescription(of: view, printedBy: "recursiveDescription")
     }
   }
 }

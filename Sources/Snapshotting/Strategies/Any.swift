@@ -226,11 +226,3 @@ private let snapshotDateFormatter: DateFormatter = {
   formatter.timeZone = TimeZone(abbreviation: "UTC")
   return formatter
 }()
-
-func purgePointers(_ string: String) -> String {
-  string.replacingOccurrences(
-    of: ":?\\s*0x[\\da-f]+(\\s*)",
-    with: "$1",
-    options: .regularExpression
-  )
-}
