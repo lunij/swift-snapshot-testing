@@ -99,8 +99,9 @@ enum File {
 
     func next(for key: String) -> Int {
       counts.withLock {
-        $0[key, default: 0] += 1
-        return $0[key]!
+        let next = $0[key, default: 0] + 1
+        $0[key] = next
+        return next
       }
     }
 
