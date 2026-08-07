@@ -38,6 +38,30 @@ test-tvos:
 		-resultBundlePath .xcresults/tvos \
 		-workspace . | xcbeautify
 
+record-macos:
+	set -o pipefail && \
+	TEST_RUNNER_SNAPSHOT_RECORD=all \
+	xcodebuild test \
+		-scheme swift-snapshotting-Package \
+		-destination platform="macOS" \
+		-workspace . | xcbeautify
+
+record-ios:
+	set -o pipefail && \
+	TEST_RUNNER_SNAPSHOT_RECORD=all \
+	xcodebuild test \
+		-scheme swift-snapshotting-Package \
+		-destination platform="iOS Simulator,name=iPhone 17,OS=26.4.1" \
+		-workspace . | xcbeautify
+
+record-tvos:
+	set -o pipefail && \
+	TEST_RUNNER_SNAPSHOT_RECORD=all \
+	xcodebuild test \
+		-scheme swift-snapshotting-Package \
+		-destination platform="tvOS Simulator,name=Apple TV 4K (3rd generation),OS=26.4" \
+		-workspace . | xcbeautify
+
 format:
 	swift format \
 		--ignore-unparsable-files \
