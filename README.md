@@ -49,7 +49,7 @@ The record mode decides when a reference is written to disk:
 | `.all` | Writes every snapshot, without comparing. |
 | `.failed` | Writes a snapshot whenever a comparison fails. The default. |
 | `.missing` | Writes only the snapshots that are not yet on disk. |
-| `.never` | Writes nothing, and reports a failure if a reference is missing. Appropriate on CI, so that a re-run cannot succeed on references that were generated unexpectedly. |
+| `.never` | Writes nothing, and reports a failure if a reference is missing. The default on CI, so that a re-run cannot succeed on references that were generated unexpectedly. |
 
 `.failed` is useful with precision thresholds: a comparison that passes within its threshold does
 not re-record a subtly different snapshot, while a real mismatch leaves the new snapshot on disk
@@ -74,7 +74,9 @@ struct FeatureTests {}
 ```
 
 To set the mode for a whole test run without touching the source, set the `SNAPSHOT_RECORD`
-environment variable to `all`, `failed`, `missing` or `never`.
+environment variable to `all`, `failed`, `missing` or `never`. `xcodebuild` needs it spelled
+`TEST_RUNNER_SNAPSHOT_RECORD`, because it does not pass the invoking shell's environment to the test
+process — see [Recording](Documentation/Recording.md).
 
 ### Diff tools
 
@@ -239,6 +241,8 @@ Guides that describe working on the package itself, rather than its API, live in
 
 - [Linux](Documentation/Linux.md) — which strategies travel, and how to run the Linux tests from a
   Mac.
+- [Recording](Documentation/Recording.md) — what a run records when nothing says otherwise, how to
+  set the mode for a whole run under each test runner, and how to re-record every reference.
 
 ## Installation
 
