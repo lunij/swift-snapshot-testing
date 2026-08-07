@@ -21,14 +21,15 @@ import AppKit
 ///   - strategy: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional suffix distinguishing several snapshots taken by the same test, appended to
 ///     `testName`. There is no counter, so snapshots a test takes in the same format need names.
-///   - record: The record mode to use. Defaults to `.failed`, which re-records a mismatch so that an
-///     intended change can be reviewed as a diff of the reference file.
+///   - record: The record mode to use, or `nil` to take the one the process resolved: `.failed`
+///     locally, so that an intended change can be reviewed as a diff of the reference file, and
+///     `.never` on a runner, where a recorded reference is discarded with the checkout.
 ///   - testName: The test the snapshot was taken in, which names the reference file.
 func expectSnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
-  record: SnapshotConfiguration.Record = .failed,
+  record: SnapshotConfiguration.Record? = nil,
   testName: String = #function,
   sourceLocation: SourceLocation = #_sourceLocation,
   isolation: isolated (any Actor)? = #isolation
@@ -60,7 +61,7 @@ func snapshotResult<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
-  record: SnapshotConfiguration.Record = .failed,
+  record: SnapshotConfiguration.Record? = nil,
   testName: String = #function,
   filePath: String = #filePath,
   isolation: isolated (any Actor)? = #isolation
