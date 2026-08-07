@@ -73,7 +73,7 @@ await withSnapshotConfiguration(record: .all) {
 struct FeatureTests {}
 ```
 
-To set the mode for a whole test run without touching the source, set the `SNAPSHOTTING_RECORD`
+To set the mode for a whole test run without touching the source, set the `SNAPSHOT_RECORD`
 environment variable to `all`, `failed`, `missing` or `never`.
 
 ### Diff tools

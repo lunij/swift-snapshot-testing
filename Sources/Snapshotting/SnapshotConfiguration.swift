@@ -76,9 +76,9 @@ public struct SnapshotConfiguration: Sendable {
   /// ``Record-swift.struct/missing``, ``Record-swift.struct/never`` and
   /// ``Record-swift.struct/failed``
   ///
-  /// The default for a whole process can be set with the `SNAPSHOTTING_RECORD` environment
+  /// The default for a whole process can be set with the `SNAPSHOT_RECORD` environment
   /// variable, whose value is one of `all`, `failed`, `missing` or `never`. An unrecognized value
-  /// is ignored, leaving the default of ``Record-swift.struct/missing``.
+  /// is ignored, leaving the default of ``Record-swift.struct/failed``.
   public struct Record: Equatable, Sendable {
     private let storage: Storage
 
@@ -185,12 +185,12 @@ public struct SnapshotConfiguration: Sendable {
   }
 }
 
-/// The record mode for the whole process, read from the `SNAPSHOTTING_RECORD` environment variable.
+/// The record mode for the whole process, read from the `SNAPSHOT_RECORD` environment variable.
 ///
 /// This seeds ``SnapshotConfiguration/current``, so it applies wherever neither an explicit argument
 /// nor an enclosing ``withSnapshotConfiguration(record:diffTool:operation:)`` scope names a mode.
 private let processRecord: SnapshotConfiguration.Record = {
-  if let value = ProcessInfo.processInfo.environment["SNAPSHOTTING_RECORD"],
+  if let value = ProcessInfo.processInfo.environment["SNAPSHOT_RECORD"],
     let record = SnapshotConfiguration.Record(rawValue: value)
   {
     return record
