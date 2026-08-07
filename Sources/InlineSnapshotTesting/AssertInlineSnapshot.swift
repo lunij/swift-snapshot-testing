@@ -1,5 +1,5 @@
 import Foundation
-@_spi(Internals) import SnapshotTesting
+import SnapshotTesting
 @_spi(Internals) import Snapshotting
 import SwiftParser
 import SwiftSyntax
@@ -270,28 +270,27 @@ private let installTestObserver: Void = {
   }
 }()
 
-@_spi(Internals) public struct File: Hashable, Sendable {
-  public let path: StaticString
-  public static func == (lhs: Self, rhs: Self) -> Bool {
+package struct File: Hashable, Sendable {
+  package let path: StaticString
+  package static func == (lhs: Self, rhs: Self) -> Bool {
     "\(lhs.path)" == "\(rhs.path)"
   }
-  public func hash(into hasher: inout Hasher) {
+  package func hash(into hasher: inout Hasher) {
     hasher.combine("\(self.path)")
   }
 }
 
-@_spi(Internals) public struct InlineSnapshot: Hashable, Sendable {
-  public var expected: String?
-  public var actual: String?
-  public var wasRecording: Bool
-  public var syntaxDescriptor: InlineSnapshotSyntaxDescriptor
-  public var function: String
-  public var line: UInt
-  public var column: UInt
+package struct InlineSnapshot: Hashable, Sendable {
+  package var expected: String?
+  package var actual: String?
+  package var wasRecording: Bool
+  package var syntaxDescriptor: InlineSnapshotSyntaxDescriptor
+  package var function: String
+  package var line: UInt
+  package var column: UInt
 }
 
-@_spi(Internals)
-public let inlineSnapshotState = Mutex<[File: [InlineSnapshot]]>([:])
+package let inlineSnapshotState = Mutex<[File: [InlineSnapshot]]>([:])
 
 private struct TestSource {
   let source: String
