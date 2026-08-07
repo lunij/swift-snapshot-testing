@@ -1,7 +1,8 @@
 #if os(iOS) || os(macOS) || os(tvOS)
 import Foundation
-import Snapshotting
 import Testing
+
+@testable import Snapshotting
 
 #if canImport(SceneKit)
 import SceneKit
@@ -57,6 +58,12 @@ struct MetalViewTests {
       as: .image(size: .init(width: 50, height: 50)),
       named: platform
     )
+  }
+
+  @Test func `spritekit view without a scene`() async {
+    let view = SKView(frame: .init(x: 0, y: 0, width: 50, height: 50))
+
+    #expect(await view.snapshot == nil)
   }
 }
 #endif

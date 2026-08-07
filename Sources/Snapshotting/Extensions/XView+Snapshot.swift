@@ -48,7 +48,10 @@ extension XView {
       if let scnView = self as? SCNView {
         return inWindow { scnView.snapshot() }
       } else if let skView = self as? SKView {
-        let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
+        // A view with no scene presented, or one whose contents cannot be read
+        // back as a texture, has nothing to capture.
+        guard let cgImage = inWindow({ skView.scene.flatMap { skView.texture(from: $0)?.cgImage() } })
+        else { return nil }
         #if os(macOS)
         return XImage(cgImage: cgImage, size: skView.bounds.size)
         #elseif os(iOS) || os(tvOS)
