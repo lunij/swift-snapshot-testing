@@ -131,7 +131,12 @@ private func add(
   let originalTraitOverrides = rootViewController.traitOverrides
   var mutableTraits: any UIMutableTraits = rootViewController.traitOverrides
   traits(&mutableTraits)
-  rootViewController.traitOverrides = mutableTraits as! UITraitOverrides
+  // A mutation closure normally sets properties on `mutableTraits`, but being
+  // handed it `inout` it may instead assign an unrelated `UIMutableTraits` in
+  // its place, leaving no overrides to write back to the controller.
+  if let traitOverrides = mutableTraits as? UITraitOverrides {
+    rootViewController.traitOverrides = traitOverrides
+  }
   viewController.didMove(toParent: rootViewController)
 
   window.rootViewController = rootViewController
