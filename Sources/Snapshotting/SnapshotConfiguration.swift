@@ -79,8 +79,18 @@ public struct SnapshotConfiguration: Sendable {
   /// The default for a whole process can be set with the `SNAPSHOT_RECORD` environment variable,
   /// whose value is one of `all`, `failed`, `missing` or `never`. Without it, a run records what
   /// failed, except on CI, where it records nothing.
-  public struct Record: Equatable, Sendable {
+  public struct Record: CustomStringConvertible, Equatable, Sendable {
     private let storage: Storage
+
+    /// The name the mode is written with, which is also the value ``init(rawValue:)`` accepts.
+    public var description: String {
+      switch storage {
+      case .all: "all"
+      case .failed: "failed"
+      case .missing: "missing"
+      case .never: "never"
+      }
+    }
 
     public init?(rawValue: String) {
       switch rawValue {

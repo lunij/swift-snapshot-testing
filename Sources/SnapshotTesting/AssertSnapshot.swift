@@ -1,4 +1,6 @@
 import Foundation
+@_spi(Internals) import Snapshotting
+import Synchronization
 import Testing
 
 #if canImport(UIKit)
@@ -37,6 +39,12 @@ public func assertSnapshot<Value, Format>(
   line: UInt = #line,
   column: UInt = #column
 ) async {
+  reportProcessRecordWarningOnce(
+    fileID: fileID,
+    filePath: filePath,
+    line: line,
+    column: column
+  )
   let result = await verifySnapshot(
     of: try value(),
     as: strategy,
@@ -228,6 +236,28 @@ public func verifySnapshot<Value, Format>(
 }
 
 // MARK: - Private
+
+/// Whether the process-wide record mode misconfiguration has already been reported.
+private let hasReportedProcessRecordWarning = Mutex(false)
+
+/// Reports a malformed `SNAPSHOT_RECORD` the first time an assertion runs.
+///
+/// The misconfiguration is process-wide, so it is reported once and lands on whichever assertion
+/// happened to run first rather than on all of them.
+private func reportProcessRecordWarningOnce(
+  fileID: StaticString,
+  filePath: StaticString,
+  line: UInt,
+  column: UInt
+) {
+  guard let warning = ProcessRecord.current.warning else { return }
+  let isFirst = hasReportedProcessRecordWarning.withLock { hasReported in
+    defer { hasReported = true }
+    return !hasReported
+  }
+  guard isFirst else { return }
+  reportIssue(warning, fileID: fileID, filePath: filePath, line: line, column: column)
+}
 
 /// Records snapshot artifacts as test attachments, so that they show up alongside the failure in
 /// Xcode's test report.

@@ -16,6 +16,23 @@ public struct ProcessRecord: Sendable {
   /// The mode in effect when nothing else names one.
   public let record: SnapshotConfiguration.Record
 
+  /// The value of `SNAPSHOT_RECORD` when it named a mode that does not exist.
+  ///
+  /// Kept rather than discarded so that a caller can report the misconfiguration. Silently falling
+  /// back is the same trap as a variable that never arrived: someone who typed `nver` believes they
+  /// asked for `never` and gets a run that writes.
+  public let unrecognizedValue: String?
+
+  /// The misconfiguration to report before taking any snapshot, or `nil` if there is none.
+  public var warning: String? {
+    unrecognizedValue.map {
+      """
+      'SNAPSHOT_RECORD' is set to '\($0)', which is not a record mode, so snapshots are being taken \
+      with '\(record)'. Valid values are 'all', 'failed', 'missing' and 'never'.
+      """
+    }
+  }
+
   /// How this process's environment resolved.
   public static let current = ProcessRecord(
     environment: ProcessInfo.processInfo.environment,
@@ -28,13 +45,17 @@ public struct ProcessRecord: Sendable {
   @_spi(Internals)
   public init(environment: [String: String], isCI: Bool) {
     let fallback: SnapshotConfiguration.Record = isCI ? .never : .failed
-    guard
-      let value = environment["SNAPSHOT_RECORD"],
-      let record = SnapshotConfiguration.Record(rawValue: value)
-    else {
+    guard let value = environment["SNAPSHOT_RECORD"] else {
       self.record = fallback
+      self.unrecognizedValue = nil
+      return
+    }
+    guard let record = SnapshotConfiguration.Record(rawValue: value) else {
+      self.record = fallback
+      self.unrecognizedValue = value
       return
     }
     self.record = record
+    self.unrecognizedValue = nil
   }
 }

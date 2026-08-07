@@ -30,8 +30,21 @@ struct ProcessRecordTests {
     #expect(process.record == .all)
   }
 
-  @Test func `an unrecognized value falls back`() {
+  @Test func `an unrecognized value falls back and is reported`() {
     let process = ProcessRecord(environment: ["SNAPSHOT_RECORD": "nver"], isCI: false)
     #expect(process.record == .failed)
+    #expect(process.unrecognizedValue == "nver")
+    #expect(
+      process.warning == """
+        'SNAPSHOT_RECORD' is set to 'nver', which is not a record mode, so snapshots are being \
+        taken with 'failed'. Valid values are 'all', 'failed', 'missing' and 'never'.
+        """
+    )
+  }
+
+  @Test func `a recognized value is not reported`() {
+    let process = ProcessRecord(environment: ["SNAPSHOT_RECORD": "never"], isCI: false)
+    #expect(process.unrecognizedValue == nil)
+    #expect(process.warning == nil)
   }
 }
