@@ -131,6 +131,26 @@ struct RecordTests {
     }
   }
 
+  @Test(arguments: [SnapshotConfiguration.Record.failed, .missing, .never])
+  func `a mismatch yields the new snapshot as an artifact`(
+    record: SnapshotConfiguration.Record
+  ) async throws {
+    // What a failure surfaces has to be independent of whether it also re-recorded: on a runner,
+    // nothing records, and the attachment is the only way to see what was rendered.
+    try await withSnapshotURL { snapshotURL in
+      try FileManager.default.createDirectory(
+        at: snapshotURL.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+      )
+      try Data("999".utf8).write(to: snapshotURL)
+      let result = await withSnapshotConfiguration(record: record) {
+        await compare(42, against: snapshotURL)
+      }
+      #expect(result.artifacts.map(\.name) == ["difference.patch", "snapshot.json"])
+      #expect(result.artifacts.last?.data == Data("42".utf8))
+    }
+  }
+
   @Test func `record set to "failed" during missing reference file`() async throws {
     try await withSnapshotURL { snapshotURL in
       let result = await withSnapshotConfiguration(record: .failed) {

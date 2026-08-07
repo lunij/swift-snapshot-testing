@@ -58,6 +58,11 @@ public func compareSnapshot<Value, Format>(
 
       let diffable = try await strategy.snapshot(snapshotValue)
 
+      /// Serializes the snapshot and hands it back as an artifact, writing it over the reference
+      /// only when the record mode asks for it. Producing the artifact either way keeps what a
+      /// failure surfaces independent of whether that failure also re-recorded — a run that records
+      /// nothing still has to attach what it rendered, which is the only way to see it on a machine
+      /// you cannot reach.
       func recordSnapshot(writeToDisk: Bool) throws {
         let snapshotData = try strategy.serializer.toData(diffable)
 
@@ -134,9 +139,7 @@ public func compareSnapshot<Value, Format>(
         failedFilePath: failedSnapshotURL.path
       )
 
-      if record == .failed {
-        try recordSnapshot(writeToDisk: true)
-      }
+      try recordSnapshot(writeToDisk: record == .failed)
 
       return SnapshotResult(
         outcome: .mismatched(failure),
