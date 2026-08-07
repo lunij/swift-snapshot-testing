@@ -1,4 +1,4 @@
-@_spi(Internals) import Snapshotting
+import Snapshotting
 import Testing
 
 struct ProcessRecordTests {

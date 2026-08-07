@@ -1,5 +1,5 @@
 import Foundation
-@_spi(Internals) import Snapshotting
+import Snapshotting
 import Synchronization
 import Testing
 
