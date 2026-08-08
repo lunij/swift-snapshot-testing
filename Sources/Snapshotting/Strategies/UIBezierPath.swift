@@ -38,12 +38,12 @@ extension SnapshotStrategy where Value == UIBezierPath, Format == UIImage {
 }
 
 extension SnapshotStrategy where Value == UIBezierPath, Format == String {
-  /// A snapshot strategy for comparing bezier paths based on pixel equality.
+  /// A snapshot strategy for comparing bezier paths based on element descriptions.
   public static var elementsDescription: SnapshotStrategy {
     SnapshotStrategy<CGPath, String>.elementsDescription.transform { $0.cgPath }
   }
 
-  /// A snapshot strategy for comparing bezier paths based on pixel equality.
+  /// A snapshot strategy for comparing bezier paths based on element descriptions.
   ///
   /// - Parameter numberFormatter: The number formatter used for formatting points.
   public static func elementsDescription(numberFormatter: NumberFormatter) -> SnapshotStrategy {

@@ -19,10 +19,10 @@ struct PathRenderingTests {
   /// happens to sit is not something its recording can tell you.
   @Test func `a path away from the origin records what it would at it`() throws {
     var displacement = CGAffineTransform(translationX: 250, y: -80)
-    let moved = try #require(CGPath.heart.copy(using: &displacement))
+    let moved = try #require(CGPath.fixture.copy(using: &displacement))
     #expect(moved.boundingBoxOfPath.origin == CGPoint(x: 250, y: -80))
 
-    let atOrigin = try pixels(of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft))
+    let atOrigin = try pixels(of: CGPath.fixture.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft))
     let awayFromIt = try pixels(of: moved.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft))
 
     #expect(awayFromIt.bytes == atOrigin.bytes)
@@ -39,26 +39,26 @@ struct PathRenderingTests {
 
   @Test(arguments: [CGFloat(1), 2, 3])
   func `a scale records that many pixels per point`(scale: CGFloat) throws {
-    // The heart measures 90 points on a side.
-    let recording = try pixels(of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: scale, origin: .bottomLeft))
+    // The figure measures 120 points on a side.
+    let recording = try pixels(of: CGPath.fixture.convertToImage(drawingMode: .eoFill, scale: scale, origin: .bottomLeft))
 
-    #expect(recording.width == Int(90 * scale))
-    #expect(recording.height == Int(90 * scale))
+    #expect(recording.width == Int(120 * scale))
+    #expect(recording.height == Int(120 * scale))
   }
 
   /// The corner is named by whatever authored the path rather than taken from the platform, so both
   /// answers have to be available on all of them — and the one is the other turned over.
   @Test func `the origin corner turns the recording over`() throws {
     let fromBottom = try pixels(
-      of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft)
+      of: CGPath.fixture.convertToImage(drawingMode: .eoFill, scale: 1, origin: .bottomLeft)
     )
     let fromTop = try pixels(
-      of: CGPath.heart.convertToImage(drawingMode: .eoFill, scale: 1, origin: .topLeft)
+      of: CGPath.fixture.convertToImage(drawingMode: .eoFill, scale: 1, origin: .topLeft)
     )
 
     #expect(fromTop.width == fromBottom.width)
     #expect(fromTop.height == fromBottom.height)
-    #expect(fromTop.bytes != fromBottom.bytes, "the heart is not symmetrical about its middle row")
+    #expect(fromTop.bytes != fromBottom.bytes, "the figure is not symmetrical about its middle row")
 
     // Turning the picture over is exact for a pixel a path either covers or does not, and rounds the
     // other way for one it half covers, so a mirrored row is the same row to within a single value

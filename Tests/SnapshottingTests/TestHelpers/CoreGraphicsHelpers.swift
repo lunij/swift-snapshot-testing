@@ -77,99 +77,50 @@ extension CGImage {
 }
 
 extension CGPath {
-  /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
-  static var heart: CGPath {
-    let scale: CGFloat = 30.0
+  static var fixture: CGPath {
     let path = CGMutablePath()
 
-    path.move(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
-    path.addLine(to: CGPoint(x: 0.0 * scale, y: 2.0 * scale))
-    path.addQuadCurve(
-      to: CGPoint(x: 1.0 * scale, y: 3.0 * scale),
-      control: CGPoint(x: 0.125 * scale, y: 2.875 * scale)
-    )
-    path.addQuadCurve(
-      to: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
-      control: CGPoint(x: 1.875 * scale, y: 2.875 * scale)
-    )
-    path.addCurve(
-      to: CGPoint(x: 3.0 * scale, y: 1.0 * scale),
-      control1: CGPoint(x: 2.5 * scale, y: 2.0 * scale),
-      control2: CGPoint(x: 3.0 * scale, y: 1.5 * scale)
-    )
-    path.addCurve(
-      to: CGPoint(x: 2.0 * scale, y: 0.0 * scale),
-      control1: CGPoint(x: 3.0 * scale, y: 0.5 * scale),
-      control2: CGPoint(x: 2.5 * scale, y: 0.0 * scale)
-    )
-    path.addLine(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
-    path.closeSubpath()
+    for corner in [CGPoint(x: 0, y: 0), CGPoint(x: 60, y: 60)] {
+      let point = { (x: CGFloat, y: CGFloat) in CGPoint(x: corner.x + x, y: corner.y + y) }
 
-    path.addEllipse(
-      in: CGRect(
-        origin: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
-        size: CGSize(width: scale, height: scale)
-      )
-    )
+      path.move(to: point(0, 0))
+      path.addLine(to: point(60, 0))
+      path.addQuadCurve(to: point(60, 60), control: point(40, 30))
+      path.addCurve(to: point(0, 60), control1: point(40, 50), control2: point(20, 50))
+      path.closeSubpath()
+    }
 
     return path
   }
 }
 #endif
 
-#if os(iOS) || os(tvOS)
-import UIKit
-
-extension UIBezierPath {
-  /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
-  static var heart: UIBezierPath {
-    UIBezierPath(cgPath: .heart)
-  }
-}
-#endif
-
-#if os(macOS)
+#if canImport(AppKit)
 import AppKit
 
 extension NSBezierPath {
-  /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
-  static var heart: NSBezierPath {
-    let scale: CGFloat = 30.0
+  static var fixture: NSBezierPath {
     let path = NSBezierPath()
 
-    path.move(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
-    path.line(to: CGPoint(x: 0.0 * scale, y: 2.0 * scale))
-    path.curve(
-      to: CGPoint(x: 1.0 * scale, y: 3.0 * scale),
-      controlPoint1: CGPoint(x: 0.0 * scale, y: 2.5 * scale),
-      controlPoint2: CGPoint(x: 0.5 * scale, y: 3.0 * scale)
-    )
-    path.curve(
-      to: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
-      controlPoint1: CGPoint(x: 1.5 * scale, y: 3.0 * scale),
-      controlPoint2: CGPoint(x: 2.0 * scale, y: 2.5 * scale)
-    )
-    path.curve(
-      to: CGPoint(x: 3.0 * scale, y: 1.0 * scale),
-      controlPoint1: CGPoint(x: 2.5 * scale, y: 2.0 * scale),
-      controlPoint2: CGPoint(x: 3.0 * scale, y: 1.5 * scale)
-    )
-    path.curve(
-      to: CGPoint(x: 2.0 * scale, y: 0.0 * scale),
-      controlPoint1: CGPoint(x: 3.0 * scale, y: 0.5 * scale),
-      controlPoint2: CGPoint(x: 2.5 * scale, y: 0.0 * scale)
-    )
-    path.line(to: CGPoint(x: 0.0 * scale, y: 0.0 * scale))
-    path.close()
+    for corner in [CGPoint(x: 0, y: 0), CGPoint(x: 60, y: 60)] {
+      let point = { (x: CGFloat, y: CGFloat) in CGPoint(x: corner.x + x, y: corner.y + y) }
 
-    path.appendOval(
-      in: CGRect(
-        origin: CGPoint(x: 2.0 * scale, y: 2.0 * scale),
-        size: CGSize(width: scale, height: scale)
-      )
-    )
+      path.move(to: point(0, 0))
+      path.line(to: point(60, 0))
+      path.curve(to: point(60, 60), controlPoint: point(40, 30))
+      path.curve(to: point(0, 60), controlPoint1: point(40, 50), controlPoint2: point(20, 50))
+      path.close()
+    }
 
     return path
+  }
+}
+#elseif canImport(UIKit)
+import UIKit
+
+extension UIBezierPath {
+  static var fixture: UIBezierPath {
+    UIBezierPath(cgPath: .fixture)
   }
 }
 #endif
