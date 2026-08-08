@@ -132,7 +132,6 @@ extension SnapshotStrategy where Value: View, Format == NSImage {
       .image(precision: precision, perceptualPrecision: perceptualPrecision, scale: scale)
       .transform { @MainActor view async in
         let controller = NSHostingController(rootView: view)
-        let initialFrame = controller.view.frame
 
         let size: CGSize
         switch layout {
@@ -142,14 +141,7 @@ extension SnapshotStrategy where Value: View, Format == NSImage {
           size = controller.sizeThatFits(in: .zero)
         }
 
-        let nsView = controller.view
-        nsView.frame.size = size
-
-        let views = await addImagesForRenderedViews(nsView)
-        let image = nsView.convertToImage(scale: scale)
-        for view in views { view.removeFromSuperview() }
-        nsView.frame = initialFrame
-        return image
+        return await snapshotView(view: controller.view, size: size, scale: scale)
       }
   }
 }

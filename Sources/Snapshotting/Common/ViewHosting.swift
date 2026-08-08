@@ -161,4 +161,37 @@ private func add(
     window.rootViewController = originalRootViewController
   }
 }
+#elseif os(macOS)
+import Cocoa
+
+/// Renders a view into an image, leaving the view as it was found.
+///
+/// AppKit lays a view out in the window it already has, if any, so there is no counterpart here to
+/// the window the UIKit side has to build: what a Mac snapshot needs a host for is the two views
+/// that cannot draw their own layers.
+///
+/// - Parameters:
+///   - view: The view to render.
+///   - size: A size to lay the view out at, or `nil` to render it at the one it already has.
+///   - scale: The pixels a point of the recording is made of.
+@MainActor
+func snapshotView(view: NSView, size: CGSize?, scale: CGFloat) async -> NSImage {
+  let initialFrame = view.frame
+  defer { view.frame = initialFrame }
+
+  if let size { view.frame.size = size }
+
+  // A view that draws through its own snapshot API — a Metal-backed one, or a web view — has
+  // nothing in its layer tree to render.
+  if let snapshot = await view.snapshot {
+    return snapshot
+  }
+
+  // Descendants that draw that way are photographed and their photographs laid over them, so that
+  // rendering the layer tree picks them up.
+  let imageViews = await addImagesForRenderedViews(view)
+  defer { for imageView in imageViews { imageView.removeFromSuperview() } }
+
+  return view.convertToImage(scale: scale)
+}
 #endif

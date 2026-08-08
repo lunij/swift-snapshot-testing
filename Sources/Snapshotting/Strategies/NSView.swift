@@ -33,16 +33,7 @@ extension SnapshotStrategy where Value == NSView, Format == NSImage {
       perceptualPrecision: perceptualPrecision,
       scale: scale
     ).transform { @MainActor view async in
-      let initialSize = view.frame.size
-      if let size = size { view.frame.size = size }
-      if let snapshot = await view.snapshot {
-        return snapshot
-      }
-      let views = await addImagesForRenderedViews(view)
-      let image = view.convertToImage(scale: scale)
-      for view in views { view.removeFromSuperview() }
-      view.frame.size = initialSize
-      return image
+      await snapshotView(view: view, size: size, scale: scale)
     }
   }
 }
