@@ -224,6 +224,16 @@ public func verifySnapshot<Value, Format>(
     filePath: filePath,
     testName: testName
   )
+  // Returned rather than reported, so that the refusal reaches whoever called this — a third-party
+  // assert helper included — through the result they already inspect. The value is left unevaluated:
+  // a snapshot that cannot be identified is not taken.
+  if let refusal = location.refusal {
+    return SnapshotResult(
+      outcome: .errored(refusal),
+      snapshotURL: location.snapshotURL,
+      name: name
+    )
+  }
   return await compareSnapshot(
     of: try value(),
     as: strategy,

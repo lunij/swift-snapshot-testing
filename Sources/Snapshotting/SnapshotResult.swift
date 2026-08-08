@@ -26,7 +26,8 @@ public struct SnapshotResult: Sendable {
     /// A reference existed but could not be decoded. Carries the underlying reason.
     case referenceUnreadable(String)
 
-    /// Snapshotting the value itself failed. Carries the underlying reason.
+    /// The snapshot was never taken, either because snapshotting the value failed or because the
+    /// caller refused to take it. Carries the underlying reason.
     case errored(String)
   }
 
