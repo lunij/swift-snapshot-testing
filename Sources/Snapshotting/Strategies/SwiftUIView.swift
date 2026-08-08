@@ -18,7 +18,6 @@ public enum SwiftUISnapshotLayout: Sendable {
 }
 
 #if os(iOS) || os(tvOS)
-@available(iOS 13.0, tvOS 13.0, *)
 extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
 
   /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
@@ -102,7 +101,6 @@ extension SnapshotStrategy where Value: SwiftUI.View, Format == UIImage {
 #endif
 
 #if os(macOS)
-@available(macOS 10.15, *)
 extension SnapshotStrategy where Value: View, Format == NSImage {
 
   /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
