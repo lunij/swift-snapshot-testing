@@ -4,24 +4,25 @@ import AppKit
 extension SnapshotStrategy where Value == CALayer, Format == NSImage {
   /// A snapshot strategy for comparing layers based on pixel equality.
   ///
-  /// Every pixel must match the reference. Use `image(precision:perceptualPrecision:)` to tolerate
-  /// a percentage of differing pixels.
+  /// Every pixel must match the reference within a 99% perceptual tolerance, so imperceptible
+  /// rendering differences (e.g. antialiasing) are allowed while any visible change fails.
   public static var image: SnapshotStrategy { .image() }
 
   /// A snapshot strategy for comparing layers based on pixel equality.
   ///
   /// - Parameters:
-  ///   - precision: The percentage of pixels that must match.
+  ///   - precision: The percentage of pixels that must match. Defaults to `1`, requiring every
+  ///     pixel to match within `perceptualPrecision`.
   ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
   ///     match. 98-99% mimics
   ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-  ///     human eye.
+  ///     human eye. Defaults to `0.99`, tolerating imperceptible rendering differences.
   ///   - scale: The pixels a point of the recording is made of. The layer draws itself at this
   ///     resolution, so a reference is the strategy's to describe rather than the display's that
   ///     happened to be attached.
   public static func image(
     precision: Float = 1,
-    perceptualPrecision: Float = 1,
+    perceptualPrecision: Float = 0.99,
     scale: CGFloat = SnapshotScale.default
   ) -> SnapshotStrategy {
     DirectSnapshotStrategy.image(
