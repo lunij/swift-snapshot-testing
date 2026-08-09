@@ -6,7 +6,7 @@ Powerfully flexible snapshot testing.
 
 ### Essentials
 
-- ``assertSnapshot(of:as:named:record:isolation:fileID:file:testName:line:column:)``
+- ``assertSnapshot(of:as:named:argument:record:isolation:fileID:file:testName:line:column:)``
 - <doc:IntegratingWithTestFrameworks>
 
 ### Configuration

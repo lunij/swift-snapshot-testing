@@ -5,7 +5,7 @@ Learn how to use snapshot testing with Swift Testing, Apple's native testing fra
 ## Overview
 
 SnapshotTesting integrates natively with Swift Testing. You can use
-``assertSnapshot(of:as:named:record:isolation:fileID:file:testName:line:column:)`` directly in any
+``assertSnapshot(of:as:named:argument:record:isolation:fileID:file:testName:line:column:)`` directly in any
 `@Test` function:
 
 ```swift

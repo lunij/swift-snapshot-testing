@@ -15,6 +15,9 @@ import AppKit
 ///   - value: A value to compare against a reference.
 ///   - strategy: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
+///   - argument: The argument the test case is running under. Only a parameterized test has one, and
+///     only there does it take part in the file name, so that the cases of one test do not share a
+///     reference.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -31,6 +34,7 @@ public func assertSnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
+  argument: (any LosslessStringConvertible)? = nil,
   record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
@@ -49,6 +53,7 @@ public func assertSnapshot<Value, Format>(
     of: try value(),
     as: strategy,
     named: name,
+    argument: argument,
     record: record,
     isolation: isolation,
     file: filePath,
@@ -77,6 +82,9 @@ public func assertSnapshot<Value, Format>(
 ///   - value: A value to compare against a reference.
 ///   - strategies: A dictionary of names and strategies for serializing, deserializing, and
 ///     comparing values.
+///   - argument: The argument the test case is running under. Only a parameterized test has one, and
+///     only there does it take part in the file name, so that the cases of one test do not share a
+///     reference.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -92,6 +100,7 @@ public func assertSnapshot<Value, Format>(
 public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategies: [String: SnapshotStrategy<Value, Format>],
+  argument: (any LosslessStringConvertible)? = nil,
   record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
@@ -105,6 +114,7 @@ public func assertSnapshots<Value, Format>(
       of: try value(),
       as: strategy,
       named: name,
+      argument: argument,
       record: record,
       isolation: isolation,
       fileID: fileID,
@@ -121,6 +131,9 @@ public func assertSnapshots<Value, Format>(
 /// - Parameters:
 ///   - value: A value to compare against a reference.
 ///   - strategies: An array of strategies for serializing, deserializing, and comparing values.
+///   - argument: The argument the test case is running under. Only a parameterized test has one, and
+///     only there does it take part in the file name, so that the cases of one test do not share a
+///     reference.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -136,6 +149,7 @@ public func assertSnapshots<Value, Format>(
 public func assertSnapshots<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategies: [SnapshotStrategy<Value, Format>],
+  argument: (any LosslessStringConvertible)? = nil,
   record: SnapshotConfiguration.Record? = nil,
   isolation: isolated (any Actor)? = #isolation,
   fileID: StaticString = #fileID,
@@ -148,6 +162,7 @@ public func assertSnapshots<Value, Format>(
     await assertSnapshot(
       of: try value(),
       as: strategy,
+      argument: argument,
       record: record,
       isolation: isolation,
       fileID: fileID,
@@ -196,6 +211,9 @@ public func assertSnapshots<Value, Format>(
 ///   - value: A value to compare against a reference.
 ///   - strategy: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
+///   - argument: The argument the test case is running under. Only a parameterized test has one, and
+///     only there does it take part in the file name, so that the cases of one test do not share a
+///     reference.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
 ///     in a directory with the same name as the test file, and that directory will sit inside a
@@ -211,6 +229,7 @@ public func verifySnapshot<Value, Format>(
   of value: @autoclosure () throws -> Value,
   as strategy: SnapshotStrategy<Value, Format>,
   named name: String? = nil,
+  argument: (any LosslessStringConvertible)? = nil,
   record: SnapshotConfiguration.Record? = nil,
   snapshotDirectory: String? = nil,
   isolation: isolated (any Actor)? = #isolation,
@@ -219,6 +238,7 @@ public func verifySnapshot<Value, Format>(
 ) async -> SnapshotResult {
   let location = SnapshotLocation(
     named: name,
+    argument: argument,
     pathExtension: strategy.pathExtension,
     snapshotDirectory: snapshotDirectory,
     filePath: filePath,
