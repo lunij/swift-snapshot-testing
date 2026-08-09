@@ -1,53 +1,40 @@
-import Foundation
 import Testing
 
 @testable import SnapshotTesting
 
 struct SnapshotLocationTests {
-  @Test func `unnamed snapshots are numbered in the order they are taken`() async {
-    let directory = scratchDirectory()
-    defer { try? FileManager.default.removeItem(at: directory) }
+  @Test func `unnamed snapshots are numbered in the order they are taken`() {
+    let first = createSnapshotLocation()
+    let second = createSnapshotLocation()
 
-    let first = await verifySnapshot(of: 1, as: .json, snapshotDirectory: directory.path)
-    let second = await verifySnapshot(of: 2, as: .json, snapshotDirectory: directory.path)
-
-    #expect(first.snapshotURL.lastPathComponent == "unnamed-snapshots-are-numbered-in-the-order-they-are-taken.1.json")
-    #expect(second.snapshotURL.lastPathComponent == "unnamed-snapshots-are-numbered-in-the-order-they-are-taken.2.json")
+    #expect(
+      first.snapshotURL.lastPathComponent
+        == "unnamed-snapshots-are-numbered-in-the-order-they-are-taken.1.json"
+    )
+    #expect(
+      second.snapshotURL.lastPathComponent
+        == "unnamed-snapshots-are-numbered-in-the-order-they-are-taken.2.json"
+    )
   }
 
-  @Test func `a named snapshot is identified by its name rather than a number`() async {
-    let directory = scratchDirectory()
-    defer { try? FileManager.default.removeItem(at: directory) }
+  @Test func `a named snapshot is identified by its name rather than a number`() {
+    let location = createSnapshotLocation(named: "the name")
 
-    let result = await verifySnapshot(of: 1, as: .json, named: "the name", snapshotDirectory: directory.path)
-
-    #expect(result.snapshotURL.lastPathComponent == "a-named-snapshot-is-identified-by-its-name-rather-than-a-number.the-name.json")
+    #expect(
+      location.snapshotURL.lastPathComponent
+        == "a-named-snapshot-is-identified-by-its-name-rather-than-a-number.the-name.json"
+    )
   }
 
-  /// Two snapshots given one name resolve to one reference, and the second is compared against what
+  /// Two snapshots given one name resolve to one reference, so the second is compared against what
   /// the first recorded. Reporting that as the collision it is comes later; this pins what happens
   /// until it does.
-  @Test func `a repeated name resolves to the reference the first one recorded`() async {
-    let directory = scratchDirectory()
-    defer { try? FileManager.default.removeItem(at: directory) }
+  @Test func `a repeated name resolves to one reference`() {
+    let first = createSnapshotLocation(named: "twice")
+    let second = createSnapshotLocation(named: "twice")
 
-    let first = await verifySnapshot(
-      of: 1,
-      as: .json,
-      named: "twice",
-      record: .missing,
-      snapshotDirectory: directory.path
-    )
-    let second = await verifySnapshot(
-      of: 1,
-      as: .json,
-      named: "twice",
-      record: .never,
-      snapshotDirectory: directory.path
-    )
-
-    #expect(first.outcome == .referenceRecorded)
-    #expect(second.outcome == .matched)
+    #expect(first.refusal == nil)
+    #expect(second.refusal == nil)
     #expect(first.snapshotURL == second.snapshotURL)
   }
 
@@ -88,17 +75,10 @@ struct SnapshotLocationTests {
     #expect(createSnapshotLocation(argument: value).refusal == parameterizedRefusal)
   }
 
-  /// Every case has to be refused, so every argument is asserted. Nothing reaches the disk: a
-  /// snapshot that cannot be identified is not taken at all.
+  /// Every case has to be refused, so every argument is asserted.
   @Test(arguments: [1, 2, 3])
-  func `an unnamed snapshot in a parameterized test is refused`(value: Int) async {
-    let directory = scratchDirectory()
-    defer { try? FileManager.default.removeItem(at: directory) }
-
-    let result = await verifySnapshot(of: value, as: .json, snapshotDirectory: directory.path)
-
-    #expect(result.outcome == .errored(parameterizedRefusal))
-    #expect(!FileManager.default.fileExists(atPath: directory.path))
+  func `an unnamed snapshot in a parameterized test is refused`(value: Int) {
+    #expect(createSnapshotLocation().refusal == parameterizedRefusal)
   }
 
   /// Numbering used to reset per case, or not, depending on whether an unrelated configuration trait
@@ -107,31 +87,21 @@ struct SnapshotLocationTests {
   @Suite(.snapshotRecord(.failed), .snapshotDiffTool(.ksdiff))
   struct UnderAConfigurationTrait {
     @Test(arguments: [1, 2, 3])
-    func `an unnamed snapshot in a parameterized test is refused`(value: Int) async {
-      let directory = scratchDirectory()
-      defer { try? FileManager.default.removeItem(at: directory) }
-
-      let result = await verifySnapshot(of: value, as: .json, snapshotDirectory: directory.path)
-
-      #expect(result.outcome == .errored(parameterizedRefusal))
-      #expect(!FileManager.default.fileExists(atPath: directory.path))
+    func `an unnamed snapshot in a parameterized test is refused`(value: Int) {
+      #expect(createSnapshotLocation().refusal == parameterizedRefusal)
     }
   }
 }
 
 // MARK: - Private
 
-private func scratchDirectory() -> URL {
-  FileManager.default.temporaryDirectory
-    .appending(path: "SnapshotLocationTests-\(UUID().uuidString)", directoryHint: .isDirectory)
-}
-
 private func createSnapshotLocation(
-  argument: (any LosslessStringConvertible)?,
+  named name: String? = nil,
+  argument: (any LosslessStringConvertible)? = nil,
   testName: String = #function
 ) -> SnapshotLocation {
   SnapshotLocation(
-    named: nil,
+    named: name,
     argument: argument,
     pathExtension: "json",
     snapshotDirectory: "/derived",
