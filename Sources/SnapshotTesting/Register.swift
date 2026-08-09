@@ -20,8 +20,9 @@ final class Register: Sendable {
   ///
   /// `Test.Case` publishes no identity, so a test is the finest grain available. That is one register
   /// per test case for every test but a parameterized one, whose cases share both a test and,
-  /// therefore, a register — see ``SnapshotLocation``, which refuses the one thing that would make
-  /// sharing ambiguous. The `nil` key holds the register for snapshots taken outside a test.
+  /// therefore, a register. Sharing costs them nothing, because ``SnapshotLocation`` folds the
+  /// argument a snapshot was taken under into its name, so the keys the runs claim differ anyway. The
+  /// `nil` key holds the register for snapshots taken outside a test.
   private static let registers = Mutex<[Test.ID?: Register]>([:])
 
   /// How often each key has been claimed.
