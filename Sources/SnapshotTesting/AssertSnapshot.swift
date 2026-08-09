@@ -17,7 +17,9 @@ import AppKit
 ///   - name: An optional description of the snapshot.
 ///   - argument: The argument the test case is running under. Only a parameterized test has one, and
 ///     only there does it take part in the file name, so that the cases of one test do not share a
-///     reference.
+///     reference. Defaults to the value being snapshot, whenever that value describes itself
+///     losslessly; pass one when it does not, or when the value is not what the test is
+///     parameterized over.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -84,7 +86,9 @@ public func assertSnapshot<Value, Format>(
 ///     comparing values.
 ///   - argument: The argument the test case is running under. Only a parameterized test has one, and
 ///     only there does it take part in the file name, so that the cases of one test do not share a
-///     reference.
+///     reference. Defaults to the value being snapshot, whenever that value describes itself
+///     losslessly; pass one when it does not, or when the value is not what the test is
+///     parameterized over.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -133,7 +137,9 @@ public func assertSnapshots<Value, Format>(
 ///   - strategies: An array of strategies for serializing, deserializing, and comparing values.
 ///   - argument: The argument the test case is running under. Only a parameterized test has one, and
 ///     only there does it take part in the file name, so that the cases of one test do not share a
-///     reference.
+///     reference. Defaults to the value being snapshot, whenever that value describes itself
+///     losslessly; pass one when it does not, or when the value is not what the test is
+///     parameterized over.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - isolation: The actor to isolate to.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
@@ -213,7 +219,9 @@ public func assertSnapshots<Value, Format>(
 ///   - name: An optional description of the snapshot.
 ///   - argument: The argument the test case is running under. Only a parameterized test has one, and
 ///     only there does it take part in the file name, so that the cases of one test do not share a
-///     reference.
+///     reference. Defaults to the value being snapshot, whenever that value describes itself
+///     losslessly; pass one when it does not, or when the value is not what the test is
+///     parameterized over.
 ///   - record: The record mode to use while asserting snapshots.
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
 ///     in a directory with the same name as the test file, and that directory will sit inside a
@@ -236,33 +244,53 @@ public func verifySnapshot<Value, Format>(
   file filePath: StaticString = #filePath,
   testName: String = #function
 ) async -> SnapshotResult {
+  // Evaluated before the location is derived, because a value that describes itself losslessly is
+  // the argument it was taken under, and naming the snapshot after it spares a parameterized test
+  // from repeating itself. This function is isolated to `isolation`, so a UIKit or AppKit value is
+  // still built wherever the caller wrote it.
+  let snapshotValue = Result<Value, any Error> { try value() }
+  let derivedArgument = (try? snapshotValue.get())
+    .flatMap { $0 as? any LosslessStringConvertible }
+
   let location = SnapshotLocation(
     named: name,
-    argument: argument,
+    // The value is not always what a test is parameterized over, so an argument the caller named
+    // outranks the one the value describes.
+    argument: argument ?? derivedArgument,
     pathExtension: strategy.pathExtension,
     snapshotDirectory: snapshotDirectory,
     filePath: filePath,
     testName: testName
   )
-  // Returned rather than reported, so that the refusal reaches whoever called this — a third-party
-  // assert helper included — through the result they already inspect. The value is left unevaluated:
-  // a snapshot that cannot be identified is not taken.
-  if let refusal = location.refusal {
+
+  switch snapshotValue {
+  case .failure(let error):
     return SnapshotResult(
-      outcome: .errored(refusal),
+      outcome: .errored(error.localizedDescription),
       snapshotURL: location.snapshotURL,
       name: name
     )
+  case .success(let snapshotValue):
+    // Returned rather than reported, so that the refusal reaches whoever called this — a third-party
+    // assert helper included — through the result they already inspect. A snapshot that cannot be
+    // identified is neither rendered nor written.
+    if let refusal = location.refusal {
+      return SnapshotResult(
+        outcome: .errored(refusal),
+        snapshotURL: location.snapshotURL,
+        name: name
+      )
+    }
+    return await compareSnapshot(
+      of: snapshotValue,
+      as: strategy,
+      against: location.snapshotURL,
+      artifactDirectory: location.artifactDirectory,
+      named: name,
+      record: record,
+      isolation: isolation
+    )
   }
-  return await compareSnapshot(
-    of: try value(),
-    as: strategy,
-    against: location.snapshotURL,
-    artifactDirectory: location.artifactDirectory,
-    named: name,
-    record: record,
-    isolation: isolation
-  )
 }
 
 // MARK: - Private
