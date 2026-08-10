@@ -23,6 +23,26 @@ import Foundation
 /// )
 /// // a-view-in-both-appearances.recursive-description.dark.txt
 /// ```
+///
+/// ## Platforms
+///
+/// That name is then looked for at three rungs, most specific first:
+///
+/// ```
+/// a-view.macos26.png
+/// a-view.macos.png
+/// a-view.png
+/// ```
+///
+/// The most specific rung that exists wins, and a name with no file yet resolves to the last. So
+/// output that every platform renders alike keeps one shared reference indefinitely, while a value
+/// that renders differently per platform is split apart by moving the file once — no call site says
+/// which of the two it is.
+///
+/// Nothing parses a file name to find the rung it is on: the candidates are composed here and looked
+/// for, so a qualifier that happens to read like a platform is never mistaken for one. And which rung
+/// is in use depends only on what is on disk, never on when the reference was composed, so a name
+/// resolves the same on a recording run as on a verifying one.
 package struct SnapshotReference: Hashable, Sendable {
   /// The file holding the reference snapshot.
   package let url: URL
@@ -30,7 +50,8 @@ package struct SnapshotReference: Hashable, Sendable {
   /// The name of the reference file, including its path extension.
   package var name: String { url.lastPathComponent }
 
-  /// Composes the reference a snapshot is written to and read from.
+  /// Composes the reference a snapshot is written to and read from, and resolves which platform it
+  /// belongs to by what is on disk.
   ///
   /// Every component is reduced to what can name a file, and one that has nothing left after that
   /// is dropped rather than left as an empty component. A qualifier a caller cannot supply
@@ -56,17 +77,26 @@ package struct SnapshotReference: Hashable, Sendable {
     }
     components.append(contentsOf: qualifiers)
 
-    let name =
+    let stem =
       components
       .map { $0.sanitizePathComponent() }
       .filter { !$0.isEmpty }
       .joined(separator: ".")
 
-    var url = directory.appending(path: name)
-    if let pathExtension {
-      url = url.appendingPathExtension(pathExtension)
+    func url(qualifiedBy platform: String? = nil) -> URL {
+      var url = directory.appending(path: platform.map { "\(stem).\($0)" } ?? stem)
+      if let pathExtension {
+        url = url.appendingPathExtension(pathExtension)
+      }
+      return url
     }
-    self.url = url
+
+    let fileManager = FileManager.default
+    self.url =
+      [SnapshotPlatform.versionedName, SnapshotPlatform.name]
+      .compactMap { $0.map { url(qualifiedBy: $0) } }
+      .first { fileManager.fileExists(atPath: $0.path) }
+      ?? url()
   }
 }
 
