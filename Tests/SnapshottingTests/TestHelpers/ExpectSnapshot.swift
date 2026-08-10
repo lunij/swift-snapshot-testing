@@ -66,19 +66,17 @@ func snapshotResult<Value, Format>(
   filePath: String = #filePath,
   isolation: isolated (any Actor)? = #isolation
 ) async -> SnapshotResult {
-  var fileName = sanitizePathComponent(testName)
-  if let name {
-    fileName += ".\(sanitizePathComponent(name))"
-  }
-  if let pathExtension = strategy.pathExtension {
-    fileName += ".\(pathExtension)"
-  }
-  let file = SnapshotFile(fileName, filePath: filePath)
+  let file = SnapshotFile(
+    base: testName,
+    qualifiers: [name].compactMap { $0 },
+    pathExtension: strategy.pathExtension,
+    filePath: filePath
+  )
 
   return await compareSnapshot(
     of: try value(),
     as: strategy,
-    against: file.snapshotURL,
+    against: file.reference.url,
     artifactDirectory: file.artifactDirectory,
     named: name,
     record: record,
@@ -138,12 +136,4 @@ private func recordAttachment(_ data: Data, named name: String, sourceLocation: 
   #endif
   Attachment.record(data, named: name, sourceLocation: sourceLocation)
   #endif
-}
-
-/// Reduces a test or snapshot name to something usable as a file name, turning `#function`'s
-/// `"Encodable snapshot()"` into `"Encodable-snapshot"`.
-private func sanitizePathComponent(_ string: String) -> String {
-  string
-    .replacingOccurrences(of: "\\W+", with: "-", options: .regularExpression)
-    .replacingOccurrences(of: "^-|-$", with: "", options: .regularExpression)
 }

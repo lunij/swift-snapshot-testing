@@ -1,29 +1,36 @@
 import Foundation
+import Snapshotting
 
 /// The reference snapshot a test compares against, and where a mismatch is written.
 ///
-/// Reference files are named explicitly. There is no per-test counter, so a value snapshot twice in
-/// one test needs two names.
+/// This places the directories; `SnapshotReference` names the file within them.
 struct SnapshotFile {
   /// The reference file, inside `__Snapshots__/<file name>/` next to the calling file.
-  let snapshotURL: URL
+  let reference: SnapshotReference
 
   /// The directory a mismatching snapshot is written to, so that it can be diffed.
   let artifactDirectory: URL
 
   /// - Parameters:
-  ///   - name: The reference file's name, including its path extension.
+  ///   - base: What the snapshot is of.
+  ///   - qualifiers: What tells this snapshot from the others sharing its base, most general first.
+  ///   - pathExtension: The path extension of the strategy's format, if any.
   ///   - filePath: The file requesting the snapshot.
-  init(_ name: String, filePath: String) {
+  init(base: String, qualifiers: [String] = [], pathExtension: String? = nil, filePath: String) {
     let fileURL = URL(filePath: filePath, directoryHint: .isDirectory)
     let fileName = fileURL.deletingPathExtension().lastPathComponent
-
-    self.snapshotURL =
+    let directory =
       fileURL
       .deletingLastPathComponent()
       .appending(path: "__Snapshots__")
       .appending(path: fileName)
-      .appending(path: name)
+
+    self.reference = SnapshotReference(
+      base: base,
+      qualifiers: qualifiers,
+      pathExtension: pathExtension,
+      in: directory
+    )
     self.artifactDirectory = URL(filePath: NSTemporaryDirectory(), directoryHint: .isDirectory)
       .appending(path: fileName)
   }
